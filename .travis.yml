@@ -1,0 +1,39 @@
+language: python
+
+sudo: false
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache/pip
+
+python:
+    - "2.7"
+
+addons:
+  apt:
+    packages:
+      - python-lxml  # because pip installation is slow 
+      - nodejs
+
+virtualenv:
+  system_site_packages: true
+
+install:
+    # Remove packages installed from addons-apt-packages of travis file
+    - find -L ${TRAVIS_BUILD_DIR} -name requirements.txt -exec sed -i '/lxml/d'  {} \;
+    - find -L ${TRAVIS_BUILD_DIR} -name install.sh -exec sed -i '/node/d'  {} \;
+
+    # Install dependencies
+    - ${TRAVIS_BUILD_DIR}/install.sh
+
+    # Install testing dependencies
+    - pip install --upgrade pyopenssl ndg-httpsclient pyasn1
+    - pip install coveralls flake8
+
+script:
+    - flake8 --exclude=__init__.py .
+    - coverage run setup.py test
+
+after_success:
+    - coveralls
+    - coverage report -m

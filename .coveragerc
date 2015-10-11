@@ -1,0 +1,17 @@
+# Config file .coveragerc
+
+[report]
+include =
+    pylint_odoo/*
+
+omit =
+    */test_repo/*
+    *__init__.py
+    *__openerp__.py
+
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Don't complain about self-execute
+    if __name__ == '__main__':
+    # Don't complain about uninstalled packages
+    except OSError as oserr:
