@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="view_model_form" model="ir.ui.view">
+            <field name="name">view.model.form</field>
+            <field name="model">test.model</field>
+            <field name="arch" type="xml">
+                <form string="Test model">
+                    <field name="name"/>
+                </form>
+            </field>
+        </record>
+        <!-- duplicate record id -->
+        <record id="view_model_form" model="ir.ui.view">
+            <field name="name">view.model.form</field>
+            <field name="model">test.model</field>
+            <field name="arch" type="xml">
+                <tree string="Test model">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--duplicate id but different module-->
+        <record id="base.view_model_form" model="ir.ui.view">
+            <field name="name">view.model.form</field>
+            <field name="model">test.model</field>
+            <field name="arch" type="xml">
+                <tree string="Test model">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--ir.filters without explicit user_id-->
+        <record id="filter_test_model" model="ir.filters">
+            <field name="name">By name</field>
+            <field name="model_id">test.model</field>
+            <field name="context">{'group_by': ['name']}</field>
+        </record>
+
+    </data>
+</openerp>
