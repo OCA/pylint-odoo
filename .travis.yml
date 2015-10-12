@@ -37,3 +37,11 @@ script:
 after_success:
     - coveralls
     - coverage report -m
+
+deploy:
+  provider: pypi
+  user: oca
+  password:
+    secure: hKfey6oW+K7HWxE6NJP4O9NtLnnrlofvyLAdoTk6TTA5ucqVizud7vAZN2eCu4Ftw+coTvmJLnZiy9qAREPhe3yeVyfcAOJZr4qQpH8Nzm0VKzKvOpq0L0PTFaNk1Btmmw7lbicGZsLm2qLj0dgg8pDBQ/q6U+A54gfAy3ddIAcdOP1tfdVIC1TPuSXxa8IBEec4BLE4Ao/gKoUBV9MSWyd3TgUbEycNAHHU27muhGxzEyOMW4GBgklyAjwtCzcMIPP8YW8uethCw+9nvU6q1petJYviLwM+txYrHHrgENS2yec8oFbqfXzYXprrx05BHvSdBZT5Rq2tGo02FG17FZ/HNx7g0lS7pRcyfx+8Vapf88pJdaW9rQmP90PEV5mO7EpOJ30s+xp02OIeUSkNIhIXCf9EGibW2gQynljqyuHdl1pBabBSFxA/9JICEyGEYkIRnOaKKzqBHjcpvh0AgpD/JpX5YkIc9bGjYRMiKh7bVM0JXHk1RUeC70jqAGRCObFGBF94O02POoOsRNL3+y7B+tEfbfpaSQQzqGtcfNpR/x6I5MzgNTDMGnzeUipiZM0dYaqcHdY8eAwKRMXIBVmB9JxRP+qjKtg+gSHSB4Mcmgm7hwyUWAvmxt3BnlHfF+ayyKzd0idnjGR0Gd2korndxGf0ZBbSqjkgCtPpdow=
+  on:
+    tags: true
