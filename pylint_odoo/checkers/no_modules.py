@@ -56,6 +56,7 @@ for more info visit pylint doc
 import ast
 import os
 import re
+import types
 
 import astroid
 from pylint.checkers import BaseChecker, utils
@@ -100,6 +101,12 @@ ODOO_MSGS = {
     'W%d06' % settings.BASE_NOMODULE_ID: (
         'Missing `super` call in "%s" method.',
         'method-required-super',
+        settings.DESC_DFLT
+    ),
+    'E%d01' % settings.BASE_NOMODULE_ID: (
+        'The author key in the manifest file must be a string '
+        '(with comma separated values)',
+        'manifest-author-string',
         settings.DESC_DFLT
     ),
     'C%d01' % settings.BASE_NOMODULE_ID: (
@@ -219,14 +226,20 @@ class NoModuleChecker(BaseChecker):
                 and isinstance(node.parent, astroid.Discard):
             manifest_dict = ast.literal_eval(node.as_string())
 
-            # Check author required
-            authors = map(
-                lambda author: author.strip(),
-                manifest_dict.get('author', '').split(','))
-            required_author = self.config.manifest_required_author
-            if required_author not in authors:
-                self.add_message('manifest-required-author',
-                                 node=node, args=(required_author,))
+            # Check author is a string
+            author = manifest_dict.get('author', '')
+            if not isinstance(author, types.StringTypes):
+                self.add_message('manifest-author-string',
+                                 node=node)
+            else:
+                # Check author required
+                authors = map(
+                    lambda author: author.strip(),
+                    author.split(','))
+                required_author = self.config.manifest_required_author
+                if required_author not in authors:
+                    self.add_message('manifest-required-author',
+                                     node=node, args=(required_author,))
 
             # Check keys required
             required_keys = self.config.manifest_required_keys
