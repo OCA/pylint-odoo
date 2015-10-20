@@ -8,7 +8,7 @@ from pylint.lint import Run
 from pylint_odoo import misc
 
 
-EXPECTED_ERRORS = 45
+EXPECTED_ERRORS = 46
 
 
 class MainTest(unittest.TestCase):
