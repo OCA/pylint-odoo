@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+  <data>
+
+    <record id="group_users" model="res.users">
+      <field name="name">Moy6</field>
+      <field name="login">moylop260</field>
+    </record>
+
+  </data>
+
+  <data noupdate="1">
+    <record id="group_users" model="res.users">
+      <field name="password">change_password</field>
+    </record>
+
+  </data>
+</openerp>

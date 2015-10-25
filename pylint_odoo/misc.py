@@ -205,5 +205,10 @@ class WrapperModuleChecker(BaseChecker):
                 else [self.module, record.get('id')]
             if module and xml_module != module:
                 continue
-            xml_ids.append(xml_module + '.' + xml_id)
+            # Support case where use two xml_id:
+            #  1) With noupdate="1"
+            #  2) With noupdate="0"
+            noupdate = "noupdate=" + record.getparent().get('noupdate', '0')
+            xml_ids.append(
+                xml_module + '.' + xml_id + '.' + noupdate)
         return xml_ids
