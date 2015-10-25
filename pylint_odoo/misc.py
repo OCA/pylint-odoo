@@ -187,7 +187,8 @@ class WrapperModuleChecker(BaseChecker):
         else:
             model_filter = "[@model='{model}']".format(model=model)
         doc = self.parse_xml(xml_file)
-        return doc.xpath("/openerp//record" + model_filter) \
+        return doc.xpath("/openerp//record" + model_filter) + \
+            doc.xpath("/odoo//record" + model_filter) \
             if not isinstance(doc, basestring) else []
 
     def get_xml_record_ids(self, xml_file, module=None):
