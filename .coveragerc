@@ -15,3 +15,5 @@ exclude_lines =
     if __name__ == '__main__':
     # Don't complain about uninstalled packages
     except OSError as oserr:
+    except NameError:
+    except SyntaxError:
