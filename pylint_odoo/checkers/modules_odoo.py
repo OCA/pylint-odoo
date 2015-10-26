@@ -43,13 +43,17 @@ ODOO_MSGS = {
         'javascript-lint',
         settings.DESC_DFLT
     ),
+    'W%d04' % settings.BASE_OMODULE_ID: (
+        '%s:%d Deprecated <openerp> xml node',
+        'deprecated-openerp-xml-node',
+        settings.DESC_DFLT
+    ),
     'W%d05' % settings.BASE_OMODULE_ID: (
         '%s:%d record res.users without '
         'context="{\'no_reset_password\': True}"',
         'create-user-wo-reset-password',
         settings.DESC_DFLT
     ),
-
 }
 
 
@@ -189,6 +193,25 @@ class ModuleChecker(misc.WrapperModuleChecker):
             for error in errors:
                 self.msg_args.append((
                     js_file + error))
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_deprecated_openerp_xml_node(self):
+        '''Check deprecated <openerp> xml node
+        :return: False if exists <openerp> node and
+                 add list of xml files in self.msg_args
+        '''
+        xml_files = self.filter_files_ext('xml')
+        self.msg_args = []
+        for xml_file in xml_files:
+            doc = self.parse_xml(os.path.join(self.module_path, xml_file))
+            openerp_nodes = doc.xpath("/openerp") \
+                if not isinstance(doc, basestring) else []
+            if openerp_nodes:
+                lineno = openerp_nodes[0].sourceline
+                self.msg_args.append((
+                    xml_file, lineno))
         if self.msg_args:
             return False
         return True
