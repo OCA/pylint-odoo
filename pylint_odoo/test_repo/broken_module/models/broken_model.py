@@ -10,7 +10,7 @@ def function_no_method():
 class TestModel(models.Model):
     _name = 'test.model'
 
-    _fields = {}  # deprecated fields
+    _columns = {}  # deprecated columns
     _defaults = {}  # deprecated defaults
 
     name = fields.Char(
