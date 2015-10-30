@@ -43,6 +43,13 @@ ODOO_MSGS = {
         'javascript-lint',
         settings.DESC_DFLT
     ),
+    'W%d05' % settings.BASE_OMODULE_ID: (
+        '%s:%d record res.users without '
+        'context="{\'no_reset_password\': True}"',
+        'create-user-wo-reset-password',
+        settings.DESC_DFLT
+    ),
+
 }
 
 
@@ -138,6 +145,36 @@ class ModuleChecker(misc.WrapperModuleChecker):
                     self.msg_args = (
                         xml_file + ':' + ir_filter_record.get('id'),)
                     return False
+        return True
+
+    def _check_create_user_wo_reset_password(self):
+        '''Check xml records of user without the context
+        'context="{'no_reset_password': True}"'
+        This context avoid send email and mail log warning
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        '''
+        self.msg_args = []
+        xml_files = self.filter_files_ext('xml')
+        for xml_file in xml_files:
+            user_records = self.get_xml_records(
+                os.path.join(self.module_path, xml_file), model='res.users')
+            for user_record in user_records:
+                context = {}
+                try:
+                    context = eval(user_record.get('context') or '{}')
+                except NameError:
+                    pass
+                except SyntaxError:
+                    pass
+                if user_record.xpath("field[@name='name']"):
+                    # if exists field="name" then is a new record
+                    # then should be context
+                    if not context.get('no_reset_password', False):
+                        self.msg_args.append((
+                            xml_file, user_record.sourceline))
+        if self.msg_args:
+            return False
         return True
 
     def _check_javascript_lint(self):
