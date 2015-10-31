@@ -37,6 +37,7 @@ script:
 after_success:
     - coveralls
     - coverage report -m
+    - python setup.py sdist  # Build ChangeLog file from git log
 
 deploy:
   provider: pypi
