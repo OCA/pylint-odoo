@@ -136,6 +136,11 @@ ODOO_MSGS = {
         'license-allowed',
         settings.DESC_DFLT
     ),
+    'C%d06' % settings.BASE_NOMODULE_ID: (
+        'Docstring has first line empty.',
+        'docstring-first-line-empty',
+        settings.DESC_DFLT
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ['license']
@@ -263,7 +268,8 @@ class NoModuleChecker(BaseChecker):
 
     @utils.check_messages('api-one-multi-together',
                           'copy-wo-api-one', 'api-one-deprecated',
-                          'method-required-super')
+                          'method-required-super',
+                          'docstring-first-line-empty',)
     def visit_function(self, node):
         '''Check that `api.one` and `api.multi` decorators not exists together
         Check that method `copy` exists `api.one` decorator
@@ -300,6 +306,11 @@ class NoModuleChecker(BaseChecker):
             if 'super' not in calls:
                 self.add_message('method-required-super',
                                  node=node, args=(node.name))
+        if node.doc:
+            first_line = node.doc.split('\n')[0]
+            first_line = first_line.strip(' \r\t')
+            if not first_line:
+                self.add_message('docstring-first-line-empty', node=node)
 
     @utils.check_messages('openerp-exception-warning')
     def visit_from(self, node):
