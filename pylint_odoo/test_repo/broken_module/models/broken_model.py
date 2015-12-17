@@ -30,8 +30,11 @@ class TestModel(models.Model):
     )
 
     def my_method1(self, variable1):
-        #  Shouldn't show error of field-argument-translate
+        "Shouldn't show error of field-argument-translate"
         self.my_method2(_('hello world'))
 
     def my_method2(self, variable2):
+        '''
+        docstring with first line empty
+        '''
         return variable2
