@@ -136,6 +136,11 @@ ODOO_MSGS = {
         'license-allowed',
         settings.DESC_DFLT
     ),
+    'C%d07' % settings.BASE_NOMODULE_ID: (
+        'The wizard class should be inside wizards/ path.',
+        'wizard-bad-defined',
+        settings.DESC_DFLT
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ['license']
@@ -152,6 +157,10 @@ DFTL_ATTRIBUTE_DEPRECATED = [
 DFTL_METHOD_REQUIRED_SUPER = [
     'create', 'write', 'read', 'unlink', 'copy',
     'setUp', 'tearDown', 'default_get',
+]
+DFTL_WIZARD_CLASSES = [
+    'TransientModel',
+    'osv_memory',
 ]
 
 
@@ -201,6 +210,13 @@ class NoModuleChecker(BaseChecker):
             'metavar': '<comma separated values>',
             'default': DFTL_METHOD_REQUIRED_SUPER,
             'help': 'List of methods where call to `super` is required.' +
+                    'separated by a comma.'
+        }),
+        ('wizard_classes', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFTL_WIZARD_CLASSES,
+            'help': 'Name of classes base used to define a wizard in odoo.' +
                     'separated by a comma.'
         }),
     )
@@ -316,6 +332,16 @@ class NoModuleChecker(BaseChecker):
         if camelized != node.name:
             self.add_message('class-camelcase', node=node,
                              args=(camelized, node.name))
+        current_base_path = os.path.basename(
+            os.path.dirname(self.linter.current_file))
+        for base in node.bases:
+            wizard_class = [
+                wizard_class
+                for wizard_class in self.config.wizard_classes
+                if wizard_class in base.as_string()]
+            if wizard_class and 'wizards' != current_base_path:
+                self.add_message('wizard-bad-defined', node=node)
+                break
 
     @utils.check_messages('attribute-deprecated')
     def visit_assign(self, node):

@@ -7,6 +7,11 @@ def function_no_method():
     pass
 
 
+class TestModel2(models.TransientModel):
+    """We have a TrasientModel in ./models/ path."""
+    pass
+
+
 class TestModel(models.Model):
     _name = 'test.model'
 
