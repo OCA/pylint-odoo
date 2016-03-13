@@ -41,9 +41,9 @@ class TestModel(models.Model):
         return variable2
 
     def my_method4(self, variable2):
-        self.env.cr2.commit()  # This cr.commit() should not be detected
+        self.env.cr2.commit()  # This should not be detected
         return variable2
 
-    def my_method4(self, variable2):
-        self.env.cr.commit2()  # This cr.commit() should not be detected too
+    def my_method5(self, variable2):
+        self.env.cr.commit2()  # This should not be detected
         return variable2
