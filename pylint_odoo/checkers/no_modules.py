@@ -109,6 +109,14 @@ ODOO_MSGS = {
         'manifest-author-string',
         settings.DESC_DFLT
     ),
+    'E%d99' % settings.BASE_NOMODULE_ID: (
+        'Use of cr.commit() directly - More info '
+        'http://members.hellug.gr/xrg/openerp-doc/html/contribute/'
+        '15_guidelines/coding_guidelines_framework.html'
+        '#never-commit-the-transaction',
+        'invalid-commit',
+        settings.DESC_DFLT
+    ),
     'C%d01' % settings.BASE_NOMODULE_ID: (
         'Missing author required "%s" in manifest file',
         'manifest-required-author',
@@ -205,8 +213,14 @@ class NoModuleChecker(BaseChecker):
         }),
     )
 
-    @utils.check_messages('translation-field',)
+    @utils.check_messages('translation-field',
+                          'invalid-commit')
     def visit_callfunc(self, node):
+        # Check cr.commit()
+        if "cr.commit(" in node.as_string():
+            self.add_message('invalid-commit',
+                             node=node)
+
         if node.as_string().lower().startswith('fields.'):
             for argument in node.args:
                 argument_aux = argument
