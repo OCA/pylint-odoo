@@ -144,6 +144,12 @@ ODOO_MSGS = {
         'license-allowed',
         settings.DESC_DFLT
     ),
+    'C%d99' % settings.BASE_NOMODULE_ID: (
+        'Wrong Version Format "%s" in manifest file. '
+        'Regex to match: "%s"',
+        'manifest-version-format',
+        settings.DESC_DFLT
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ['license']
@@ -161,6 +167,7 @@ DFTL_METHOD_REQUIRED_SUPER = [
     'create', 'write', 'read', 'unlink', 'copy',
     'setUp', 'tearDown', 'default_get',
 ]
+DFTL_MANIFEST_VERSION_FORMAT = r"(\d+.\d+.\d+.\d+.\d+)"
 
 
 class NoModuleChecker(BaseChecker):
@@ -210,6 +217,12 @@ class NoModuleChecker(BaseChecker):
             'default': DFTL_METHOD_REQUIRED_SUPER,
             'help': 'List of methods where call to `super` is required.' +
                     'separated by a comma.'
+        }),
+        ('manifest_version_format', {
+            'type': 'string',
+            'metavar': '<string>',
+            'default': DFTL_MANIFEST_VERSION_FORMAT,
+            'help': 'Regex to check version format in manifest file'
         }),
     )
 
@@ -274,6 +287,16 @@ class NoModuleChecker(BaseChecker):
             if license and license not in self.config.license_allowed:
                 self.add_message('license-allowed',
                                  node=node, args=(license,))
+
+            # Check version format
+            # TODO: Add validation Odoo major version (e.g. 8.0)
+            version_format = manifest_dict.get('version', None)
+            formatrgx = self.formatversion(version_format)
+            if version_format and not formatrgx:
+                self.add_message('manifest-version-format',
+                                 node=node, args=(
+                                     version_format,
+                                     self.config.manifest_version_format,))
 
     @utils.check_messages('api-one-multi-together',
                           'copy-wo-api-one', 'api-one-deprecated',
@@ -341,6 +364,9 @@ class NoModuleChecker(BaseChecker):
 
     def camelize(self, string):
         return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string)
+
+    def formatversion(self, string):
+        return re.match(self.config.manifest_version_format, string)
 
     def get_decorators_names(self, decorators):
         nodes = []
