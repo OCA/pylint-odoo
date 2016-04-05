@@ -9,6 +9,7 @@ from pylint_odoo import misc
 
 
 EXPECTED_ERRORS = 52
+EXPECTED_ERRORS += 2  # Errors due to C8106: Wrong version format
 
 
 class MainTest(unittest.TestCase):
