@@ -1,7 +1,5 @@
-
-'''
-Visit module to add odoo checks
-'''
+"""Visit module to add odoo checks
+"""
 
 import os
 
@@ -54,6 +52,11 @@ ODOO_MSGS = {
         'create-user-wo-reset-password',
         settings.DESC_DFLT
     ),
+    'W%d06' % settings.BASE_OMODULE_ID: (
+        'Duplicate id "%s" in ir.model.access.csv file',
+        'duplicate-id-csv',
+        settings.DESC_DFLT
+    ),
 }
 
 
@@ -78,10 +81,10 @@ class ModuleChecker(misc.WrapperModuleChecker):
         self.wrapper_visit_module(node)
 
     def _check_rst_syntax_error(self):
-        '''Check if rst file there is syntax error
+        """Check if rst file there is syntax error
         :return: False if exists errors and
                  add list of errors in self.msg_args
-        '''
+        """
         rst_files = self.filter_files_ext('rst')
         self.msg_args = []
         for rst_file in rst_files:
@@ -96,17 +99,17 @@ class ModuleChecker(misc.WrapperModuleChecker):
         return True
 
     def _check_missing_readme(self):
-        '''Check if exists ./README.rst file
+        """Check if exists ./README.rst file
         :return: If exists return True else False
-        '''
+        """
         self.msg_args = (self.config.readme_template_url,)
         return os.path.isfile(os.path.join(self.module_path, 'README.rst'))
 
     def _check_xml_syntax_error(self):
-        '''Check if xml file there is syntax error
+        """Check if xml file there is syntax error
         :return: False if exists errors and
                  add list of errors in self.msg_args
-        '''
+        """
         self.msg_args = []
         for xml_file in self.filter_files_ext('xml', relpath=True):
             result = self.parse_xml(os.path.join(self.module_path, xml_file))
@@ -118,10 +121,10 @@ class ModuleChecker(misc.WrapperModuleChecker):
         return True
 
     def _check_duplicate_xml_record_id(self):
-        '''Check duplicate xml record id all xml files of a odoo module.
+        """Check duplicate xml record id all xml files of a odoo module.
         :return: False if exists errors and
                  add list of errors in self.msg_args
-        '''
+        """
         all_xml_ids = []
         for xml_file in self.filter_files_ext('xml', relpath=False):
             all_xml_ids.extend(self.get_xml_record_ids(xml_file, self.module))
@@ -131,11 +134,26 @@ class ModuleChecker(misc.WrapperModuleChecker):
             return False
         return True
 
-    def _check_dangerous_filter_wo_user(self):
-        '''Check dangeorous filter without a user assigned.
+    def _check_duplicate_id_csv(self):
+        """Check duplicate xml id in ir.model.access.csv files of a odoo module.
         :return: False if exists errors and
                  add list of errors in self.msg_args
-        '''
+        """
+        all_csv_ids = []
+        for csv_file in self.filter_files_ext('csv', relpath=False):
+            if os.path.basename(csv_file) == 'ir.model.access.csv':
+                all_csv_ids.extend(self.get_field_csv(csv_file))
+        duplicated_id_csv = self.get_duplicated_items(all_csv_ids)
+        if duplicated_id_csv:
+            self.msg_args = duplicated_id_csv
+            return False
+        return True
+
+    def _check_dangerous_filter_wo_user(self):
+        """Check dangeorous filter without a user assigned.
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
         xml_files = self.filter_files_ext('xml')
         for xml_file in xml_files:
             ir_filter_records = self.get_xml_records(
@@ -152,12 +170,12 @@ class ModuleChecker(misc.WrapperModuleChecker):
         return True
 
     def _check_create_user_wo_reset_password(self):
-        '''Check xml records of user without the context
+        """Check xml records of user without the context
         'context="{'no_reset_password': True}"'
         This context avoid send email and mail log warning
         :return: False if exists errors and
                  add list of errors in self.msg_args
-        '''
+        """
         self.msg_args = []
         xml_files = self.filter_files_ext('xml')
         for xml_file in xml_files:
@@ -182,10 +200,10 @@ class ModuleChecker(misc.WrapperModuleChecker):
         return True
 
     def _check_javascript_lint(self):
-        '''Check javascript lint
+        """Check javascript lint
         :return: False if exists errors and
                  add list of errors in self.msg_args
-        '''
+        """
         self.msg_args = []
         for js_file in self.filter_files_ext('js', relpath=True):
             errors = self.check_js_lint(
@@ -198,10 +216,10 @@ class ModuleChecker(misc.WrapperModuleChecker):
         return True
 
     def _check_deprecated_openerp_xml_node(self):
-        '''Check deprecated <openerp> xml node
+        """Check deprecated <openerp> xml node
         :return: False if exists <openerp> node and
                  add list of xml files in self.msg_args
-        '''
+        """
         xml_files = self.filter_files_ext('xml')
         self.msg_args = []
         for xml_file in xml_files:
