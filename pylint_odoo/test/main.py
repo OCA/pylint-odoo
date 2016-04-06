@@ -9,6 +9,7 @@ from pylint_odoo import misc
 
 
 EXPECTED_ERRORS = 56
+EXPECTED_ERRORS += 2  # W%d06: Duplicate id in ir.model.access.csv file
 
 
 class MainTest(unittest.TestCase):

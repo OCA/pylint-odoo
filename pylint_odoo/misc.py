@@ -2,6 +2,7 @@
 import os
 import subprocess
 
+import csv
 from lxml import etree
 from pylint.checkers import BaseChecker
 from pylint.interfaces import IAstroidChecker
@@ -213,3 +214,13 @@ class WrapperModuleChecker(BaseChecker):
             xml_ids.append(
                 xml_module + '.' + xml_id + '.' + noupdate)
         return xml_ids
+
+    def get_field_csv(self, csv_file, field='id'):
+        '''Get xml ids from csv file
+        :param csv_file: Path of file csv
+        :param field: Field to search
+        :return: List of string with field rows
+        '''
+        with open(csv_file, 'rb') as csvfile:
+            lines = csv.DictReader(csvfile)
+            return [line[field] for line in lines if field in line]
