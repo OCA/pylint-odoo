@@ -54,6 +54,11 @@ ODOO_MSGS = {
         'create-user-wo-reset-password',
         settings.DESC_DFLT
     ),
+    'W%d06' % settings.BASE_OMODULE_ID: (
+        'Duplicate id "%s" in ir.model.access.csv file',
+        'duplicate-id-csv',
+        settings.DESC_DFLT
+    ),
 }
 
 
@@ -128,6 +133,21 @@ class ModuleChecker(misc.WrapperModuleChecker):
         duplicated_xml_ids = self.get_duplicated_items(all_xml_ids)
         if duplicated_xml_ids:
             self.msg_args = duplicated_xml_ids
+            return False
+        return True
+
+    def _check_duplicate_id_csv(self):
+        '''Check duplicate xml id in ir.model.access.csv files of a odoo module.
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        '''
+        all_csv_ids = []
+        for csv_file in self.filter_files_ext('csv', relpath=False):
+            if os.path.basename(csv_file) == 'ir.model.access.csv':
+                all_csv_ids.extend(self.get_field_csv(csv_file))
+        duplicated_id_csv = self.get_duplicated_items(all_csv_ids)
+        if duplicated_id_csv:
+            self.msg_args = duplicated_id_csv
             return False
         return True
 

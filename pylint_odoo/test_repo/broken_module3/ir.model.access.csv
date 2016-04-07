@@ -1,0 +1,6 @@
+name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+product.product.account.user,product.model_product_product,group_account_user,1,0,0,0
+account.payment.term,model_account_payment_term,account.group_account_user,1,0,0,0
+account.account.type,model_account_account_type,account.group_account_user,1,0,0,0
+account.tax internal user,model_account_tax,base.group_user,1,0,0,0
+account.account,model_account_account,account.group_account_user,1,0,0,0
