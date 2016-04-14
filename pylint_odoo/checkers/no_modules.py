@@ -1,6 +1,4 @@
-
-'''
-Enable checkers to visit all nodes different to modules.
+"""Enable checkers to visit all nodes different to modules.
 You can use:
     visit_arguments
     visit_assattr
@@ -51,7 +49,7 @@ You can use:
     visit_while
     visit_yield
 for more info visit pylint doc
-'''
+"""
 
 import ast
 import os
@@ -287,10 +285,10 @@ class NoModuleChecker(BaseChecker):
                           'copy-wo-api-one', 'api-one-deprecated',
                           'method-required-super')
     def visit_function(self, node):
-        '''Check that `api.one` and `api.multi` decorators not exists together
+        """Check that `api.one` and `api.multi` decorators not exists together
         Check that method `copy` exists `api.one` decorator
         Check deprecated `api.one`.
-        '''
+        """
         if not node.is_method():
             return
 
