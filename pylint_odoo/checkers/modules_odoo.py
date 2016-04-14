@@ -57,6 +57,11 @@ ODOO_MSGS = {
         'duplicate-id-csv',
         settings.DESC_DFLT
     ),
+    'W%d07' % settings.BASE_OMODULE_ID: (
+        'Duplicate xml field "%s"',
+        'duplicate-xml-fields',
+        settings.DESC_DFLT
+    ),
 }
 
 
@@ -146,6 +151,22 @@ class ModuleChecker(misc.WrapperModuleChecker):
         duplicated_id_csv = self.get_duplicated_items(all_csv_ids)
         if duplicated_id_csv:
             self.msg_args = duplicated_id_csv
+            return False
+        return True
+
+    def _check_duplicate_xml_fields(self):
+        """Check duplicate field in all record of xml files of a odoo module.
+        Important note: this check does not work with inherited views.
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
+        duplicated_xml_fields = []
+        for xml_file in self.filter_files_ext('xml', relpath=False):
+            all_xml_fields = (self.get_xml_record_fields(xml_file,
+                                                         self.module))
+            duplicated_xml_fields.extend(all_xml_fields)
+        if duplicated_xml_fields:
+            self.msg_args = duplicated_xml_fields
             return False
         return True
 
