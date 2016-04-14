@@ -67,6 +67,11 @@ ODOO_MSGS = {
         'wrong-tabs-instead-of-spaces',
         settings.DESC_DFLT
     ),
+    'W%d07' % settings.BASE_OMODULE_ID: (
+        'Duplicate xml field "%s"',
+        'duplicate-xml-fields',
+        settings.DESC_DFLT
+    ),
 }
 
 
@@ -200,6 +205,22 @@ class ModuleChecker(misc.WrapperModuleChecker):
                             self.msg_args.append((os.path.basename(ext_file),
                                                   countline, 0))
         if self.msg_args:
+            return False
+        return True
+
+    def _check_duplicate_xml_fields(self):
+        """Check duplicate field in all record of xml files of a odoo module.
+        Important Note: This Check doesn't work with inherited views.
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
+        duplicated_xml_fields = []
+        for xml_file in self.filter_files_ext('xml', relpath=False):
+            all_xml_fields = (self.get_xml_record_fields(xml_file,
+                                                         self.module))
+            duplicated_xml_fields.extend(all_xml_fields)
+        if duplicated_xml_fields:
+            self.msg_args = duplicated_xml_fields
             return False
         return True
 
