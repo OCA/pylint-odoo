@@ -19,5 +19,6 @@ def apply_augmentations(linter):
 
     # W0104 - pointless-statement
     # manifest file have a valid pointless-statement dict
-    suppress_message(linter, BasicChecker.visit_discard,
-                     'W0104', is_manifest_file)
+    discard = hasattr(BasicChecker, 'visit_discard') and \
+        BasicChecker.visit_discard or BasicChecker.visit_expr
+    suppress_message(linter, discard, 'W0104', is_manifest_file)
