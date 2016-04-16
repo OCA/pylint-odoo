@@ -6,9 +6,6 @@ cache:
   directories:
     - $HOME/.cache/pip
 
-python:
-    - "2.7"
-
 addons:
   apt:
     packages:
@@ -17,6 +14,15 @@ addons:
 
 virtualenv:
   system_site_packages: true
+
+matrix:
+  include:
+    - python: 2.7
+      env:
+        TOXENV=py27-pylint14
+    - python: 2.7
+      env:
+        TOXENV=py27-pylint20
 
 install:
     # Remove packages installed from addons-apt-packages of travis file
@@ -30,13 +36,15 @@ install:
     - pip install --upgrade pyopenssl ndg-httpsclient pyasn1
     - pip install coveralls flake8
 
+    # Install tox
+    - pip install tox
+
 script:
     - flake8 --exclude=__init__.py .
-    - coverage run setup.py test
+    - tox -e $TOXENV
 
 after_success:
     - coveralls
-    - coverage report -m
     - python setup.py sdist  # Build ChangeLog file from git log
 
 deploy:

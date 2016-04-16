@@ -9,8 +9,8 @@ You can use:
     visit_binop
     visit_boolop
     visit_break
-    visit_callfunc
-    visit_class
+    visit_call
+    visit_classdef
     visit_compare
     visit_continue
     visit_default
@@ -18,19 +18,18 @@ You can use:
     visit_delname
     visit_dict
     visit_dictcomp
-    visit_discard
     visit_excepthandler
     visit_exec
+    visit_expr
     visit_extslice
     visit_for
-    visit_from
-    visit_function
+    visit_importfrom
+    visit_functiondef
     visit_genexpr
     visit_getattr
     visit_global
     visit_if
     visit_ifexp
-    visit_import
     visit_index
     visit_lambda
     visit_listcomp
@@ -217,9 +216,12 @@ class NoModuleChecker(BaseChecker):
     )
 
     @utils.check_messages('translation-field',)
-    def visit_callfunc(self, node):
+    def visit_call(self, node):
         if node.as_string().lower().startswith('fields.'):
-            for argument in node.args:
+            args = hasattr(node, 'keywords') and node.keywords and \
+                node.args and (node.args + node.keywords) or \
+                hasattr(node, 'keywords') and node.keywords or node.args
+            for argument in args:
                 argument_aux = argument
                 if isinstance(argument, astroid.Keyword):
                     argument_aux = argument.value
@@ -228,6 +230,8 @@ class NoModuleChecker(BaseChecker):
                         argument_aux.func.name == '_':
                     self.add_message('translation-field',
                                      node=argument_aux)
+
+    visit_callfunc = visit_call
 
     @utils.check_messages('manifest-required-author', 'manifest-required-key',
                           'manifest-deprecated-key')
@@ -284,7 +288,7 @@ class NoModuleChecker(BaseChecker):
     @utils.check_messages('api-one-multi-together',
                           'copy-wo-api-one', 'api-one-deprecated',
                           'method-required-super')
-    def visit_function(self, node):
+    def visit_functiondef(self, node):
         """Check that `api.one` and `api.multi` decorators not exists together
         Check that method `copy` exists `api.one` decorator
         Check deprecated `api.one`.
@@ -321,8 +325,10 @@ class NoModuleChecker(BaseChecker):
                 self.add_message('method-required-super',
                                  node=node, args=(node.name))
 
+    visit_function = visit_functiondef
+
     @utils.check_messages('openerp-exception-warning')
-    def visit_from(self, node):
+    def visit_importfrom(self, node):
         if node.modname == 'openerp.exceptions':
             for (import_name, import_as_name) in node.names:
                 if import_name == 'Warning' \
@@ -330,12 +336,16 @@ class NoModuleChecker(BaseChecker):
                     self.add_message(
                         'openerp-exception-warning', node=node)
 
+    visit_from = visit_importfrom
+
     @utils.check_messages('class-camelcase')
-    def visit_class(self, node):
+    def visit_classdef(self, node):
         camelized = self.camelize(node.name)
         if camelized != node.name:
             self.add_message('class-camelcase', node=node,
                              args=(camelized, node.name))
+
+    visit_class = visit_classdef
 
     @utils.check_messages('attribute-deprecated')
     def visit_assign(self, node):

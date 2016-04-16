@@ -16,7 +16,7 @@ EXPECTED_ERRORS += 2  # Errors due to W7906: Duplicate id ir.model.access.csv
 class MainTest(unittest.TestCase):
     def setUp(self):
         self.default_options = [
-            '--load-plugins=pylint_odoo', '--report=no',
+            '--load-plugins=pylint_odoo', '--reports=no',
             '--msg-template={path}:{line}: [{msg_id}({symbol}), {obj}] {msg}',
             '--output-format=colorized',
         ]
