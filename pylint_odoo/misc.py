@@ -224,3 +224,19 @@ class WrapperModuleChecker(BaseChecker):
         with open(csv_file, 'rb') as csvfile:
             lines = csv.DictReader(csvfile)
             return [line[field] for line in lines if field in line]
+
+    def get_xml_redundant_module_name(self, xml_file, module=None):
+        """Get xml redundant name module in xml_id of a openerp xml file
+        :param xml_file: Path of file xml
+        :param model: String with record model to filter.
+                      if model is None then get all.
+                      Default None.
+        :return: List of string with module.xml_id found
+        """
+        xml_ids = []
+        for record in self.get_xml_records(xml_file):
+            xml_module, xml_id = record.get('id').split('.') \
+                if '.' in record.get('id') else ['', record.get('id')]
+            if module and xml_module == module:
+                xml_ids.append(xml_id)
+        return xml_ids

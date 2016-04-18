@@ -11,6 +11,7 @@ from pylint_odoo import misc
 EXPECTED_ERRORS = 52
 EXPECTED_ERRORS += 2  # Errors due to C8106: Wrong version format
 EXPECTED_ERRORS += 2  # Errors due to W7906: Duplicate id ir.model.access.csv
+EXPECTED_ERRORS += 1  # Errors due to W7909: Redundant module name in xml_id
 
 
 class MainTest(unittest.TestCase):
