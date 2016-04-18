@@ -62,6 +62,11 @@ ODOO_MSGS = {
         'redundant-modulename-xml',
         settings.DESC_DFLT
     ),
+    'W%d08' % settings.BASE_OMODULE_ID: (
+        'Missing newline in "%s" file',
+        'missing-newline-extrafiles',
+        settings.DESC_DFLT
+    ),
     'W%d10' % settings.BASE_OMODULE_ID: (
         '%s:%s:%s: Use wrong tabs indentation instead of four spaces',
         'wrong-tabs-instead-of-spaces',
@@ -221,6 +226,26 @@ class ModuleChecker(misc.WrapperModuleChecker):
             duplicated_xml_fields.extend(all_xml_fields)
         if duplicated_xml_fields:
             self.msg_args = duplicated_xml_fields
+            return False
+        return True
+
+    def _check_missing_newline_extrafiles(self):
+        """Check missing newline in other ext files (.xml, .csv, .po)
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
+        self.msg_args = []
+        for type_file in self.config.extfiles_to_lint:
+            for ext_file in self.filter_files_ext(type_file, relpath=False):
+                last_line = ''
+                with open(ext_file, 'rb') as fp:
+                    if os.stat(ext_file).st_size > 0:
+                        fp.seek(-2, os.SEEK_END)
+                        last_line = fp.readline()
+                        if not (last_line.endswith('\n') or
+                                last_line.endswith('\r')):
+                            self.msg_args.append((os.path.basename(ext_file),))
+        if self.msg_args:
             return False
         return True
 

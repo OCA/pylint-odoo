@@ -16,6 +16,7 @@ EXPECTED_ERRORS += 2  # C%d98: Method required even a translation
 EXPECTED_ERRORS += 2  # W%d10: Use tabs identation instead of four spaces
 EXPECTED_ERRORS += 1  # W%d09: Redundant module name reference in xml_id
 EXPECTED_ERRORS += 6  # W%d07: Duplicate fields in xml record
+EXPECTED_ERRORS += 3  # W%d08: Trailing newlines in other extension files
 
 
 class MainTest(unittest.TestCase):
@@ -34,7 +35,7 @@ class MainTest(unittest.TestCase):
             self.paths_modules.append(os.path.join(root, path))
         self.default_extra_params = [
             '--disable=all',
-            '--enable=odoolint,pointless-statement',
+            '--enable=odoolint,pointless-statement,trailing-newlines',
         ]
 
     def run_pylint(self, paths, extra_params=None):
