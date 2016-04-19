@@ -1,6 +1,7 @@
 # coding: utf-8
 
 from openerp import fields, models, _
+from openerp.exceptions import Warning as UserError
 
 
 def function_no_method():
@@ -35,3 +36,27 @@ class TestModel(models.Model):
 
     def my_method2(self, variable2):
         return variable2
+
+    def my_method6(self):
+        user_id = 1
+        if user_id != 99:
+            # Method without translation
+            raise UserError('String without translation')
+
+    def my_method7(self):
+        user_id = 1
+        if user_id != 99:
+            # Method with translation
+            raise UserError(_('String with translation'))
+
+    def my_method8(self):
+        user_id = 1
+        if user_id != 99:
+            str_error = 'String with translation 2'  # Don't check
+            raise UserError(str_error)
+
+    def my_method9(self):
+        user_id = 1
+        if user_id != 99:
+            # Method without translation
+            raise UserError("String without translation 2")

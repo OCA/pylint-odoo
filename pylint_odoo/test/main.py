@@ -35,6 +35,7 @@ EXPECTED_ERRORS = {
     'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
     'translation-field': 2,
+    'translation-required': 2,
     'use-vim-comment': 1,
     'xml-syntax-error': 2,
 }
