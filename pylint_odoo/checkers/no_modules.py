@@ -167,6 +167,9 @@ DFTL_METHOD_REQUIRED_SUPER = [
     'setUp', 'tearDown', 'default_get',
 ]
 DFTL_MANIFEST_VERSION_FORMAT = r"(\d+.\d+.\d+.\d+.\d+)"
+DFTL_CURSOR_EXPR = [
+     'self.env.cr', 'self._cr',
+]
 
 
 class NoModuleChecker(BaseChecker):
@@ -223,15 +226,23 @@ class NoModuleChecker(BaseChecker):
             'default': DFTL_MANIFEST_VERSION_FORMAT,
             'help': 'Regex to check version format in manifest file'
         }),
+        ('cursor_expr', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFTL_CURSOR_EXPR,
+            'help': 'List of cursor expr separated by a comma.'
+        }),
     )
 
     @utils.check_messages('translation-field',
                           'invalid-commit')
     def visit_call(self, node):
         # Check cr.commit()
-        if "cr.commit(" in node.as_string():
-            self.add_message('invalid-commit',
-                             node=node)
+        if isinstance(node, astroid.CallFunc) and \
+                isinstance(node.func, astroid.Getattr) and \
+                node.func.attrname == 'commit':
+            if self.get_cursor_name(node.func) in self.config.cursor_expr:
+                self.add_message('invalid-commit', node=node)
 
         if node.as_string().lower().startswith('fields.'):
             args = hasattr(node, 'keywords') and node.keywords and \
@@ -377,6 +388,16 @@ class NoModuleChecker(BaseChecker):
 
     def formatversion(self, string):
         return re.match(self.config.manifest_version_format, string)
+
+    def get_cursor_name(self, node):
+        expr_list = []
+        node_expr = node.expr
+        while isinstance(node_expr, astroid.Getattr):
+            expr_list.insert(0, node_expr.attrname)
+            node_expr = node_expr.expr
+        expr_list.insert(0, node_expr.name)
+        cursor_name = '.'.join(expr_list)
+        return cursor_name
 
     def get_decorators_names(self, decorators):
         nodes = []
