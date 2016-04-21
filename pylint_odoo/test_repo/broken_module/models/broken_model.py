@@ -29,6 +29,48 @@ class TestModel(models.Model):
         copy=True,
     )
 
+    ids = ["parent_id_1", "parent_id_2"]
+
+    def sql_method(self, ids):
+        # This is the better way and should not be detected
+        self._cr.execute('SELECT DISTINCT child_id '
+                         'FROM account_account_consol_rel '
+                         'WHERE parent_id IN %s',
+                         (tuple(ids),))
+
+    def sql_injection_method(self, ids):
+        # SQL injection, bad way
+        self.env.cr.execute('SELECT DISTINCT child_id '
+                            'FROM account_account_consol_rel '
+                            'WHERE parent_id IN %s'
+                            % (tuple(ids),))
+
+    def sql_injection_method2(self, ids):
+        # SQL injection, bad way too
+        self.env.cr.execute('SELECT DISTINCT child_id '
+                            'FROM account_account_consol_rel '
+                            'WHERE parent_id IN %s'
+                            % (tuple(ids),))
+
+    def sql_injection_method3(self, ids):
+        # This cr.execute should not be detected
+        self._cr.execute2('SELECT DISTINCT child_id '
+                          'FROM account_account_consol_rel '
+                          'WHERE parent_id IN %s',
+                          (tuple(ids),))
+
+    def sql_injection_method4(self, ids):
+        # SQL injection, using self._cr.execute directly.
+        self._cr.execute('SELECT DISTINCT child_id '
+                         'FROM account_account_consol_rel '
+                         'WHERE parent_id IN %s'
+                         % (tuple(ids),))
+
+    def sql_injection_method5(self, ids):
+        var = "select * from table where id in %s"
+        values = ([1, 2, 3, ], )
+        self._cr.execute(var % values)  # sql injection too
+
     def my_method1(self, variable1):
         #  Shouldn't show error of field-argument-translate
         self.my_method2(_('hello world'))
