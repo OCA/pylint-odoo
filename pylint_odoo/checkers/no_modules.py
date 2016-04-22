@@ -244,9 +244,11 @@ class NoModuleChecker(BaseChecker):
                           'sql-injection')
     def visit_call(self, node):
         # Check cr.commit()
-        if "cr.commit(" in node.as_string():
-            self.add_message('invalid-commit',
-                             node=node)
+        if isinstance(node, astroid.CallFunc) and \
+                isinstance(node.func, astroid.Getattr) and \
+                node.func.attrname == 'commit':
+            if self.get_cursor_name(node.func) in self.config.cursor_expr:
+                self.add_message('invalid-commit', node=node)
 
         if node.as_string().lower().startswith('fields.'):
             args = hasattr(node, 'keywords') and node.keywords and \
