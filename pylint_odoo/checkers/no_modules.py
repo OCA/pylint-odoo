@@ -108,6 +108,11 @@ ODOO_MSGS = {
         'manifest-author-string',
         settings.DESC_DFLT
     ),
+    'E%d98' % settings.BASE_NOMODULE_ID: (
+        'Use % in execute functions and pass the % parameters as arguments',
+        'sql-injection',
+        settings.DESC_DFLT
+    ),
     'E%d99' % settings.BASE_NOMODULE_ID: (
         'Use of cr.commit() directly - More info '
         'http://members.hellug.gr/xrg/openerp-doc/html/contribute/'
@@ -167,6 +172,9 @@ DFTL_METHOD_REQUIRED_SUPER = [
     'setUp', 'tearDown', 'default_get',
 ]
 DFTL_MANIFEST_VERSION_FORMAT = r"(\d+.\d+.\d+.\d+.\d+)"
+DFTL_CURSOR_EXPR = [
+     'self.env.cr', 'self._cr',
+]
 
 
 class NoModuleChecker(BaseChecker):
@@ -223,10 +231,17 @@ class NoModuleChecker(BaseChecker):
             'default': DFTL_MANIFEST_VERSION_FORMAT,
             'help': 'Regex to check version format in manifest file'
         }),
+        ('cursor_expr', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFTL_CURSOR_EXPR,
+            'help': 'List of cursor expr separated by a comma.'
+        }),
     )
 
     @utils.check_messages('translation-field',
-                          'invalid-commit')
+                          'invalid-commit',
+                          'sql-injection')
     def visit_call(self, node):
         # Check cr.commit()
         if "cr.commit(" in node.as_string():
@@ -246,6 +261,15 @@ class NoModuleChecker(BaseChecker):
                         argument_aux.func.name == '_':
                     self.add_message('translation-field',
                                      node=argument_aux)
+        # SQL Injection
+        if isinstance(node, astroid.CallFunc) and \
+                isinstance(node.func, astroid.Getattr) and \
+                node.func.attrname == 'execute':
+            if self.get_cursor_name(node.func) in \
+                    self.config.cursor_expr:
+                if node.args and isinstance(node.args[0], astroid.BinOp) \
+                        and node.args[0].op == '%':
+                    self.add_message('sql-injection', node=node)
 
     visit_callfunc = visit_call
 
@@ -377,6 +401,16 @@ class NoModuleChecker(BaseChecker):
 
     def formatversion(self, string):
         return re.match(self.config.manifest_version_format, string)
+
+    def get_cursor_name(self, node):
+        expr_list = []
+        node_expr = node.expr
+        while isinstance(node_expr, astroid.Getattr):
+            expr_list.insert(0, node_expr.attrname)
+            node_expr = node_expr.expr
+        expr_list.insert(0, node_expr.name)
+        cursor_name = '.'.join(expr_list)
+        return cursor_name
 
     def get_decorators_names(self, decorators):
         nodes = []

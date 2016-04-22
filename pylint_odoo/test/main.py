@@ -8,8 +8,10 @@ from pylint.lint import Run
 from pylint_odoo import misc
 
 
-EXPECTED_ERRORS = 56
+EXPECTED_ERRORS = 54
+EXPECTED_ERRORS += 2  # C%d99: Wrong Manifest Version Format
 EXPECTED_ERRORS += 2  # W%d06: Duplicate id in ir.model.access.csv file
+EXPECTED_ERRORS += 4  # E%d98: SQL Injection
 
 
 class MainTest(unittest.TestCase):
