@@ -1,6 +1,6 @@
--e git+git://github.com/PyCQA/pylint.git@master#egg=pylint
+git+https://github.com/PyCQA/pylint.git@master#egg=pylint
 pylint-plugin-utils==0.2.3
--e git+git://github.com/PyCQA/astroid.git@master#egg=astroid
+git+https://github.com/PyCQA/astroid.git@master#egg=astroid
 docutils==0.12
 lxml>=2.3.2
 Pygments==2.0.2
