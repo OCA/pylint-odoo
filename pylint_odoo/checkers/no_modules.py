@@ -62,6 +62,7 @@ from pylint.checkers import BaseChecker, utils
 from pylint.interfaces import IAstroidChecker
 
 from .. import settings
+from .. import misc
 
 ODOO_MSGS = {
     # C->convention R->refactor W->warning E->error F->fatal
@@ -152,6 +153,11 @@ ODOO_MSGS = {
         'Wrong Version Format "%s" in manifest file. '
         'Regex to match: "%s"',
         'manifest-version-format',
+        settings.DESC_DFLT
+    ),
+    'C%d98' % settings.BASE_NOMODULE_ID: (
+        'String parameter of raise "%s" requires translation. Use _(%s)',
+        'translation-required',
         settings.DESC_DFLT
     ),
 }
@@ -420,3 +426,14 @@ class NoModuleChecker(BaseChecker):
             nodes = decorators.nodes
         return [getattr(decorator, 'attrname', '')
                 for decorator in nodes if decorator is not None]
+
+    @utils.check_messages('translation-required')
+    def visit_raise(self, node):
+        args = misc.join_node_args_kwargs(node.last_child())
+        if args:
+            for argument in args:
+                if isinstance(argument, astroid.Const) and \
+                        argument.name == 'str':
+                    self.add_message('translation-required', node=node,
+                                     args=(node.last_child().func.name,
+                                           argument.as_string()))
