@@ -13,6 +13,7 @@ EXPECTED_ERRORS += 2  # C%d99: Wrong Manifest Version Format
 EXPECTED_ERRORS += 2  # W%d06: Duplicate id in ir.model.access.csv file
 EXPECTED_ERRORS += 4  # E%d98: SQL Injection
 EXPECTED_ERRORS += 2  # C%d98: Method required even a translation
+EXPECTED_ERRORS += 2  # W%d10: Use tabs identation instead of four spaces
 
 
 class MainTest(unittest.TestCase):
