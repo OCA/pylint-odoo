@@ -68,7 +68,7 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'W%d10' % settings.BASE_OMODULE_ID: (
-        '%s:%s:%s: Use wrong tabs indentation instead of four spaces',
+        '%s:%s Use wrong tabs indentation instead of four spaces',
         'wrong-tabs-instead-of-spaces',
         settings.DESC_DFLT
     ),
@@ -206,13 +206,15 @@ class ModuleChecker(misc.WrapperModuleChecker):
             for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
                 if 'lib' in os.path.dirname(ext_file_rel).split(os.sep):
                     continue
+
                 ext_file = os.path.join(self.module_path, ext_file_rel)
                 countline = 0
                 with open(ext_file, 'rb') as fp:
                     for line in fp:
                         countline += 1
-                        line.lstrip(' ') and line.lstrip(' ')[0] == '\t' and \
-                            self.msg_args.append((ext_file_rel, countline, 0))
+                        line_space_trip = line.lstrip(' ')
+                        if line_space_trip != line_space_trip.lstrip('\t'):
+                            self.msg_args.append((ext_file_rel, countline))
         if self.msg_args:
             return False
         return True
