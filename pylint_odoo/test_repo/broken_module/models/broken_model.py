@@ -79,7 +79,11 @@ class TestModel(models.Model):
     def my_method2(self, variable2):
         return variable2
 
-    def my_method3(self, variable2):
+    def my_method3(self, cr):
+        cr.commit()  # Dangerous use of commit old api
+        return cr
+
+    def my_method31(self, variable2):
         self.env.cr.commit()  # Dangerous use of commit
         return variable2
 

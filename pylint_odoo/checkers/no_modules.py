@@ -178,7 +178,8 @@ DFTL_METHOD_REQUIRED_SUPER = [
 ]
 DFTL_MANIFEST_VERSION_FORMAT = r"(\d+.\d+.\d+.\d+.\d+)"
 DFTL_CURSOR_EXPR = [
-     'self.env.cr', 'self._cr',
+    'self.env.cr', 'self._cr',  # new api
+    'cr',  # old api
 ]
 
 
