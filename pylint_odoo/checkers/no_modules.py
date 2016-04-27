@@ -110,7 +110,10 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'E%d98' % settings.BASE_NOMODULE_ID: (
-        'Use % in execute functions and pass the % parameters as arguments',
+        'Use of "%" operator in execute database method. '
+        'Better use parameters instead. - More info '
+        'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
+        '#no-sql-injection',
         'sql-injection',
         settings.DESC_DFLT
     ),
