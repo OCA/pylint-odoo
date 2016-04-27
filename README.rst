@@ -1,4 +1,4 @@
-|Build Status| |Coverage Status| |Pypi Package|
+|Build Status| |Coverage Status|
 
 
 Pylint Odoo plugin
@@ -97,9 +97,7 @@ Example to test just odoo-lint case:
 
 ``pylint --load-plugins=pylint_odoo -d all -e odoolint {ADDONS-PATH}``
 
-.. |Build Status| image:: https://travis-ci.org/OCA/pylint-odoo.svg?branch=master
-   :target: https://travis-ci.org/OCA/pylint-odoo
-.. |Coverage Status| image:: https://coveralls.io/repos/OCA/pylint-odoo/badge.svg?branch=master&service=github
-   :target: https://coveralls.io/github/OCA/pylint-odoo?branch=master
-.. |Pypi Package| image:: https://img.shields.io/pypi/v/pylint-odoo.svg
-   :target: https://pypi.python.org/pypi/pylint-odoo
+.. |Build Status| image:: https://travis-ci.org/Vauxoo/pylint-odoo.svg?branch=master
+   :target: https://travis-ci.org/Vauxoo/pylint-odoo
+.. |Coverage Status| image:: https://coveralls.io/repos/Vauxoo/pylint-odoo/badge.svg?branch=master&service=github
+   :target: https://coveralls.io/github/Vauxoo/pylint-odoo?branch=master
