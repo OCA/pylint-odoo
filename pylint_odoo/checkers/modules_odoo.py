@@ -27,7 +27,7 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'W%d01' % settings.BASE_OMODULE_ID: (
-        'Dangerous filter without explicit `user_id` in xml_id %s',
+        '%s Dangerous filter without explicit `user_id` in xml_id %s',
         'dangerous-filter-wo-user',
         settings.DESC_DFLT
     ),
@@ -53,17 +53,17 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'W%d06' % settings.BASE_OMODULE_ID: (
-        'Duplicate id "%s" in ir.model.access.csv file',
+        '%s duplicate id "%s"',
         'duplicate-id-csv',
         settings.DESC_DFLT
     ),
     'W%d09' % settings.BASE_OMODULE_ID: (
-        'Redundant name module reference in xml_ids "%s" of "%s" file',
+        '%s Redundant name module reference in xml_ids "%s".',
         'redundant-modulename-xml',
         settings.DESC_DFLT
     ),
     'W%d08' % settings.BASE_OMODULE_ID: (
-        'Missing newline in "%s" file',
+        '%s Missing newline',
         'missing-newline-extrafiles',
         settings.DESC_DFLT
     ),
@@ -167,12 +167,15 @@ class ModuleChecker(misc.WrapperModuleChecker):
                  add list of errors in self.msg_args
         """
         all_csv_ids = []
-        for csv_file in self.filter_files_ext('csv', relpath=False):
+        self.msg_args = []
+        for csv_file_rel in self.filter_files_ext('csv', relpath=True):
+            csv_file = os.path.join(self.module_path, csv_file_rel)
             if os.path.basename(csv_file) == 'ir.model.access.csv':
                 all_csv_ids.extend(self.get_field_csv(csv_file))
-        duplicated_id_csv = self.get_duplicated_items(all_csv_ids)
-        if duplicated_id_csv:
-            self.msg_args = duplicated_id_csv
+        duplicated_ids_csv = self.get_duplicated_items(all_csv_ids)
+        for duplicated_id_csv in duplicated_ids_csv:
+            self.msg_args.append((csv_file_rel, duplicated_id_csv))
+        if duplicated_ids_csv:
             return False
         return True
 
@@ -182,11 +185,13 @@ class ModuleChecker(misc.WrapperModuleChecker):
                  add list of errors in self.msg_args
         """
         self.msg_args = []
-        for xml_file in self.filter_files_ext('xml', relpath=False):
+        for xml_file_rel in self.filter_files_ext('xml', relpath=True):
+            xml_file = os.path.join(self.module_path, xml_file_rel)
             all_xml_ids = self.get_xml_redundant_module_name(xml_file,
                                                              self.module)
             if all_xml_ids:
-                self.msg_args.append((all_xml_ids, os.path.basename(xml_file)))
+                self.msg_args.append(
+                    (xml_file_rel, ','.join(all_xml_ids)))
         if self.msg_args:
             return False
         return True
@@ -198,7 +203,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
         """
         self.msg_args = []
         for type_file in self.config.extfiles_to_lint:
-            for ext_file in self.filter_files_ext(type_file, relpath=False):
+            for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
+                ext_file = os.path.join(self.module_path, ext_file_rel)
                 if os.path.splitext(ext_file)[1] == '.js' and \
                         '/lib/' in ext_file:
                     continue
@@ -207,8 +213,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                     for line in fp:
                         countline += 1
                         line.lstrip(' ') and line.lstrip(' ')[0] == '\t' and \
-                            self.msg_args.append((os.path.basename(ext_file),
-                                                  countline, 0))
+                            self.msg_args.append((ext_file_rel, countline, 0))
         if self.msg_args:
             return False
         return True
@@ -236,7 +241,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
         """
         self.msg_args = []
         for type_file in self.config.extfiles_to_lint:
-            for ext_file in self.filter_files_ext(type_file, relpath=False):
+            for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
+                ext_file = os.path.join(self.module_path, ext_file_rel)
                 last_line = ''
                 with open(ext_file, 'rb') as fp:
                     if os.stat(ext_file).st_size > 0:
@@ -244,7 +250,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                         last_line = fp.readline()
                         if not (last_line.endswith('\n') or
                                 last_line.endswith('\r')):
-                            self.msg_args.append((os.path.basename(ext_file),))
+                            self.msg_args.append((ext_file_rel,))
         if self.msg_args:
             return False
         return True
@@ -265,7 +271,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 # then should be field="user_id" too
                 if ir_filter_fields and len(ir_filter_fields) == 1:
                     self.msg_args = (
-                        xml_file + ':' + ir_filter_record.get('id'),)
+                        xml_file, ir_filter_record.get('id'),)
                     return False
         return True
 
