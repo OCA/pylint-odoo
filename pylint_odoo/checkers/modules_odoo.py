@@ -167,13 +167,15 @@ class ModuleChecker(misc.WrapperModuleChecker):
                  add list of errors in self.msg_args
         """
         all_csv_ids = []
+        self.msg_args = []
         for csv_file_rel in self.filter_files_ext('csv', relpath=True):
             csv_file = os.path.join(self.module_path, csv_file_rel)
             if os.path.basename(csv_file) == 'ir.model.access.csv':
                 all_csv_ids.extend(self.get_field_csv(csv_file))
         duplicated_ids_csv = self.get_duplicated_items(all_csv_ids)
         for duplicated_id_csv in duplicated_ids_csv:
-            self.msg_args = (csv_file_rel, duplicated_id_csv)
+            self.msg_args.append((csv_file_rel, duplicated_id_csv))
+        if duplicated_ids_csv:
             return False
         return True
 

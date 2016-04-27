@@ -17,7 +17,7 @@ EXPECTED_ERRORS = {
     'create-user-wo-reset-password': 1,
     'dangerous-filter-wo-user': 1,
     'deprecated-openerp-xml-node': 5,
-    'duplicate-id-csv': 2,
+    'duplicate-id-csv': 3,
     'duplicate-xml-fields': 6,
     'duplicate-xml-record-id': 2,
     'incoherent-interpreter-exec-perm': 3,
