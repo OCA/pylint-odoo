@@ -178,7 +178,8 @@ DFTL_METHOD_REQUIRED_SUPER = [
 ]
 DFTL_MANIFEST_VERSION_FORMAT = r"(\d+.\d+.\d+.\d+.\d+)"
 DFTL_CURSOR_EXPR = [
-     'self.env.cr', 'self._cr',
+    'self.env.cr', 'self._cr',  # new api
+    'cr',  # old api
 ]
 
 
@@ -415,9 +416,15 @@ class NoModuleChecker(BaseChecker):
         while isinstance(node_expr, astroid.Getattr):
             expr_list.insert(0, node_expr.attrname)
             node_expr = node_expr.expr
-        expr_list.insert(0, node_expr.name)
+        if isinstance(node_expr, astroid.Name):
+            expr_list.insert(0, node_expr.name)
         cursor_name = '.'.join(expr_list)
         return cursor_name
+
+    def get_func_name(self, node):
+        func_name = isinstance(node, astroid.Name) and node.name or \
+            isinstance(node, astroid.Getattr) and node.attrname or ''
+        return func_name
 
     def get_decorators_names(self, decorators):
         nodes = []
@@ -429,10 +436,10 @@ class NoModuleChecker(BaseChecker):
     @utils.check_messages('translation-required')
     def visit_raise(self, node):
         args = misc.join_node_args_kwargs(node.last_child())
-        if args:
-            for argument in args:
-                if isinstance(argument, astroid.Const) and \
-                        argument.name == 'str':
-                    self.add_message('translation-required', node=node,
-                                     args=(node.last_child().func.name,
-                                           argument.as_string()))
+        for argument in args:
+            if isinstance(argument, astroid.Const) and \
+                    argument.name == 'str':
+                self.add_message('translation-required', node=node,
+                                 args=(self.get_func_name(
+                                     node.last_child().func),
+                                     argument.as_string()))
