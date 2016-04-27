@@ -68,7 +68,7 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'W%d10' % settings.BASE_OMODULE_ID: (
-        '%s:%s:%s: Use wrong tabs indentation instead of four spaces',
+        '%s:%s Use wrong tabs indentation instead of four spaces',
         'wrong-tabs-instead-of-spaces',
         settings.DESC_DFLT
     ),
@@ -204,16 +204,17 @@ class ModuleChecker(misc.WrapperModuleChecker):
         self.msg_args = []
         for type_file in self.config.extfiles_to_lint:
             for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
-                ext_file = os.path.join(self.module_path, ext_file_rel)
-                if os.path.splitext(ext_file)[1] == '.js' and \
-                        '/lib/' in ext_file:
+                if 'lib' in os.path.dirname(ext_file_rel).split(os.sep):
                     continue
+
+                ext_file = os.path.join(self.module_path, ext_file_rel)
                 countline = 0
                 with open(ext_file, 'rb') as fp:
                     for line in fp:
                         countline += 1
-                        line.lstrip(' ') and line.lstrip(' ')[0] == '\t' and \
-                            self.msg_args.append((ext_file_rel, countline, 0))
+                        line_space_trip = line.lstrip(' ')
+                        if line_space_trip != line_space_trip.lstrip('\t'):
+                            self.msg_args.append((ext_file_rel, countline))
         if self.msg_args:
             return False
         return True
@@ -311,12 +312,13 @@ class ModuleChecker(misc.WrapperModuleChecker):
                  add list of errors in self.msg_args
         """
         self.msg_args = []
-        for js_file in self.filter_files_ext('js', relpath=True):
-            errors = self.check_js_lint(
-                os.path.join(self.module_path, js_file))
+        for js_file_rel in self.filter_files_ext('js', relpath=True):
+            if 'lib' in os.path.dirname(js_file_rel).split(os.sep):
+                continue
+            js_file = os.path.join(self.module_path, js_file_rel)
+            errors = self.check_js_lint(js_file)
             for error in errors:
-                self.msg_args.append((
-                    js_file + error))
+                self.msg_args.append((js_file_rel + error,))
         if self.msg_args:
             return False
         return True
