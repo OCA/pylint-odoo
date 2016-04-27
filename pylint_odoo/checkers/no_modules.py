@@ -116,8 +116,7 @@ ODOO_MSGS = {
     ),
     'E%d99' % settings.BASE_NOMODULE_ID: (
         'Use of cr.commit() directly - More info '
-        'http://members.hellug.gr/xrg/openerp-doc/html/contribute/'
-        '15_guidelines/coding_guidelines_framework.html'
+        'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
         '#never-commit-the-transaction',
         'invalid-commit',
         settings.DESC_DFLT
