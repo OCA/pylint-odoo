@@ -8,10 +8,35 @@ from pylint.lint import Run
 from pylint_odoo import misc
 
 
-EXPECTED_ERRORS = 52
-EXPECTED_ERRORS += 2  # Errors due to C8106: Wrong version format
-EXPECTED_ERRORS += 2  # Errors due to W7906: Duplicate id ir.model.access.csv
-EXPECTED_ERRORS += 6  # Errors due to W7907: Duplicate fields in xml record
+EXPECTED_ERRORS = {
+    'api-one-deprecated': 4,
+    'api-one-multi-together': 2,
+    'attribute-deprecated': 2,
+    'class-camelcase': 1,
+    'copy-wo-api-one': 2,
+    'create-user-wo-reset-password': 1,
+    'dangerous-filter-wo-user': 1,
+    'deprecated-openerp-xml-node': 5,
+    'duplicate-id-csv': 2,
+    'duplicate-xml-fields': 6,
+    'duplicate-xml-record-id': 2,
+    'incoherent-interpreter-exec-perm': 3,
+    'javascript-lint': 2,
+    'license-allowed': 1,
+    'manifest-author-string': 1,
+    'manifest-deprecated-key': 1,
+    'manifest-required-author': 1,
+    'manifest-required-key': 1,
+    'manifest-version-format': 2,
+    'method-required-super': 8,
+    'missing-readme': 1,
+    'no-utf8-coding-comment': 3,
+    'openerp-exception-warning': 3,
+    'rst-syntax-error': 2,
+    'translation-field': 2,
+    'use-vim-comment': 1,
+    'xml-syntax-error': 2,
+}
 
 
 class MainTest(unittest.TestCase):
@@ -52,11 +77,9 @@ class MainTest(unittest.TestCase):
     def test_20_expected_errors(self):
         pylint_res = self.run_pylint(self.paths_modules)
         # Expected vs found errors
-        sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
-        self.assertEqual(
-            sum_fails_found, EXPECTED_ERRORS,
-            "Errors found {fnd} different to expected {exp}.".format(
-                fnd=sum_fails_found, exp=EXPECTED_ERRORS))
+        real_errors = pylint_res.linter.stats['by_msg']
+        self.assertEqual(sorted(real_errors.items()),
+                         sorted(EXPECTED_ERRORS.items()))
         # All odoolint name errors vs found
         msgs_found = pylint_res.linter.stats['by_msg'].keys()
         plugin_msgs = misc.get_plugin_msgs(pylint_res)
@@ -65,16 +88,22 @@ class MainTest(unittest.TestCase):
             test_missed_msgs, [],
             "Checks without test case: {test_missed_msgs}".format(
                 test_missed_msgs=test_missed_msgs))
+        sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
+        sum_fails_expected = sum(EXPECTED_ERRORS.values())
+        self.assertEqual(sum_fails_found, sum_fails_expected)
 
     def test_30_disabling_errors(self):
         # Disabling
         self.default_extra_params.append('--disable=dangerous-filter-wo-user')
         pylint_res = self.run_pylint(self.paths_modules)
+        real_errors = pylint_res.linter.stats['by_msg']
+        global EXPECTED_ERRORS
+        EXPECTED_ERRORS.pop('dangerous-filter-wo-user')
+        self.assertEqual(sorted(real_errors.items()),
+                         sorted(EXPECTED_ERRORS.items()))
         sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
-        self.assertEqual(
-            sum_fails_found, EXPECTED_ERRORS - 1,
-            "Errors found {fnd} different to expected {exp}.".format(
-                fnd=sum_fails_found, exp=EXPECTED_ERRORS - 1))
+        sum_fails_expected = sum(EXPECTED_ERRORS.values())
+        self.assertEqual(sum_fails_found, sum_fails_expected)
 
 
 if __name__ == '__main__':
