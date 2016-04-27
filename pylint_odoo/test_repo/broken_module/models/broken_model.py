@@ -114,3 +114,9 @@ class TestModel(models.Model):
         if user_id != 99:
             # Method without translation
             raise UserError("String without translation 2")
+
+    def my_method10(self):
+        user_id = 1
+        if user_id != 99:
+            # Method without translation because missing _ before ()
+            raise UserError(('String without translation'))

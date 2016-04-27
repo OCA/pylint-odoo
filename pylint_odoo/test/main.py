@@ -38,7 +38,7 @@ EXPECTED_ERRORS = {
     'rst-syntax-error': 2,
     'sql-injection': 4,
     'translation-field': 2,
-    'translation-required': 2,
+    'translation-required': 3,
     'use-vim-comment': 1,
     'wrong-tabs-instead-of-spaces': 2,
     'xml-syntax-error': 2,
