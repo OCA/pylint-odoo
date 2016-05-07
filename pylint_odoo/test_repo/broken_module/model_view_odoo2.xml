@@ -13,14 +13,32 @@
             <field name="name">view.model.form4</field>
         </record>
 
+        <!-- inherit view with duplicated is not checked -->
         <record id="view_model_form2" model="ir.ui.view">
             <field name="name">view.model.form</field>
             <field name="model">test.model</field>
+            <field name="inherit_id" ref="id_category_list"/>
             <field name="arch" type="xml">
-                <tree string="Test model4">
-                    <field name="name">subview.model.form</field>
-                    <field model="model">test.model4</field>
-                </tree>
+                <xpath expr="//field[@name='description']" position="after">
+                    <field name="description"/>
+                    <field name="user_id"/>
+                    <field name="partner_id"/>
+                    <field name="user_id"/>
+                </xpath>
+            </field>
+        </record>
+
+         <!-- inherit view without duplicated is not checked -->
+        <record id="view_model_form4" model="ir.ui.view">
+            <field name="name">view.model.form</field>
+            <field name="model">test.model</field>
+            <field name="inherit_id" ref="id_category_list"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='description']" position="after">
+                    <field name="sale_id"/>
+                    <field name="partner_id"/>
+                    <field name="user_id"/>
+                </xpath>
             </field>
         </record>
 

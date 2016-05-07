@@ -261,6 +261,8 @@ class WrapperModuleChecker(BaseChecker):
         """
         dup_fields = []
         for record in self.get_xml_records(xml_file):
+            if record.xpath('field[@name="inherit_id"]'):
+                continue
             xml_fields = []
             xml_module, xml_id = record.get('id').split('.') \
                 if '.' in record.get('id') \
