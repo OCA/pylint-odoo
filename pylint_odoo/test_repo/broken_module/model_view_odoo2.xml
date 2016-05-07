@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- duplicate record field "name" -->
+        <record id="view_model_form" model="ir.ui.view">
+            <field name="name">view.model.form</field>
+            <field name="model">test.model</field>
+            <field name="arch" type="xml">
+                <tree string="Test model">
+                    <field name="name"></field>
+                </tree>
+            </field>
+            <field name="name">view.model.form4</field>
+        </record>
+
+        <!-- inherit view with duplicated is not checked -->
+        <record id="view_model_form2" model="ir.ui.view">
+            <field name="name">view.model.form</field>
+            <field name="model">test.model</field>
+            <field name="inherit_id" ref="id_category_list"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='description']" position="after">
+                    <field name="description"/>
+                    <field name="user_id"/>
+                    <field name="partner_id"/>
+                    <field name="user_id"/>
+                </xpath>
+            </field>
+        </record>
+
+         <!-- inherit view without duplicated is not checked -->
+        <record id="view_model_form4" model="ir.ui.view">
+            <field name="name">view.model.form</field>
+            <field name="model">test.model</field>
+            <field name="inherit_id" ref="id_category_list"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='description']" position="after">
+                    <field name="sale_id"/>
+                    <field name="partner_id"/>
+                    <field name="user_id"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- duplicate record field "arch" -->
+        <record id="view_model_form3" model="ir.ui.view">
+            <field name="arch">test.model5</field>
+            <field name="name">view.model.form</field>
+            <field name="model">test.model</field>
+            <field name="arch" type="xml">
+                <!-- 2 duplicate record field "user_id" and "name" -->
+                <form string="Test model6">
+                    <field name="user_id"/>
+                    <field name="name"/>
+                    <field name="user_id"/>
+                    <field name="partner_id"/>
+                    <field name="name"/>
+                    <field name="picking_ids" widget="many2many" domain="[('state', 'not in', ('done', 'cancel'))]">
+                            <!-- 2 duplicate record field "date" and "min_date" -->
+                            <tree>
+                                <field name="name"/>
+                                <field name="backorder_id"/>
+                                <field name="partner_id"/>
+                                <field name="date"/>
+                                <field name="min_date"/>
+                                <field name="state"/>
+                                <field name="date"/>
+                                <field name="min_date"/>
+                            </tree>
+                        </field>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

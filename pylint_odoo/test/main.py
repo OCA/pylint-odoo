@@ -11,6 +11,7 @@ from pylint_odoo import misc
 EXPECTED_ERRORS = 52
 EXPECTED_ERRORS += 2  # Errors due to C8106: Wrong version format
 EXPECTED_ERRORS += 2  # Errors due to W7906: Duplicate id ir.model.access.csv
+EXPECTED_ERRORS += 6  # Errors due to W7907: Duplicate fields in xml record
 
 
 class MainTest(unittest.TestCase):
