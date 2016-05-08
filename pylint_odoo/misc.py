@@ -225,6 +225,39 @@ class WrapperModuleChecker(BaseChecker):
             lines = csv.DictReader(csvfile)
             return [line[field] for line in lines if field in line]
 
+    def get_xml_record_fields(self, xml_file, module=None):
+        """Get duplicated xml fields from tags `record of a openerp xml file
+        :param xml_file: Path of file xml
+        :param model: String with record model to filter.
+                      if model is None then get all.
+                      Default None.
+        :return: List of string with module.xml_id found
+        """
+        dup_fields = []
+        for record in self.get_xml_records(xml_file):
+            if record.xpath('field[@name="inherit_id"]'):
+                continue
+            xml_fields = []
+            xml_module, xml_id = record.get('id').split('.') \
+                if '.' in record.get('id') \
+                else [self.module, record.get('id')]
+            list_fields = record.xpath('field')
+            for field in list_fields:
+                field_xml = field.values()[0]
+                xml_fields.append('.'.join(
+                    [xml_module, xml_id, field_xml]))
+                list_xpaths = ['*/field', '*/field/*/field']
+                for str_xpath in list_xpaths:
+                    xml_fields_sv = []
+                    list_fields_sv = field.xpath(str_xpath)
+                    for field_sv in list_fields_sv:
+                        field_sv_xml = field_sv.values()[0]
+                        xml_fields_sv.append('.'.join(
+                            [xml_module, xml_id, field_xml, field_sv_xml]))
+                    dup_fields.extend(self.get_duplicated_items(xml_fields_sv))
+            dup_fields.extend(self.get_duplicated_items(xml_fields))
+        return dup_fields
+
     def get_xml_redundant_module_name(self, xml_file, module=None):
         """Get xml redundant name module in xml_id of a openerp xml file
         :param xml_file: Path of file xml

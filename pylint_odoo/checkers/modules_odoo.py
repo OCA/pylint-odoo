@@ -57,6 +57,11 @@ ODOO_MSGS = {
         'duplicate-id-csv',
         settings.DESC_DFLT
     ),
+    'W%d07' % settings.BASE_OMODULE_ID: (
+        'Duplicate xml field "%s"',
+        'duplicate-xml-fields',
+        settings.DESC_DFLT
+    ),
     'W%d09' % settings.BASE_OMODULE_ID: (
         'Redundant name module reference in xml_ids "%s" of "%s" file',
         'redundant-modulename-xml',
@@ -154,6 +159,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
             return False
         return True
 
+
     def _check_redundant_modulename_xml(self):
         """Check redundant module name in xml file.
         :return: False if exists errors and
@@ -166,6 +172,23 @@ class ModuleChecker(misc.WrapperModuleChecker):
             if all_xml_ids:
                 self.msg_args.append((all_xml_ids, os.path.basename(xml_file)))
         if self.msg_args:
+            self.msg_args = duplicated_xml_fields
+            return False
+        return True
+
+    def _check_duplicate_xml_fields(self):
+        """Check duplicate field in all record of xml files of a odoo module.
+        Important note: this check does not work with inherited views.
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
+        duplicated_xml_fields = []
+        for xml_file in self.filter_files_ext('xml', relpath=False):
+            all_xml_fields = (self.get_xml_record_fields(xml_file,
+                                                         self.module))
+            duplicated_xml_fields.extend(all_xml_fields)
+        if duplicated_xml_fields:
+            self.msg_args = duplicated_xml_fields
             return False
         return True
 
