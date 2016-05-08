@@ -62,6 +62,11 @@ ODOO_MSGS = {
         'duplicate-xml-fields',
         settings.DESC_DFLT
     ),
+    'W%d09' % settings.BASE_OMODULE_ID: (
+        '%s Redundant name module reference in xml_ids "%s".',
+        'redundant-modulename-xml',
+        settings.DESC_DFLT
+    ),
 }
 
 
@@ -151,6 +156,23 @@ class ModuleChecker(misc.WrapperModuleChecker):
         duplicated_id_csv = self.get_duplicated_items(all_csv_ids)
         if duplicated_id_csv:
             self.msg_args = duplicated_id_csv
+            return False
+        return True
+
+    def _check_redundant_modulename_xml(self):
+        """Check redundant module name in xml file.
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
+        self.msg_args = []
+        for xml_file_rel in self.filter_files_ext('xml', relpath=True):
+            xml_file = os.path.join(self.module_path, xml_file_rel)
+            all_xml_ids = self.get_xml_redundant_module_name(xml_file,
+                                                             self.module)
+            if all_xml_ids:
+                self.msg_args.append(
+                    (xml_file_rel, ','.join(all_xml_ids)))
+        if self.msg_args:
             return False
         return True
 

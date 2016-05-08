@@ -32,6 +32,7 @@ EXPECTED_ERRORS = {
     'missing-readme': 1,
     'no-utf8-coding-comment': 3,
     'openerp-exception-warning': 3,
+    'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
     'translation-field': 2,
     'use-vim-comment': 1,
