@@ -371,6 +371,14 @@ class NoModuleChecker(BaseChecker):
 
     @utils.check_messages('translation-required')
     def visit_raise(self, node):
+        """Visit raise and search methods with a string parameter
+        without a method.
+        Example wrong: raise UserError('My String')
+        Example done: raise UserError(_('My String'))
+        TODO: Consider the case where is used a variable with string value
+              my_string = 'My String'  # wrong
+              raise UserError(my_string)  # Detect variable string here
+        """
         args = misc.join_node_args_kwargs(node.last_child())
         for argument in args:
             if isinstance(argument, astroid.Const) and \
