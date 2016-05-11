@@ -29,6 +29,7 @@ EXPECTED_ERRORS = {
     'manifest-required-key': 1,
     'manifest-version-format': 2,
     'method-required-super': 8,
+    'missing-newline-extrafiles': 3,
     'missing-readme': 1,
     'no-utf8-coding-comment': 3,
     'openerp-exception-warning': 3,
@@ -58,7 +59,7 @@ class MainTest(unittest.TestCase):
             self.paths_modules.append(os.path.join(root, path))
         self.default_extra_params = [
             '--disable=all',
-            '--enable=odoolint,pointless-statement',
+            '--enable=odoolint,pointless-statement,trailing-newlines',
         ]
 
     def run_pylint(self, paths, extra_params=None):

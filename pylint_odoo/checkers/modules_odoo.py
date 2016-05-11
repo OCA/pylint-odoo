@@ -62,6 +62,11 @@ ODOO_MSGS = {
         'duplicate-xml-fields',
         settings.DESC_DFLT
     ),
+    'W%d08' % settings.BASE_OMODULE_ID: (
+        '%s Missing newline',
+        'missing-newline-extrafiles',
+        settings.DESC_DFLT
+    ),
     'W%d09' % settings.BASE_OMODULE_ID: (
         '%s Redundant name module reference in xml_ids "%s".',
         'redundant-modulename-xml',
@@ -308,6 +313,27 @@ class ModuleChecker(misc.WrapperModuleChecker):
                         line_space_trip = line.lstrip(' ')
                         if line_space_trip != line_space_trip.lstrip('\t'):
                             self.msg_args.append((ext_file_rel, countline))
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_missing_newline_extrafiles(self):
+        """Check missing newline in other ext files (.xml, .csv, .po)
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
+        self.msg_args = []
+        for type_file in self.config.extfiles_to_lint:
+            for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
+                ext_file = os.path.join(self.module_path, ext_file_rel)
+                last_line = ''
+                with open(ext_file, 'rb') as fp:
+                    if os.stat(ext_file).st_size > 0:
+                        fp.seek(-2, os.SEEK_END)
+                        last_line = fp.readline()
+                        if not (last_line.endswith('\n') or
+                                last_line.endswith('\r')):
+                            self.msg_args.append((ext_file_rel,))
         if self.msg_args:
             return False
         return True
