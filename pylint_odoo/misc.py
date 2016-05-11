@@ -36,6 +36,15 @@ def get_sum_fails(pylint_stats):
         for msg in pylint_stats['by_msg']])
 
 
+def join_node_args_kwargs(node):
+    """Method to join args and keywords
+    :param node: node to get args and keywords
+    :return: List of args
+    """
+    args = node.args + getattr(node, 'keywords', [])
+    return args
+
+
 # TODO: Change all methods here
 
 class WrapperModuleChecker(BaseChecker):
