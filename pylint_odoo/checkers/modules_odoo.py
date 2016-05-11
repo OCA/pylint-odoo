@@ -67,11 +67,17 @@ ODOO_MSGS = {
         'redundant-modulename-xml',
         settings.DESC_DFLT
     ),
+    'W%d10' % settings.BASE_OMODULE_ID: (
+        '%s:%s Use wrong tabs indentation instead of four spaces',
+        'wrong-tabs-instead-of-spaces',
+        settings.DESC_DFLT
+    ),
 }
 
 
 DFTL_README_TMPL_URL = 'https://github.com/OCA/maintainer-tools' + \
     '/blob/master/template/module/README.rst'
+DFTL_EXTFILES_TO_LINT = ['xml', 'csv', 'po', 'js', 'mako']
 
 
 class ModuleChecker(misc.WrapperModuleChecker):
@@ -83,6 +89,12 @@ class ModuleChecker(misc.WrapperModuleChecker):
             'metavar': '<string>',
             'default': DFTL_README_TMPL_URL,
             'help': 'URL of README.rst template file',
+        }),
+        ('extfiles_to_lint', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFTL_EXTFILES_TO_LINT,
+            'help': 'List of extension files to check separated by a comma.'
         }),
     )
 
@@ -273,6 +285,29 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 lineno = openerp_nodes[0].sourceline
                 self.msg_args.append((
                     xml_file, lineno))
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_wrong_tabs_instead_of_spaces(self):
+        """Check wrong tabs character instead of four spaces.
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
+        self.msg_args = []
+        for type_file in self.config.extfiles_to_lint:
+            for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
+                if 'lib' in os.path.dirname(ext_file_rel).split(os.sep):
+                    continue
+
+                ext_file = os.path.join(self.module_path, ext_file_rel)
+                countline = 0
+                with open(ext_file, 'rb') as fp:
+                    for line in fp:
+                        countline += 1
+                        line_space_trip = line.lstrip(' ')
+                        if line_space_trip != line_space_trip.lstrip('\t'):
+                            self.msg_args.append((ext_file_rel, countline))
         if self.msg_args:
             return False
         return True
