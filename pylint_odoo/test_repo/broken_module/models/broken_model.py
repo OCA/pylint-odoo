@@ -85,3 +85,33 @@ class TestModel(models.Model):
     def my_method10(self):
         # A example of built-in raise without parameters
         raise ZeroDivisionError
+
+    def sql_method(self, ids, cr):
+        # This is the better way and should not be detected
+        self._cr.execute(
+            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
+        self.env.cr.execute(
+            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
+        cr.execute(
+            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
+
+    def sql_injection_method(self, cr, ids):
+        # SQL injection, bad way
+        self._cr.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+        self.env.cr.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+        cr.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+
+    def sql_injection_method3(self, ids, cr2):
+        # This cr.execute2 or cr2.execute should not be detected
+        self._cr.execute2(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+        cr2.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+
+    def sql_injection_method5(self, ids):
+        var = 'SELECT name FROM account WHERE id IN %s'
+        values = ([1, 2, 3, ], )
+        self._cr.execute(var % values)  # sql injection too
