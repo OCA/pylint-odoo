@@ -41,9 +41,9 @@ def join_node_args_kwargs(node):
     :param node: node to get args and keywords
     :return: List of args
     """
-    nargs = getattr(node, 'args', []) or []
-    nkargs = getattr(node, 'keywords', []) or []
-    return nargs + nkargs
+    args = (getattr(node, 'args', None) or []) + \
+        (getattr(node, 'keywords', None) or [])
+    return args
 
 
 # TODO: Change all methods here

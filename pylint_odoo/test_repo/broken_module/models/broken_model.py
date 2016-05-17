@@ -124,3 +124,7 @@ class TestModel(models.Model):
         if user_id != 99:
             # Method without translation because missing _ before ()
             raise UserError(('String without translation'))
+
+    def my_method11(self):
+        # A example of built-in raise without parameters
+        raise ZeroDivisionError
