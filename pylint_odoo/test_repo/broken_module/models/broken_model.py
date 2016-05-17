@@ -17,12 +17,19 @@ class TestModel(models.Model):
     name = fields.Char(
         _(u"Näme"),  # Don't need translate
         help=u"My hëlp",
-        required=False)
+        required=False,
+        compute='_compute_name',  # good compute method name
+        search='_search_name',  # good search method name
+        inverse='_inverse_name',  # good inverse method name
+    )
 
     # Imported openerp.fields use Char (Upper case)
     other_field = fields.char(
         name=_("Other field"),
         copy=True,
+        compute='my_method_compute',  # bad compute method name
+        search='my_method_search',  # bad search method name
+        inverse='my_method_inverse',  # bad inverse method name
     )
 
     other_field2 = fields.char(
