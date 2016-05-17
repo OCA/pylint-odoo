@@ -265,12 +265,13 @@ class ModuleChecker(misc.WrapperModuleChecker):
                  add list of errors in self.msg_args
         """
         self.msg_args = []
-        for js_file in self.filter_files_ext('js', relpath=True):
-            errors = self.check_js_lint(
-                os.path.join(self.module_path, js_file))
+        for js_file_rel in self.filter_files_ext('js', relpath=True):
+            if 'lib' in os.path.dirname(js_file_rel).split(os.sep):
+                continue
+            js_file = os.path.join(self.module_path, js_file_rel)
+            errors = self.check_js_lint(js_file)
             for error in errors:
-                self.msg_args.append((
-                    js_file + error))
+                self.msg_args.append((js_file_rel + error,))
         if self.msg_args:
             return False
         return True
