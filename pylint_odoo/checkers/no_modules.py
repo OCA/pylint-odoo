@@ -241,18 +241,14 @@ class NoModuleChecker(BaseChecker):
     @utils.check_messages('translation-field', 'invalid-commit')
     def visit_call(self, node):
         if node.as_string().lower().startswith('fields.'):
-            args = hasattr(node, 'keywords') and node.keywords and \
-                node.args and (node.args + node.keywords) or \
-                hasattr(node, 'keywords') and node.keywords or node.args
+            args = misc.join_node_args_kwargs(node)
             for argument in args:
-                argument_aux = argument
-                if isinstance(argument, astroid.Keyword):
-                    argument_aux = argument.value
+                argument_aux = argument.value \
+                    if isinstance(argument, astroid.Keyword) else argument
                 if isinstance(argument_aux, astroid.CallFunc) and \
                         isinstance(argument_aux.func, astroid.Name) and \
                         argument_aux.func.name == '_':
-                    self.add_message('translation-field',
-                                     node=argument_aux)
+                    self.add_message('translation-field', node=argument_aux)
         # Check cr.commit()
         if isinstance(node, astroid.CallFunc) and \
                 isinstance(node.func, astroid.Getattr) and \
