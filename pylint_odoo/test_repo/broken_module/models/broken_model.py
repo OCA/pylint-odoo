@@ -37,6 +37,20 @@ class TestModel(models.Model):
     def my_method2(self, variable2):
         return variable2
 
+    def my_method3(self, cr):
+        cr.commit()  # Dangerous use of commit old api
+        self.env.cr.commit()  # Dangerous use of commit
+        self._cr.commit()  # Dangerous use of commit
+        return cr
+
+    def my_method4(self, variable2):
+        self.env.cr2.commit()  # This should not be detected
+        return variable2
+
+    def my_method5(self, variable2):
+        self.env.cr.commit2()  # This should not be detected
+        return variable2
+
     def my_method6(self):
         user_id = 1
         if user_id != 99:
