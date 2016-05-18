@@ -107,6 +107,13 @@ ODOO_MSGS = {
         'manifest-author-string',
         settings.DESC_DFLT
     ),
+    'E%d02' % settings.BASE_NOMODULE_ID: (
+        'Use of cr.commit() directly - More info '
+        'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
+        '#never-commit-the-transaction',
+        'invalid-commit',
+        settings.DESC_DFLT
+    ),
     'C%d01' % settings.BASE_NOMODULE_ID: (
         'Missing author required "%s" in manifest file',
         'manifest-required-author',
@@ -163,6 +170,10 @@ DFTL_METHOD_REQUIRED_SUPER = [
     'setUp', 'tearDown', 'default_get',
 ]
 DFTL_MANIFEST_VERSION_FORMAT = r"(\d+.\d+.\d+.\d+.\d+)"
+DFTL_CURSOR_EXPR = [
+    'self.env.cr', 'self._cr',  # new api
+    'cr',  # old api
+]
 
 
 class NoModuleChecker(BaseChecker):
@@ -219,9 +230,15 @@ class NoModuleChecker(BaseChecker):
             'default': DFTL_MANIFEST_VERSION_FORMAT,
             'help': 'Regex to check version format in manifest file'
         }),
+        ('cursor_expr', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFTL_CURSOR_EXPR,
+            'help': 'List of cursor expr separated by a comma.'
+        }),
     )
 
-    @utils.check_messages('translation-field',)
+    @utils.check_messages('translation-field', 'invalid-commit')
     def visit_call(self, node):
         if node.as_string().lower().startswith('fields.'):
             args = hasattr(node, 'keywords') and node.keywords and \
@@ -236,6 +253,12 @@ class NoModuleChecker(BaseChecker):
                         argument_aux.func.name == '_':
                     self.add_message('translation-field',
                                      node=argument_aux)
+        # Check cr.commit()
+        if isinstance(node, astroid.CallFunc) and \
+                isinstance(node.func, astroid.Getattr) and \
+                node.func.attrname == 'commit' and \
+                self.get_cursor_name(node.func) in self.config.cursor_expr:
+            self.add_message('invalid-commit', node=node)
 
     visit_callfunc = visit_call
 
@@ -397,3 +420,14 @@ class NoModuleChecker(BaseChecker):
                                  args=(self.get_func_name(
                                      node.last_child().func),
                                      argument.as_string()))
+
+    def get_cursor_name(self, node):
+        expr_list = []
+        node_expr = node.expr
+        while isinstance(node_expr, astroid.Getattr):
+            expr_list.insert(0, node_expr.attrname)
+            node_expr = node_expr.expr
+        if isinstance(node_expr, astroid.Name):
+            expr_list.insert(0, node_expr.name)
+        cursor_name = '.'.join(expr_list)
+        return cursor_name

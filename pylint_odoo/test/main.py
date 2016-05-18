@@ -21,6 +21,7 @@ EXPECTED_ERRORS = {
     'duplicate-xml-fields': 6,
     'duplicate-xml-record-id': 2,
     'incoherent-interpreter-exec-perm': 3,
+    'invalid-commit': 3,
     'javascript-lint': 2,
     'license-allowed': 1,
     'manifest-author-string': 1,
