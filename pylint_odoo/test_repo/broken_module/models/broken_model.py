@@ -48,6 +48,7 @@ class TestModel(models.Model):
         cr.commit()  # Dangerous use of commit old api
         self.env.cr.commit()  # Dangerous use of commit
         self._cr.commit()  # Dangerous use of commit
+        self.cr.commit()  # Dangerous use of commit
         return cr
 
     def my_method4(self, variable2):
@@ -94,6 +95,8 @@ class TestModel(models.Model):
             'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
         cr.execute(
             'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
+        self.cr.execute(
+            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
 
     def sql_injection_method(self, cr, ids):
         # SQL injection, bad way
@@ -102,6 +105,8 @@ class TestModel(models.Model):
         self.env.cr.execute(
             'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
         cr.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+        self.cr.execute(
             'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
 
     def sql_injection_method3(self, ids, cr2):
