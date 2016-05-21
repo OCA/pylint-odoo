@@ -69,6 +69,28 @@ class WrapperModuleChecker(BaseChecker):
                 if os.path.isfile(manifest_file):
                     return manifest_file
 
+    def set_ext_files(self):
+        """Create `self.ext_files` dictionary with {extension_file: [files]}
+        """
+        self.ext_files = {}
+        for root, _, filenames in os.walk(self.module_path, followlinks=True):
+            for filename in filenames:
+                fext = os.path.splitext(filename)[1].lower()
+                fname_rel = os.path.relpath(
+                    os.path.join(root, filename), self.module_path)
+                self.ext_files.setdefault(fext, []).append(fname_rel)
+
+    def set_caches(self):
+        # TODO: Validate if is a odoo module before and has checks enabled
+        self.set_ext_files()
+
+    def clear_caches(self):
+        self.ext_files = None
+
+    def leave_module(self, node):
+        """Clear caches"""
+        self.clear_caches()
+
     def wrapper_visit_module(self, node):
         """Call methods named with name-key from self.msgs
         Method should be named with next standard:
@@ -85,6 +107,7 @@ class WrapperModuleChecker(BaseChecker):
         self.node = node
         self.module_path = os.path.dirname(node.file)
         self.module = os.path.basename(self.module_path)
+        self.set_caches()
         for msg_code, (title, name_key, description) in \
                 sorted(self.msgs.iteritems()):
             self.msg_code = msg_code
@@ -118,18 +141,12 @@ class WrapperModuleChecker(BaseChecker):
         if not fext.startswith('.'):
             fext = '.' + fext
         fext = fext.lower()
-        fnames_filtered = []
-
-        for root, dirnames, filenames in os.walk(
-                self.module_path, followlinks=True):
-            for filename in filenames:
-                if os.path.splitext(filename)[1].lower() == fext:
-                    fname_filtered = os.path.join(root, filename)
-                    if relpath:
-                        fname_filtered = os.path.relpath(
-                            fname_filtered, self.module_path)
-                    fnames_filtered.append(fname_filtered)
-        return fnames_filtered
+        fnames = self.ext_files.get(fext, [])
+        if not relpath:
+            fnames = [
+                os.path.join(self.module_path, fname)
+                for fname in fnames]
+        return fnames
 
     def check_rst_syntax(self, fname):
         """Check syntax in rst files.
