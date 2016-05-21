@@ -1,13 +1,13 @@
 
 import os
 import sys
-
 import unittest
+from contextlib import contextmanager
+from cProfile import Profile
 
 from pylint.lint import Run
 
 from pylint_odoo import misc
-
 
 EXPECTED_ERRORS = {
     'api-one-deprecated': 4,
@@ -49,6 +49,13 @@ EXPECTED_ERRORS = {
 }
 
 
+@contextmanager
+def profiling(profile):
+    profile.enable()
+    yield
+    profile.disable()
+
+
 class MainTest(unittest.TestCase):
     def setUp(self):
         self.default_options = [
@@ -67,10 +74,17 @@ class MainTest(unittest.TestCase):
             '--disable=all',
             '--enable=odoolint,pointless-statement,trailing-newlines',
         ]
+        self.profile = Profile()
         self.sys_path_origin = list(sys.path)
 
     def tearDown(self):
         sys.path = list(self.sys_path_origin)
+        test = self._testMethodName
+        prefix = os.path.expanduser(os.environ.get('PYLINT_ODOO_STATS',
+                                    '~/pylint_odoo_cprofile'))
+        fstats = prefix + '_' + test + '.stats'
+        if test != 'test_10_path_dont_exist':
+            self.profile.dump_stats(fstats)
 
     def run_pylint(self, paths, extra_params=None):
         for path in paths:
@@ -80,7 +94,8 @@ class MainTest(unittest.TestCase):
             extra_params = self.default_extra_params
         sys.path.extend(paths)
         cmd = self.default_options + extra_params + paths
-        res = Run(cmd, exit=False)
+        with profiling(self.profile):
+            res = Run(cmd, exit=False)
         return res
 
     def test_10_path_dont_exist(self):

@@ -41,7 +41,7 @@ install:
 
 script:
     - flake8 --exclude=__init__.py .
-    - tox -e $TOXENV
+    - tox -e $TOXENV,profile-stats
 
 after_success:
     - coveralls
