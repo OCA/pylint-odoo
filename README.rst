@@ -31,6 +31,8 @@ Enable custom checks for Odoo modules.
 +-------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+
 | E7902 | %s error: %s                                                                                                                                                                 | xml-syntax-error                 |
 +-------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+
+| E7903 | %s                                                                                                                                                                           | po-syntax-error                 |
++-------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+
 | E8101 | The author key in the manifest file must be a string (with comma separated values)                                                                                           | manifest-author-string           |
 +-------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+
 | E8198 | Use % in execute functions and pass the % parameters as arguments                                                                                                            | sql-injection                    |
@@ -59,6 +61,8 @@ Enable custom checks for Odoo modules.
 +-------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+
 | W7910 | %s:%s:%s: Use wrong tabs indentation instead of four spaces                                                                                                                  | wrong-tabs-instead-of-spaces     |
 +-------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+
+| W7911 | %s                                                                                                                                                                           | po-lint                  |
++-------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+
 | W8101 | Detected api.one and api.multi decorators together.                                                                                                                          | api-one-multi-together           |
 +-------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------+
 | W8102 | Missing api.one or api.multi in copy function.                                                                                                                               | copy-wo-api-one                  |
@@ -80,23 +84,39 @@ Enable custom checks for Odoo modules.
 Install
 -------
 
-``# pip install --upgrade git+https://github.com/oca/pylint-odoo.git``
+::
+
+    # pip install --upgrade git+https://github.com/oca/pylint-odoo.git
 
 Or
 
-``# pip install --upgrade --pre pylint-odoo``
+::
+
+    # pip install --upgrade --pre pylint-odoo
 
 Usage
 -----
 
-``pylint --load-plugins=pylint_odoo -e odoolint ...``
+::
 
-Example to test just odoo-lint case:
+    pylint --load-plugins=pylint_odoo --disable all --enable odoolint [MODULE_PATH]
 
-``touch {ADDONS-PATH}/__init__.py``
+Where ``[MODULE_PATH]`` is a path to an Odoo module.
 
-``pylint --load-plugins=pylint_odoo -d all -e odoolint {ADDONS-PATH}``
+If you want to test a group of modules, you can temporarily create a
+``__init__.py`` file on the parent directory of the modules.
 
+Extra linter parameters
+-----------------------
+
+* pofilter: You can use these options to enable or disable specific checkers of
+  the pofilter linter. See the complete list of checks here_.
+
+  - ``--po-lint-enable``: a comma separated list of checks to enable.
+  - ``--po-lint-disable``: a comma separated list of checks to disable.
+
+
+.. _here: http://docs.translatehouse.org/projects/translate-toolkit/en/latest/commands/pofilter_tests.html#test-description
 .. |Build Status| image:: https://travis-ci.org/Vauxoo/pylint-odoo.svg?branch=master
    :target: https://travis-ci.org/Vauxoo/pylint-odoo
 .. |Coverage Status| image:: https://coveralls.io/repos/Vauxoo/pylint-odoo/badge.svg?branch=master&service=github

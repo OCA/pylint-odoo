@@ -33,6 +33,8 @@ EXPECTED_ERRORS = {
     'missing-readme': 1,
     'no-utf8-coding-comment': 3,
     'openerp-exception-warning': 3,
+    'po-lint': 4,
+    'po-syntax-error': 1,
     'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
     'sql-injection': 4,
@@ -68,6 +70,8 @@ class MainTest(unittest.TestCase):
         self.default_extra_params = [
             '--disable=all',
             '--enable=odoolint,pointless-statement,trailing-newlines',
+            '--po-lint-enable=acronyms,endpunc',
+            '--po-lint-disable=untranslated,isfuzzy'
         ]
         self.profile = Profile()
 

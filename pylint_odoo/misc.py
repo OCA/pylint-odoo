@@ -1,13 +1,18 @@
 
 import os
-import subprocess
-
 import csv
+import sys
+import subprocess
+from contextlib import contextmanager
+
+import polib
 from lxml import etree
 from pylint.checkers import BaseChecker
 from pylint.interfaces import IAstroidChecker
-
 from restructuredtext_lint import lint_file as rst_lint
+from translate.storage import factory, pypo
+from translate.filters.pofilter import (build_checkerconfig, pocheckfilter,
+                                        cmdlineparser)
 
 from . import settings
 
@@ -46,8 +51,42 @@ def join_node_args_kwargs(node):
     return args
 
 
-# TODO: Change all methods here
+class PoLinter(pocheckfilter):
+    def get_syntax_error(self, transfile):
+        try:
+            pouns = pypo.pofile(str(polib.pofile(transfile.filename)))
+        except BaseException as e:
+            yield ': (%s) %s' % (type(e).__name__, e.message)
+        else:
+            del pouns
 
+    def get_errors_wlno(self, transfile):
+        try:
+            polno = polib.pofile(transfile.filename)
+            pouns = pypo.pofile(str(polno)).units[1:]
+        except BaseException as e:
+            pass
+        else:
+            for i in range(0, len(pouns)):
+                unit = pouns[i]
+                unit.linenum = polno[i].linenum
+                if not unit.obsolete:
+                    error = self.filterunit(unit)
+                    if error:
+                        for ename, e in error.items():
+                            yield ':%s (%s) %s' % (unit.linenum, ename,
+                                                   e['message'].split('\n')[0])
+
+
+@contextmanager
+def custom_sys_argv(args):
+    oldargv = sys.argv
+    sys.argv = args
+    yield
+    sys.argv = oldargv
+
+
+# TODO: Change all methods here
 class WrapperModuleChecker(BaseChecker):
 
     __implements__ = IAstroidChecker
@@ -174,6 +213,48 @@ class WrapperModuleChecker(BaseChecker):
             output_spplited.extend(
                 output.strip('\n').split('\n')[:-2])
         return output_spplited
+
+    def check_po_syntax_error(self, fname):
+        """Check po lint in fname.
+        :param fname: String with full path of file to check
+        :return: Return list of errors.
+        """
+        newargv = ['pofilter', fname]
+
+        with custom_sys_argv(newargv):
+            parser = cmdlineparser()
+            options = parser.parse_args()[0]
+
+        with open(options.input, 'r') as pofile:
+            fromfile = factory.getobject(pofile)
+
+        polinter = PoLinter(options=options,
+                            checkerconfig=build_checkerconfig(options))
+        return list(polinter.get_syntax_error(fromfile))
+
+    def check_po_lint(self, fname, enabled, disabled):
+        """Check po lint in fname.
+        :param fname: String with full path of file to check
+        :return: Return list of errors.
+        """
+        newargv = ['pofilter', fname]
+
+        if enabled:
+            newargv.extend(['--test=%s' % f for f in enabled])
+
+        if disabled:
+            newargv.extend(['--excludefilter=%s' % f for f in disabled])
+
+        with custom_sys_argv(newargv):
+            parser = cmdlineparser()
+            options = parser.parse_args()[0]
+
+        with open(options.input, 'r') as pofile:
+            fromfile = factory.getobject(pofile)
+
+        polinter = PoLinter(options=options,
+                            checkerconfig=build_checkerconfig(options))
+        return list(polinter.get_errors_wlno(fromfile))
 
     def get_duplicated_items(self, items):
         """Get duplicated items

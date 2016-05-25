@@ -26,6 +26,11 @@ ODOO_MSGS = {
         'xml-syntax-error',
         settings.DESC_DFLT
     ),
+    'E%d03' % settings.BASE_OMODULE_ID: (
+        '%s',
+        'po-syntax-error',
+        settings.DESC_DFLT
+    ),
     'W%d01' % settings.BASE_OMODULE_ID: (
         '%s Dangerous filter without explicit `user_id` in xml_id %s',
         'dangerous-filter-wo-user',
@@ -77,12 +82,21 @@ ODOO_MSGS = {
         'duplicate-xml-fields',
         settings.DESC_DFLT
     ),
+    'W%d11' % settings.BASE_OMODULE_ID: (
+        '%s',
+        'po-lint',
+        settings.DESC_DFLT
+    ),
 }
 
 
-DFTL_README_TMPL_URL = 'https://github.com/OCA/maintainer-tools' + \
+DFLT_README_TMPL_URL = 'https://github.com/OCA/maintainer-tools' + \
     '/blob/master/template/module/README.rst'
-DFTL_EXTFILES_TO_LINT = ['xml', 'csv', 'po', 'js', 'mako']
+DFLT_EXTFILES_TO_LINT = ['xml', 'csv', 'po', 'js', 'mako']
+DFLT_PO_LINT_ENABLE = []
+DFLT_PO_LINT_DISABLE = ['unchanged', 'short', 'acronyms',
+                        'isfuzzy', 'doublewords', 'simpleplurals',
+                        'pythonbraceformat', 'filepaths']
 
 
 class ModuleChecker(misc.WrapperModuleChecker):
@@ -92,14 +106,26 @@ class ModuleChecker(misc.WrapperModuleChecker):
         ('readme_template_url', {
             'type': 'string',
             'metavar': '<string>',
-            'default': DFTL_README_TMPL_URL,
+            'default': DFLT_README_TMPL_URL,
             'help': 'URL of README.rst template file',
         }),
         ('extfiles_to_lint', {
             'type': 'csv',
             'metavar': '<comma separated values>',
-            'default': DFTL_EXTFILES_TO_LINT,
+            'default': DFLT_EXTFILES_TO_LINT,
             'help': 'List of extension files to check separated by a comma.'
+        }),
+        ('po-lint-enable', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFLT_PO_LINT_ENABLE,
+            'help': 'List of enabled po-lint checks separated by a comma.'
+        }),
+        ('po-lint-disable', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFLT_PO_LINT_DISABLE,
+            'help': 'List of disabled po-lint checks separated by a comma.'
         }),
     )
 
@@ -319,6 +345,44 @@ class ModuleChecker(misc.WrapperModuleChecker):
             errors = self.check_js_lint(js_file)
             for error in errors:
                 self.msg_args.append((js_file_rel + error,))
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_po_syntax_error(self):
+        """Check po lint
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
+        self.msg_args = []
+
+        for po_file in self.filter_files_ext('po', relpath=True):
+            po_path = os.path.join(self.module_path, po_file)
+            errors = self.check_po_syntax_error(po_path)
+            for error in errors:
+                self.msg_args.append((po_file + error))
+
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_po_lint(self):
+        """Check po lint
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
+        self.msg_args = []
+        po_lint_enable = self.config.po_lint_enable
+        po_lint_disable = self.config.po_lint_disable
+
+        for po_file in self.filter_files_ext('po', relpath=True):
+            po_path = os.path.join(self.module_path, po_file)
+            errors = self.check_po_lint(po_path,
+                                        po_lint_enable,
+                                        po_lint_disable)
+            for error in errors:
+                self.msg_args.append((po_file + error))
+
         if self.msg_args:
             return False
         return True

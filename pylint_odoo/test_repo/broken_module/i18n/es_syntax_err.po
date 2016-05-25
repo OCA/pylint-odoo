@@ -1,0 +1,75 @@
+# Spanish translation for addons-vauxoo
+# Copyright (c) 2013 Rosetta Contributors and Canonical Ltd 2013
+# This file is distributed under the same license as the addons-vauxoo package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: addons-vauxoo\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-08-04 06:35+0200\n"
+"PO-Revision-Date: 2015-08-04 06:35+0200\n"
+"Last-Translator: Matjaz Mozetic <m.mozetic@matmoz.si>\n"
+"Language-Team: Spanish <es@li.org>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2014-11-21 06:47+0000\n"
+"X-Generator: Poedit 1.8.2\n"
+
+#. module: sync_youtube
+#: code:addons/sync_youtube/model/sign_youtube.py:107
+#, python-format
+dsasgid "Connection Completed"
+msdasdsgstr ""
+
+#. module: sync_youtube
+#: field:sign.youtube.conf,create_uid:0
+#: field:sign.youtube.conf.line,create_uid:0
+#, fuzzy
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: sync_youtube
+#: field:sign.youtube.conf,create_date:0
+#: field:sign.youtube.conf.line,create_date:0
+#, fuzzy
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: sync_youtube
+#: field:sign.youtube.conf.line,description:0
+#, fuzzy
+msgid "Description"
+msgstr "Descripción"
+
+#. module: sync_youtube
+#: help:sign.youtube.conf.line,description:0
+msgid "Description added for this video when was created"
+msgstr ""
+
+#. module: sync_youtube
+#: field:sign.youtube.conf,developer_key:0
+msgid "Developer Key"
+msgstr ""
+
+#. module: sync_youtube
+#: help:sign.youtube.conf,developer_key:0
+msgid ""
+"Developer key used by de API if you do not have one you can get one in the "
+"YouTube API https://code.google.com/apis/youtube/dashboard/gwt/index.html"
+msgstr ""
+
+#. module: sync_youtube
+#: field:sign.youtube.conf.line,duration_seconds:0
+#, fuzzy
+msgid "Duration "
+msgstr "Duración"
+
+#. module: sync_youtube
+#: code:addons/sync_youtube/model/sign_youtube.py:102
+#, fuzzy, python-format
+msgid "Error!"
+msgstr "Error!"
+sgstr ""
