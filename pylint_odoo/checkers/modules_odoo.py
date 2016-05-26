@@ -96,7 +96,8 @@ DFLT_EXTFILES_TO_LINT = ['xml', 'csv', 'po', 'js', 'mako']
 DFLT_PO_LINT_ENABLE = []
 DFLT_PO_LINT_DISABLE = ['unchanged', 'short', 'acronyms',
                         'isfuzzy', 'doublewords', 'simpleplurals',
-                        'pythonbraceformat', 'filepaths', 'startpunc',]
+                        'pythonbraceformat', 'filepaths', 'startpunc',
+                        'brackets']
 
 
 class ModuleChecker(misc.WrapperModuleChecker):
