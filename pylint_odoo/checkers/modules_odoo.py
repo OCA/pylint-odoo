@@ -273,7 +273,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 ext_file = os.path.join(self.module_path, ext_file_rel)
                 last_line = ''
                 with open(ext_file, 'rb') as fp:
-                    if os.stat(ext_file).st_size > 0:
+                    if os.stat(ext_file).st_size > 1:
                         fp.seek(-2, os.SEEK_END)
                         last_line = fp.readline()
                         if not (last_line.endswith('\n') or
