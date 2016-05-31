@@ -1,4 +1,4 @@
-git+https://github.com/PyCQA/astroid.git@master#egg=astroid
+git+https://github.com/PyCQA/astroid.git@72cb2ddff884b7dc03dd8c8365b260caca4e80d8#egg=astroid
 pylint-plugin-utils==0.2.3
 docutils==0.12
 lxml>=2.3.2
