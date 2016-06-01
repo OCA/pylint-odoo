@@ -114,6 +114,14 @@ ODOO_MSGS = {
         'invalid-commit',
         settings.DESC_DFLT
     ),
+    'E%d03' % settings.BASE_NOMODULE_ID: (
+        'Use of "%" operator in execute database method. '
+        'Better use parameters instead. - More info '
+        'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
+        '#no-sql-injection',
+        'sql-injection',
+        settings.DESC_DFLT
+    ),
     'C%d01' % settings.BASE_NOMODULE_ID: (
         'Missing author required "%s" in manifest file',
         'manifest-required-author',
@@ -187,6 +195,7 @@ DFTL_METHOD_REQUIRED_SUPER = [
 DFTL_MANIFEST_VERSION_FORMAT = r"(\d+.\d+.\d+.\d+.\d+)"
 DFTL_CURSOR_EXPR = [
     'self.env.cr', 'self._cr',  # new api
+    'self.cr',  # controllers and test
     'cr',  # old api
 ]
 
@@ -255,6 +264,7 @@ class NoModuleChecker(BaseChecker):
 
     @utils.check_messages('translation-field', 'invalid-commit',
                           'method-compute', 'method-search', 'method-inverse',
+                          'sql-injection',
                           )
     def visit_call(self, node):
         if node.as_string().lower().startswith('fields.'):
@@ -279,6 +289,14 @@ class NoModuleChecker(BaseChecker):
                 node.func.attrname == 'commit' and \
                 self.get_cursor_name(node.func) in self.config.cursor_expr:
             self.add_message('invalid-commit', node=node)
+        # SQL Injection
+        if isinstance(node, astroid.CallFunc) and \
+                isinstance(node.func, astroid.Getattr) and \
+                node.func.attrname == 'execute' and \
+                self.get_cursor_name(node.func) in self.config.cursor_expr:
+            if node.args and isinstance(node.args[0], astroid.BinOp) \
+                    and node.args[0].op == '%':
+                self.add_message('sql-injection', node=node)
 
     visit_callfunc = visit_call
 
