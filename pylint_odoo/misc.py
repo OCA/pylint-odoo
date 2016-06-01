@@ -253,7 +253,9 @@ class WrapperModuleChecker(BaseChecker):
                 else [self.module, record.get('id')]
             list_fields = record.xpath('field')
             for field in list_fields:
-                field_xml = field.values()[0]
+                field_xml = field.attrib.get('name')
+                if not field_xml:
+                    continue
                 xml_fields.append('.'.join(
                     [xml_module, xml_id, field_xml]))
                 list_xpaths = ['*/field', '*/field/*/field']
