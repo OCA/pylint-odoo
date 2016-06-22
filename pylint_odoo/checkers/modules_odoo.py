@@ -244,20 +244,13 @@ class ModuleChecker(misc.WrapperModuleChecker):
         for xml_file in xml_files:
             user_records = self.get_xml_records(
                 os.path.join(self.module_path, xml_file), model='res.users')
-            for user_record in user_records:
-                context = {}
-                try:
-                    context = eval(user_record.get('context') or '{}')
-                except NameError:
-                    pass
-                except SyntaxError:
-                    pass
-                if user_record.xpath("field[@name='name']"):
-                    # if exists field="name" then is a new record
-                    # then should be context
-                    if not context.get('no_reset_password', False):
-                        self.msg_args.append((
-                            xml_file, user_record.sourceline))
+            # if exists field="name" then is a new record
+            # then should be context
+            self.msg_args.extend([
+                (xml_file, user_record.sourceline)
+                for user_record in user_records
+                if user_record.xpath("field[@name='name']") and
+                'no_reset_password' not in (user_record.get('context') or '')])
         if self.msg_args:
             return False
         return True
