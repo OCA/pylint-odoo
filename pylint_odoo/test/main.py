@@ -28,7 +28,10 @@ EXPECTED_ERRORS = {
     'manifest-required-author': 1,
     'manifest-required-key': 1,
     'manifest-version-format': 2,
+    'method-compute': 1,
+    'method-inverse': 1,
     'method-required-super': 8,
+    'method-search': 1,
     'missing-newline-extrafiles': 3,
     'missing-readme': 1,
     'no-utf8-coding-comment': 3,
@@ -44,7 +47,6 @@ EXPECTED_ERRORS = {
     'wrong-tabs-instead-of-spaces': 2,
     'xml-syntax-error': 2,
 }
-
 
 @contextmanager
 def profiling(profile):
@@ -71,7 +73,7 @@ class MainTest(unittest.TestCase):
             '--disable=all',
             '--enable=odoolint,pointless-statement,trailing-newlines',
             '--po-lint-enable=acronyms,endpunc',
-            '--po-lint-disable=untranslated,isfuzzy'
+            '--po-lint-disable=untranslated,isfuzzy',
         ]
         self.profile = Profile()
 

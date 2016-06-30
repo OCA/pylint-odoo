@@ -62,9 +62,9 @@ ODOO_MSGS = {
         'duplicate-id-csv',
         settings.DESC_DFLT
     ),
-    'W%d09' % settings.BASE_OMODULE_ID: (
-        '%s Redundant name module reference in xml_ids "%s".',
-        'redundant-modulename-xml',
+    'W%d07' % settings.BASE_OMODULE_ID: (
+        'Duplicate xml field "%s"',
+        'duplicate-xml-fields',
         settings.DESC_DFLT
     ),
     'W%d08' % settings.BASE_OMODULE_ID: (
@@ -72,14 +72,14 @@ ODOO_MSGS = {
         'missing-newline-extrafiles',
         settings.DESC_DFLT
     ),
+    'W%d09' % settings.BASE_OMODULE_ID: (
+        '%s Redundant name module reference in xml_ids "%s".',
+        'redundant-modulename-xml',
+        settings.DESC_DFLT
+    ),
     'W%d10' % settings.BASE_OMODULE_ID: (
         '%s:%s Use wrong tabs indentation instead of four spaces',
         'wrong-tabs-instead-of-spaces',
-        settings.DESC_DFLT
-    ),
-    'W%d07' % settings.BASE_OMODULE_ID: (
-        'Duplicate xml field "%s"',
-        'duplicate-xml-fields',
         settings.DESC_DFLT
     ),
     'W%d11' % settings.BASE_OMODULE_ID: (
@@ -223,32 +223,9 @@ class ModuleChecker(misc.WrapperModuleChecker):
             return False
         return True
 
-    def _check_wrong_tabs_instead_of_spaces(self):
-        """Check wrong tabs character instead of four spaces.
-        :return: False if exists errors and
-                 add list of errors in self.msg_args
-        """
-        self.msg_args = []
-        for type_file in self.config.extfiles_to_lint:
-            for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
-                if 'lib' in os.path.dirname(ext_file_rel).split(os.sep):
-                    continue
-
-                ext_file = os.path.join(self.module_path, ext_file_rel)
-                countline = 0
-                with open(ext_file, 'rb') as fp:
-                    for line in fp:
-                        countline += 1
-                        line_space_trip = line.lstrip(' ')
-                        if line_space_trip != line_space_trip.lstrip('\t'):
-                            self.msg_args.append((ext_file_rel, countline))
-        if self.msg_args:
-            return False
-        return True
-
     def _check_duplicate_xml_fields(self):
         """Check duplicate field in all record of xml files of a odoo module.
-        Important Note: This Check doesn't work with inherited views.
+        Important note: this check does not work with inherited views.
         :return: False if exists errors and
                  add list of errors in self.msg_args
         """
@@ -315,20 +292,13 @@ class ModuleChecker(misc.WrapperModuleChecker):
         for xml_file in xml_files:
             user_records = self.get_xml_records(
                 os.path.join(self.module_path, xml_file), model='res.users')
-            for user_record in user_records:
-                context = {}
-                try:
-                    context = eval(user_record.get('context') or '{}')
-                except NameError:
-                    pass
-                except SyntaxError:
-                    pass
-                if user_record.xpath("field[@name='name']"):
-                    # if exists field="name" then is a new record
-                    # then should be context
-                    if not context.get('no_reset_password', False):
-                        self.msg_args.append((
-                            xml_file, user_record.sourceline))
+            # if exists field="name" then is a new record
+            # then should be context
+            self.msg_args.extend([
+                (xml_file, user_record.sourceline)
+                for user_record in user_records
+                if user_record.xpath("field[@name='name']") and
+                'no_reset_password' not in (user_record.get('context') or '')])
         if self.msg_args:
             return False
         return True
@@ -383,7 +353,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
                                         po_lint_disable)
             for error in errors:
                 self.msg_args.append((po_file + error))
-
         if self.msg_args:
             return False
         return True
@@ -403,6 +372,50 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 lineno = openerp_nodes[0].sourceline
                 self.msg_args.append((
                     xml_file, lineno))
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_wrong_tabs_instead_of_spaces(self):
+        """Check wrong tabs character instead of four spaces.
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
+        self.msg_args = []
+        for type_file in self.config.extfiles_to_lint:
+            for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
+                if 'lib' in os.path.dirname(ext_file_rel).split(os.sep):
+                    continue
+
+                ext_file = os.path.join(self.module_path, ext_file_rel)
+                countline = 0
+                with open(ext_file, 'rb') as fp:
+                    for line in fp:
+                        countline += 1
+                        line_space_trip = line.lstrip(' ')
+                        if line_space_trip != line_space_trip.lstrip('\t'):
+                            self.msg_args.append((ext_file_rel, countline))
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_missing_newline_extrafiles(self):
+        """Check missing newline in other ext files (.xml, .csv, .po)
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
+        self.msg_args = []
+        for type_file in self.config.extfiles_to_lint:
+            for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
+                ext_file = os.path.join(self.module_path, ext_file_rel)
+                last_line = ''
+                with open(ext_file, 'rb') as fp:
+                    if os.stat(ext_file).st_size > 1:
+                        fp.seek(-2, os.SEEK_END)
+                        last_line = fp.readline()
+                        if not (last_line.endswith('\n') or
+                                last_line.endswith('\r')):
+                            self.msg_args.append((ext_file_rel,))
         if self.msg_args:
             return False
         return True

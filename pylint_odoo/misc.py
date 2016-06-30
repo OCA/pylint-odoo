@@ -6,6 +6,7 @@ import subprocess
 from contextlib import contextmanager
 
 import polib
+import csv
 from lxml import etree
 from pylint.checkers import BaseChecker
 from pylint.interfaces import IAstroidChecker
@@ -333,22 +334,6 @@ class WrapperModuleChecker(BaseChecker):
             lines = csv.DictReader(csvfile)
             return [line[field] for line in lines if field in line]
 
-    def get_xml_redundant_module_name(self, xml_file, module=None):
-        """Get xml redundant name module in xml_id of a openerp xml file
-        :param xml_file: Path of file xml
-        :param model: String with record model to filter.
-                      if model is None then get all.
-                      Default None.
-        :return: List of string with module.xml_id found
-        """
-        xml_ids = []
-        for record in self.get_xml_records(xml_file):
-            xml_module, xml_id = record.get('id').split('.') \
-                if '.' in record.get('id') else ['', record.get('id')]
-            if module and xml_module == module:
-                xml_ids.append(xml_id)
-        return xml_ids
-
     def get_xml_record_fields(self, xml_file, module=None):
         """Get duplicated xml fields from tags `record of a openerp xml file
         :param xml_file: Path of file xml
@@ -367,7 +352,9 @@ class WrapperModuleChecker(BaseChecker):
                 else [self.module, record.get('id')]
             list_fields = record.xpath('field')
             for field in list_fields:
-                field_xml = field.values()[0]
+                field_xml = field.attrib.get('name')
+                if not field_xml:
+                    continue
                 xml_fields.append('.'.join(
                     [xml_module, xml_id, field_xml]))
                 list_xpaths = ['*/field', '*/field/*/field']
@@ -381,3 +368,19 @@ class WrapperModuleChecker(BaseChecker):
                     dup_fields.extend(self.get_duplicated_items(xml_fields_sv))
             dup_fields.extend(self.get_duplicated_items(xml_fields))
         return dup_fields
+
+    def get_xml_redundant_module_name(self, xml_file, module=None):
+        """Get xml redundant name module in xml_id of a openerp xml file
+        :param xml_file: Path of file xml
+        :param model: String with record model to filter.
+                      if model is None then get all.
+                      Default None.
+        :return: List of string with module.xml_id found
+        """
+        xml_ids = []
+        for record in self.get_xml_records(xml_file):
+            xml_module, xml_id = record.get('id').split('.') \
+                if '.' in record.get('id') else ['', record.get('id')]
+            if module and xml_module == module:
+                xml_ids.append(xml_id)
+        return xml_ids
