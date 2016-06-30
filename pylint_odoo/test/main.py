@@ -40,7 +40,7 @@ EXPECTED_ERRORS = {
     'po-syntax-error': 1,
     'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
-    'sql-injection': 5,
+    'sql-injection': 6,
     'translation-field': 2,
     'translation-required': 2,
     'use-vim-comment': 1,
