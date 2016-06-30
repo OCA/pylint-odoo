@@ -5,4 +5,3 @@ access_account_payment_term_line,account.payment.term.line,model_account_payment
 access_account_account_tax,account.account.type,model_account_account_type,account.group_account_user,1,0,0,0
 access_account_account_tax,account.tax internal user,model_account_tax,base.group_user,1,0,0,0
 access_account_account,account.account,model_account_account,account.group_account_user,1,0,0,0
-access_account_payment_term_line,account.payment.term.line,model_account_payment_term_line,account.group_account_user,1,0,0,0
