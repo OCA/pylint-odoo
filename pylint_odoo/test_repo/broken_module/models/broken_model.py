@@ -110,6 +110,8 @@ class TestModel(models.Model):
             'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
         self.cr.execute(
             'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+        self.cr.execute(
+            'SELECT name FROM account WHERE id IN {}'.format(ids))
 
     def sql_injection_method3(self, ids, cr2):
         # This cr.execute2 or cr2.execute should not be detected
