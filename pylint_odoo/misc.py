@@ -1,12 +1,11 @@
 
 import os
-import csv
 import sys
 import subprocess
 from contextlib import contextmanager
 
-import polib
 import csv
+import polib
 from lxml import etree
 from pylint.checkers import BaseChecker
 from pylint.interfaces import IAstroidChecker

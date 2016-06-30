@@ -48,6 +48,7 @@ EXPECTED_ERRORS = {
     'xml-syntax-error': 2,
 }
 
+
 @contextmanager
 def profiling(profile):
     profile.enable()

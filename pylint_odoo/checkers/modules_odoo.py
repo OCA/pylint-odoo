@@ -239,27 +239,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
             return False
         return True
 
-    def _check_missing_newline_extrafiles(self):
-        """Check missing newline in other ext files (.xml, .csv, .po)
-        :return: False if exists errors and
-                 add list of errors in self.msg_args
-        """
-        self.msg_args = []
-        for type_file in self.config.extfiles_to_lint:
-            for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
-                ext_file = os.path.join(self.module_path, ext_file_rel)
-                last_line = ''
-                with open(ext_file, 'rb') as fp:
-                    if os.stat(ext_file).st_size > 1:
-                        fp.seek(-2, os.SEEK_END)
-                        last_line = fp.readline()
-                        if not (last_line.endswith('\n') or
-                                last_line.endswith('\r')):
-                            self.msg_args.append((ext_file_rel,))
-        if self.msg_args:
-            return False
-        return True
-
     def _check_dangerous_filter_wo_user(self):
         """Check dangeorous filter without a user assigned.
         :return: False if exists errors and
