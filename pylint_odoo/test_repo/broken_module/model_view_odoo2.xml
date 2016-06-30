@@ -41,7 +41,17 @@
                 </xpath>
             </field>
         </record>
-
+        <!-- Records with first item different to 'name'-->
+        <record model="ir.rule" id="access_rule">
+            <field name="name">Access rule</field>
+            <field name="model_id" ref="model_test_model"/>
+            <field eval="1" name="perm_read"/>
+            <field eval="0" name="perm_create"/>
+            <field eval="0" name="perm_write"/>
+            <field eval="0" name="perm_unlink"/>
+            <field name="domain_force">[('user_ids','in',user.id)]</field>
+            <field domain="[('user', '=', user)]"/> <!--field without name-->
+        </record>
         <!-- duplicate record field "arch" -->
         <record id="view_model_form3" model="ir.ui.view">
             <field name="arch">test.model5</field>

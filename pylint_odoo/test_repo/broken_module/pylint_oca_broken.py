@@ -56,10 +56,6 @@ class ApiOne(object):
         # Missing super()
         pass
 
-    def my_method3(self):
-        self.env.cr.commit()  # Dangerous use of commit
-        pass
-
 
 class One(object):
     @one

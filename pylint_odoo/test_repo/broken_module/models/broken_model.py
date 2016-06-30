@@ -17,12 +17,19 @@ class TestModel(models.Model):
     name = fields.Char(
         _(u"Näme"),  # Don't need translate
         help=u"My hëlp",
-        required=False)
+        required=False,
+        compute='_compute_name',  # good compute method name
+        search='_search_name',  # good search method name
+        inverse='_inverse_name',  # good inverse method name
+    )
 
     # Imported openerp.fields use Char (Upper case)
     other_field = fields.char(
         name=_("Other field"),
         copy=True,
+        compute='my_method_compute',  # bad compute method name
+        search='my_method_search',  # bad search method name
+        inverse='my_method_inverse',  # bad inverse method name
     )
 
     other_field2 = fields.char(
@@ -31,46 +38,6 @@ class TestModel(models.Model):
     )
 
     ids = ["parent_id_1", "parent_id_2"]
-
-    def sql_method(self, ids):
-        # This is the better way and should not be detected
-        self._cr.execute('SELECT DISTINCT child_id '
-                         'FROM account_account_consol_rel '
-                         'WHERE parent_id IN %s',
-                         (tuple(ids),))
-
-    def sql_injection_method(self, ids):
-        # SQL injection, bad way
-        self.env.cr.execute('SELECT DISTINCT child_id '
-                            'FROM account_account_consol_rel '
-                            'WHERE parent_id IN %s'
-                            % (tuple(ids),))
-
-    def sql_injection_method2(self, ids):
-        # SQL injection, bad way too
-        self.env.cr.execute('SELECT DISTINCT child_id '
-                            'FROM account_account_consol_rel '
-                            'WHERE parent_id IN %s'
-                            % (tuple(ids),))
-
-    def sql_injection_method3(self, ids):
-        # This cr.execute should not be detected
-        self._cr.execute2('SELECT DISTINCT child_id '
-                          'FROM account_account_consol_rel '
-                          'WHERE parent_id IN %s',
-                          (tuple(ids),))
-
-    def sql_injection_method4(self, ids):
-        # SQL injection, using self._cr.execute directly.
-        self._cr.execute('SELECT DISTINCT child_id '
-                         'FROM account_account_consol_rel '
-                         'WHERE parent_id IN %s'
-                         % (tuple(ids),))
-
-    def sql_injection_method5(self, ids):
-        var = "select * from table where id in %s"
-        values = ([1, 2, 3, ], )
-        self._cr.execute(var % values)  # sql injection too
 
     def my_method1(self, variable1):
         #  Shouldn't show error of field-argument-translate
@@ -81,11 +48,10 @@ class TestModel(models.Model):
 
     def my_method3(self, cr):
         cr.commit()  # Dangerous use of commit old api
-        return cr
-
-    def my_method31(self, variable2):
         self.env.cr.commit()  # Dangerous use of commit
-        return variable2
+        self._cr.commit()  # Dangerous use of commit
+        self.cr.commit()  # Dangerous use of commit
+        return cr
 
     def my_method4(self, variable2):
         self.env.cr2.commit()  # This should not be detected
@@ -120,11 +86,39 @@ class TestModel(models.Model):
             raise UserError("String without translation 2")
 
     def my_method10(self):
-        user_id = 1
-        if user_id != 99:
-            # Method without translation because missing _ before ()
-            raise UserError(('String without translation'))
-
-    def my_method11(self):
         # A example of built-in raise without parameters
         raise ZeroDivisionError
+
+    def sql_method(self, ids, cr):
+        # This is the better way and should not be detected
+        self._cr.execute(
+            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
+        self.env.cr.execute(
+            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
+        cr.execute(
+            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
+        self.cr.execute(
+            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
+
+    def sql_injection_method(self, cr, ids):
+        # SQL injection, bad way
+        self._cr.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+        self.env.cr.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+        cr.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+        self.cr.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+
+    def sql_injection_method3(self, ids, cr2):
+        # This cr.execute2 or cr2.execute should not be detected
+        self._cr.execute2(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+        cr2.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+
+    def sql_injection_method5(self, ids):
+        var = 'SELECT name FROM account WHERE id IN %s'
+        values = ([1, 2, 3, ], )
+        self._cr.execute(var % values)  # sql injection too

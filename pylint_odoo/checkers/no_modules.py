@@ -1,6 +1,4 @@
-
-'''
-Enable checkers to visit all nodes different to modules.
+"""Enable checkers to visit all nodes different to modules.
 You can use:
     visit_arguments
     visit_assattr
@@ -50,7 +48,7 @@ You can use:
     visit_while
     visit_yield
 for more info visit pylint doc
-'''
+"""
 
 import ast
 import os
@@ -109,19 +107,19 @@ ODOO_MSGS = {
         'manifest-author-string',
         settings.DESC_DFLT
     ),
-    'E%d98' % settings.BASE_NOMODULE_ID: (
+    'E%d02' % settings.BASE_NOMODULE_ID: (
+        'Use of cr.commit() directly - More info '
+        'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
+        '#never-commit-the-transaction',
+        'invalid-commit',
+        settings.DESC_DFLT
+    ),
+    'E%d03' % settings.BASE_NOMODULE_ID: (
         'Use of "%" operator in execute database method. '
         'Better use parameters instead. - More info '
         'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
         '#no-sql-injection',
         'sql-injection',
-        settings.DESC_DFLT
-    ),
-    'E%d99' % settings.BASE_NOMODULE_ID: (
-        'Use of cr.commit() directly - More info '
-        'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
-        '#never-commit-the-transaction',
-        'invalid-commit',
         settings.DESC_DFLT
     ),
     'C%d01' % settings.BASE_NOMODULE_ID: (
@@ -151,15 +149,30 @@ ODOO_MSGS = {
         'license-allowed',
         settings.DESC_DFLT
     ),
-    'C%d99' % settings.BASE_NOMODULE_ID: (
+    'C%d06' % settings.BASE_NOMODULE_ID: (
         'Wrong Version Format "%s" in manifest file. '
         'Regex to match: "%s"',
         'manifest-version-format',
         settings.DESC_DFLT
     ),
-    'C%d98' % settings.BASE_NOMODULE_ID: (
+    'C%d07' % settings.BASE_NOMODULE_ID: (
         'String parameter of raise "%s" requires translation. Use _(%s)',
         'translation-required',
+        settings.DESC_DFLT
+    ),
+    'C%d08' % settings.BASE_NOMODULE_ID: (
+        'Name of compute method should starts with "_compute_"',
+        'method-compute',
+        settings.DESC_DFLT
+    ),
+    'C%d09' % settings.BASE_NOMODULE_ID: (
+        'Name of search method should starts with "_search_"',
+        'method-search',
+        settings.DESC_DFLT
+    ),
+    'C%d10' % settings.BASE_NOMODULE_ID: (
+        'Name of inverse method should starts with "_inverse_"',
+        'method-inverse',
         settings.DESC_DFLT
     ),
 }
@@ -182,6 +195,7 @@ DFTL_METHOD_REQUIRED_SUPER = [
 DFTL_MANIFEST_VERSION_FORMAT = r"(\d+.\d+.\d+.\d+.\d+)"
 DFTL_CURSOR_EXPR = [
     'self.env.cr', 'self._cr',  # new api
+    'self.cr',  # controllers and test
     'cr',  # old api
 ]
 
@@ -248,39 +262,41 @@ class NoModuleChecker(BaseChecker):
         }),
     )
 
-    @utils.check_messages('translation-field',
-                          'invalid-commit',
-                          'sql-injection')
+    @utils.check_messages('translation-field', 'invalid-commit',
+                          'method-compute', 'method-search', 'method-inverse',
+                          'sql-injection',
+                          )
     def visit_call(self, node):
-        # Check cr.commit()
-        if isinstance(node, astroid.CallFunc) and \
-                isinstance(node.func, astroid.Getattr) and \
-                node.func.attrname == 'commit':
-            if self.get_cursor_name(node.func) in self.config.cursor_expr:
-                self.add_message('invalid-commit', node=node)
-
         if node.as_string().lower().startswith('fields.'):
-            args = hasattr(node, 'keywords') and node.keywords and \
-                node.args and (node.args + node.keywords) or \
-                hasattr(node, 'keywords') and node.keywords or node.args
+            args = misc.join_node_args_kwargs(node)
             for argument in args:
                 argument_aux = argument
                 if isinstance(argument, astroid.Keyword):
                     argument_aux = argument.value
+                    if argument.arg in ['compute', 'search', 'inverse'] and \
+                            isinstance(argument.value, astroid.Const) and \
+                            not argument.value.value.startswith(
+                                '_' + argument.arg + '_'):
+                        self.add_message('method-' + argument.arg,
+                                         node=argument_aux)
                 if isinstance(argument_aux, astroid.CallFunc) and \
                         isinstance(argument_aux.func, astroid.Name) and \
                         argument_aux.func.name == '_':
-                    self.add_message('translation-field',
-                                     node=argument_aux)
+                    self.add_message('translation-field', node=argument_aux)
+        # Check cr.commit()
+        if isinstance(node, astroid.CallFunc) and \
+                isinstance(node.func, astroid.Getattr) and \
+                node.func.attrname == 'commit' and \
+                self.get_cursor_name(node.func) in self.config.cursor_expr:
+            self.add_message('invalid-commit', node=node)
         # SQL Injection
         if isinstance(node, astroid.CallFunc) and \
                 isinstance(node.func, astroid.Getattr) and \
-                node.func.attrname == 'execute':
-            if self.get_cursor_name(node.func) in \
-                    self.config.cursor_expr:
-                if node.args and isinstance(node.args[0], astroid.BinOp) \
-                        and node.args[0].op == '%':
-                    self.add_message('sql-injection', node=node)
+                node.func.attrname == 'execute' and \
+                self.get_cursor_name(node.func) in self.config.cursor_expr:
+            if node.args and isinstance(node.args[0], astroid.BinOp) \
+                    and node.args[0].op == '%':
+                self.add_message('sql-injection', node=node)
 
     visit_callfunc = visit_call
 
@@ -328,8 +344,7 @@ class NoModuleChecker(BaseChecker):
                                  node=node, args=(license,))
 
             # Check version format
-            # TODO: Add validation Odoo major version (e.g. 8.0)
-            version_format = manifest_dict.get('version', None)
+            version_format = manifest_dict.get('version', '')
             formatrgx = self.formatversion(version_format)
             if version_format and not formatrgx:
                 self.add_message('manifest-version-format',
@@ -341,10 +356,10 @@ class NoModuleChecker(BaseChecker):
                           'copy-wo-api-one', 'api-one-deprecated',
                           'method-required-super')
     def visit_functiondef(self, node):
-        '''Check that `api.one` and `api.multi` decorators not exists together
+        """Check that `api.one` and `api.multi` decorators not exists together
         Check that method `copy` exists `api.one` decorator
         Check deprecated `api.one`.
-        '''
+        """
         if not node.is_method():
             return
 
@@ -413,6 +428,37 @@ class NoModuleChecker(BaseChecker):
     def formatversion(self, string):
         return re.match(self.config.manifest_version_format, string)
 
+    def get_decorators_names(self, decorators):
+        nodes = []
+        if decorators:
+            nodes = decorators.nodes
+        return [getattr(decorator, 'attrname', '')
+                for decorator in nodes if decorator is not None]
+
+    def get_func_name(self, node):
+        func_name = isinstance(node, astroid.Name) and node.name or \
+            isinstance(node, astroid.Getattr) and node.attrname or ''
+        return func_name
+
+    @utils.check_messages('translation-required')
+    def visit_raise(self, node):
+        """Visit raise and search methods with a string parameter
+        without a method.
+        Example wrong: raise UserError('My String')
+        Example done: raise UserError(_('My String'))
+        TODO: Consider the case where is used a variable with string value
+              my_string = 'My String'  # wrong
+              raise UserError(my_string)  # Detect variable string here
+        """
+        args = misc.join_node_args_kwargs(node.last_child())
+        for argument in args:
+            if isinstance(argument, astroid.Const) and \
+                    argument.name == 'str':
+                self.add_message('translation-required', node=node,
+                                 args=(self.get_func_name(
+                                     node.last_child().func),
+                                     argument.as_string()))
+
     def get_cursor_name(self, node):
         expr_list = []
         node_expr = node.expr
@@ -423,26 +469,3 @@ class NoModuleChecker(BaseChecker):
             expr_list.insert(0, node_expr.name)
         cursor_name = '.'.join(expr_list)
         return cursor_name
-
-    def get_func_name(self, node):
-        func_name = isinstance(node, astroid.Name) and node.name or \
-            isinstance(node, astroid.Getattr) and node.attrname or ''
-        return func_name
-
-    def get_decorators_names(self, decorators):
-        nodes = []
-        if decorators:
-            nodes = decorators.nodes
-        return [getattr(decorator, 'attrname', '')
-                for decorator in nodes if decorator is not None]
-
-    @utils.check_messages('translation-required')
-    def visit_raise(self, node):
-        args = misc.join_node_args_kwargs(node.last_child())
-        for argument in args:
-            if isinstance(argument, astroid.Const) and \
-                    argument.name == 'str':
-                self.add_message('translation-required', node=node,
-                                 args=(self.get_func_name(
-                                     node.last_child().func),
-                                     argument.as_string()))
