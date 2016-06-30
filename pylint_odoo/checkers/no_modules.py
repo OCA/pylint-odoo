@@ -198,6 +198,12 @@ DFTL_CURSOR_EXPR = [
     'self.cr',  # controllers and test
     'cr',  # old api
 ]
+DFTL_ODOO_EXCEPTIONS = [
+    # Extracted from openerp/exceptions.py of 8.0 and master
+    'AccessDenied', 'AccessError', 'DeferredException', 'except_orm',
+    'MissingError', 'QWebException', 'RedirectWarning', 'UserError',
+    'ValidationError', 'Warning',
+]
 
 
 class NoModuleChecker(BaseChecker):
@@ -259,6 +265,12 @@ class NoModuleChecker(BaseChecker):
             'metavar': '<comma separated values>',
             'default': DFTL_CURSOR_EXPR,
             'help': 'List of cursor expr separated by a comma.'
+        }),
+        ('odoo_exceptions', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFTL_ODOO_EXCEPTIONS,
+            'help': 'List of odoo exceptions separated by a comma.'
         }),
     )
 
@@ -450,14 +462,21 @@ class NoModuleChecker(BaseChecker):
               my_string = 'My String'  # wrong
               raise UserError(my_string)  # Detect variable string here
         """
+        if node.exc is None:
+            # ignore empty raise
+            return
+        if not isinstance(node.exc, astroid.CallFunc):
+            # ignore raise without a call
+            return
         args = misc.join_node_args_kwargs(node.last_child())
+        func_name = node.exc.func.name
         for argument in args:
-            if isinstance(argument, astroid.Const) and \
-                    argument.name == 'str':
-                self.add_message('translation-required', node=node,
-                                 args=(self.get_func_name(
-                                     node.last_child().func),
-                                     argument.as_string()))
+            if isinstance(argument, astroid.Const) and argument.name == 'str' \
+                    and func_name in self.config.odoo_exceptions:
+                self.add_message(
+                    'translation-required', node=node,
+                    args=(self.get_func_name(node.last_child().func),
+                          argument.as_string()))
 
     def get_cursor_name(self, node):
         expr_list = []

@@ -85,7 +85,16 @@ class TestModel(models.Model):
 
     def my_method10(self):
         # A example of built-in raise without parameters
+        # Shouldn't show error from lint
         raise ZeroDivisionError
+
+    def my_method11(self):
+        # A example of built-in raise with parameters
+        # Shouldn't show error from lint
+        raise ZeroDivisionError("String without translation")
+        # raise without class-exception to increase coverage
+        raise
+        raise "obsolete case"
 
     def sql_method(self, ids, cr):
         # This is the better way and should not be detected
