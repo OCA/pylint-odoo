@@ -302,12 +302,16 @@ class NoModuleChecker(BaseChecker):
                 self.get_cursor_name(node.func) in self.config.cursor_expr:
             self.add_message('invalid-commit', node=node)
         # SQL Injection
-        if isinstance(node, astroid.CallFunc) and \
+        if isinstance(node, astroid.CallFunc) and node.args and \
                 isinstance(node.func, astroid.Getattr) and \
                 node.func.attrname == 'execute' and \
                 self.get_cursor_name(node.func) in self.config.cursor_expr:
-            if node.args and isinstance(node.args[0], astroid.BinOp) \
-                    and node.args[0].op == '%':
+            first_arg = node.args[0]
+            is_bin_op = isinstance(first_arg, astroid.BinOp) and \
+                first_arg.op == '%'
+            is_format = isinstance(first_arg, astroid.CallFunc) and \
+                self.get_func_name(first_arg.func) == 'format'
+            if is_bin_op or is_format:
                 self.add_message('sql-injection', node=node)
 
     visit_callfunc = visit_call
