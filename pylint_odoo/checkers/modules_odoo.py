@@ -3,6 +3,8 @@
 
 import os
 
+import astroid
+
 from pylint.checkers import utils
 
 from .. import misc, settings
@@ -77,6 +79,11 @@ ODOO_MSGS = {
         'wrong-tabs-instead-of-spaces',
         settings.DESC_DFLT
     ),
+    'R%d80' % settings.BASE_OMODULE_ID: (
+        'Consider merging classes inherited to %s.',
+        'consider-merging-classes-inherited',
+        settings.DESC_DFLT
+    ),
 }
 
 
@@ -103,9 +110,29 @@ class ModuleChecker(misc.WrapperModuleChecker):
         }),
     )
 
+    class_inherit_names = []
+
     @utils.check_messages(*(ODOO_MSGS.keys()))
     def visit_module(self, node):
         self.wrapper_visit_module(node)
+
+    @utils.check_messages('consider-merging-classes-inherited')
+    def visit_assign(self, node):
+        node_left = node.targets[0]
+        if not isinstance(node_left, astroid.node_classes.AssName) or \
+                not node_left.name == '_inherit' or \
+                not isinstance(node.value, astroid.node_classes.Const):
+            return
+        self.class_inherit_names.append(node.value.value)
+
+    def leave_module(self, node):
+        super(ModuleChecker, self).leave_module(node)
+        if not self.manifest_file:
+            return
+        for duplicated in self.get_duplicated_items(self.class_inherit_names):
+            self.add_message('consider-merging-classes-inherited', node=node,
+                             args=(duplicated,))
+        self.class_inherit_names = []
 
     def _check_rst_syntax_error(self):
         """Check if rst file there is syntax error
