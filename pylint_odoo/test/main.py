@@ -36,6 +36,7 @@ EXPECTED_ERRORS = {
     'missing-newline-extrafiles': 3,
     'missing-readme': 1,
     'no-utf8-coding-comment': 3,
+    'old-api7-method-defined': 1,
     'openerp-exception-warning': 3,
     'po-lint': 4,
     'po-syntax-error': 1,

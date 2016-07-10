@@ -100,7 +100,7 @@ class TestModel(models.Model):
         self.cr.execute(
             'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
 
-    def sql_injection_method(self, cr, ids):
+    def sql_injection_method(self, cr, uid, ids, context=None):  # old api
         # SQL injection, bad way
         self._cr.execute(
             'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
