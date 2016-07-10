@@ -175,6 +175,11 @@ ODOO_MSGS = {
         'method-inverse',
         settings.DESC_DFLT
     ),
+    'C%d20' % settings.BASE_NOMODULE_ID: (
+        'Consider add "help" to odoo field',
+        'consider-add-field-help',
+        settings.DESC_DFLT
+    ),
     'R%d10' % settings.BASE_NOMODULE_ID: (
         'Method defined with old api version 7',
         'old-api7-method-defined',
@@ -269,10 +274,11 @@ class NoModuleChecker(BaseChecker):
 
     @utils.check_messages('translation-field', 'invalid-commit',
                           'method-compute', 'method-search', 'method-inverse',
-                          'sql-injection',
+                          'sql-injection', 'consider-add-field-help',
                           )
     def visit_call(self, node):
         if node.as_string().lower().startswith('fields.'):
+            has_help = False
             args = misc.join_node_args_kwargs(node)
             for argument in args:
                 argument_aux = argument
@@ -284,10 +290,14 @@ class NoModuleChecker(BaseChecker):
                                 '_' + argument.arg + '_'):
                         self.add_message('method-' + argument.arg,
                                          node=argument_aux)
+                    elif argument.arg == 'help':
+                        has_help = True
                 if isinstance(argument_aux, astroid.CallFunc) and \
                         isinstance(argument_aux.func, astroid.Name) and \
                         argument_aux.func.name == '_':
                     self.add_message('translation-field', node=argument_aux)
+            if not has_help:
+                self.add_message('consider-add-field-help', node=node)
         # Check cr.commit()
         if isinstance(node, astroid.CallFunc) and \
                 isinstance(node.func, astroid.Getattr) and \
