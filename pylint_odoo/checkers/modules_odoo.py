@@ -1,10 +1,10 @@
 """Visit module to add odoo checks
 """
 
+import ast
 import os
 
 import astroid
-
 from pylint.checkers import utils
 
 from .. import misc, settings
@@ -89,6 +89,11 @@ ODOO_MSGS = {
         'po-lint',
         settings.DESC_DFLT
     ),
+    'W%d30' % settings.BASE_OMODULE_ID: (
+        '%s not used from manifest',
+        'file-not-used',
+        settings.DESC_DFLT
+    ),
     'R%d80' % settings.BASE_OMODULE_ID: (
         'Consider merging classes inherited to %s.',
         'consider-merging-classes-inherited',
@@ -99,7 +104,10 @@ ODOO_MSGS = {
 
 DFLT_README_TMPL_URL = 'https://github.com/OCA/maintainer-tools' + \
     '/blob/master/template/module/README.rst'
-DFLT_EXTFILES_TO_LINT = ['xml', 'csv', 'po', 'js', 'mako']
+# Files supported from manifest to convert
+# Extracted from openerp/tools/convert.py:def convert_file
+DFLT_EXTFILES_CONVERT = ['csv', 'sql', 'xml', 'yml']
+DFLT_EXTFILES_TO_LINT = DFLT_EXTFILES_CONVERT + ['po', 'js', 'mako']
 DFLT_PO_LINT_ENABLE = []
 DFLT_PO_LINT_DISABLE = ['unchanged', 'short', 'acronyms',
                         'isfuzzy', 'doublewords', 'simpleplurals',
@@ -122,6 +130,13 @@ class ModuleChecker(misc.WrapperModuleChecker):
             'metavar': '<comma separated values>',
             'default': DFLT_EXTFILES_TO_LINT,
             'help': 'List of extension files to check separated by a comma.'
+        }),
+        ('extfiles_convert', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFLT_EXTFILES_CONVERT,
+            'help': 'List of extension files supported to convert '
+                    'from manifest separated by a comma.'
         }),
         ('po-lint-enable', {
             'type': 'csv',
@@ -422,6 +437,34 @@ class ModuleChecker(misc.WrapperModuleChecker):
                         if not (last_line.endswith('\n') or
                                 last_line.endswith('\r')):
                             self.msg_args.append((ext_file_rel,))
+        if self.msg_args:
+            return False
+        return True
+
+    def _get_manifest_referenced_files(self):
+        referenced_files = []
+        data_keys = ['data', 'demo', 'demo_xml', 'init_xml', 'test',
+                     'update_xml']
+        with open(self.manifest_file) as f_manifest:
+            manifest_dict = ast.literal_eval(f_manifest.read())
+            for key in data_keys:
+                referenced_files.extend(manifest_dict.get(key) or [])
+        return referenced_files
+
+    def _get_module_files(self):
+        module_files = []
+        for type_file in self.config.extfiles_convert:
+            for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
+                module_files.append(ext_file_rel)
+        return module_files
+
+    def _check_file_not_used(self):
+        """Check if a file is not used from manifest"""
+        self.msg_args = []
+        module_files = set(self._get_module_files())
+        referenced_files = set(self._get_manifest_referenced_files())
+        for no_referenced_file in (module_files - referenced_files):
+            self.msg_args.append((no_referenced_file,))
         if self.msg_args:
             return False
         return True
