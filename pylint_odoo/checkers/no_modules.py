@@ -469,7 +469,7 @@ class NoModuleChecker(BaseChecker):
             # ignore raise without a call
             return
         args = misc.join_node_args_kwargs(node.last_child())
-        func_name = node.exc.func.name
+        func_name = self.get_func_name(node.exc.func)
         for argument in args:
             if isinstance(argument, astroid.Const) and argument.name == 'str' \
                     and func_name in self.config.odoo_exceptions:

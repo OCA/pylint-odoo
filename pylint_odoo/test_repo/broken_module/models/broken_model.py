@@ -2,6 +2,7 @@
 
 from openerp import fields, models, _
 from openerp.exceptions import Warning as UserError
+from openerp import exceptions
 
 
 def function_no_method():
@@ -95,6 +96,12 @@ class TestModel(models.Model):
         # raise without class-exception to increase coverage
         raise
         raise "obsolete case"
+
+    def my_method12(self):
+        # Should show error
+        raise exceptions.Warning(
+            'String with params format {param1} and {param2}'
+        ).format(param1='value1', param2='value2')
 
     def sql_method(self, ids, cr):
         # This is the better way and should not be detected
