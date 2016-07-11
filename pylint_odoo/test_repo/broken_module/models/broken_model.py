@@ -88,6 +88,7 @@ class TestModel(models.Model):
         # A example of built-in raise without parameters
         # Shouldn't show error from lint
         raise ZeroDivisionError
+        raise ZeroDivisionError()
 
     def my_method11(self):
         # A example of built-in raise with parameters

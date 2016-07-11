@@ -465,10 +465,10 @@ class NoModuleChecker(BaseChecker):
         if node.exc is None:
             # ignore empty raise
             return
-        if not isinstance(node.exc, astroid.CallFunc):
+        expr = node.exc
+        if not isinstance(expr, astroid.CallFunc):
             # ignore raise without a call
             return
-        expr = node.exc
         if not expr.args:
             return
         func_name = self.get_func_name(expr.func)
