@@ -101,8 +101,8 @@ class TestModel(models.Model):
         # Should show error
         raise exceptions.Warning(
             'String with params format {p1}'.format(p1='v1'))
-        # raise exceptions.Warning(
-        #     'String with params format %(p1)s' % {'p1': 'v1'})
+        raise exceptions.Warning(
+            'qp2w String with params format %(p1)s' % {'p1': 'v1'})
 
     def my_method13(self):
         # Shouldn't show error
