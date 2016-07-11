@@ -100,8 +100,20 @@ class TestModel(models.Model):
     def my_method12(self):
         # Should show error
         raise exceptions.Warning(
-            'String with params format {param1} and {param2}'
-        ).format(param1='value1', param2='value2')
+            'String with params format {p1}'.format(p1='v1'))
+        # raise exceptions.Warning(
+        #     'String with params format %(p1)s' % {'p1': 'v1'})
+
+    def my_method13(self):
+        # Shouldn't show error
+        raise exceptions.Warning(_(
+            'String with params format {p1}').format(p1='v1'))
+        raise exceptions.Warning(_(
+            'String with params format {p1}'.format(p1='v1')))
+        raise exceptions.Warning(_(
+            'String with params format %(p1)s') % {'p1': 'v1'})
+        raise exceptions.Warning(_(
+            'String with params format %(p1)s' % {'p1': 'v1'}))
 
     def sql_method(self, ids, cr):
         # This is the better way and should not be detected
