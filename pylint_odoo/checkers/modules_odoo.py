@@ -112,7 +112,8 @@ DFLT_PO_LINT_ENABLE = []
 DFLT_PO_LINT_DISABLE = ['unchanged', 'short', 'acronyms',
                         'isfuzzy', 'doublewords', 'simpleplurals',
                         'pythonbraceformat', 'filepaths', 'startpunc',
-                        'brackets', 'startcaps', 'puncspacing',]
+                        'brackets', 'startcaps', 'puncspacing',
+                        'singlequoting',]
 
 
 class ModuleChecker(misc.WrapperModuleChecker):
