@@ -113,7 +113,8 @@ DFLT_PO_LINT_DISABLE = ['unchanged', 'short', 'acronyms',
                         'isfuzzy', 'doublewords', 'simpleplurals',
                         'pythonbraceformat', 'filepaths', 'startpunc',
                         'brackets', 'startcaps', 'puncspacing',
-                        'singlequoting', 'sentencecount',]
+                        'singlequoting', 'sentencecount',
+                        ]
 
 
 class ModuleChecker(misc.WrapperModuleChecker):
@@ -153,29 +154,38 @@ class ModuleChecker(misc.WrapperModuleChecker):
         }),
     )
 
-    class_inherit_names = []
-
     @utils.check_messages(*(ODOO_MSGS.keys()))
     def visit_module(self, node):
         self.wrapper_visit_module(node)
 
     @utils.check_messages('consider-merging-classes-inherited')
     def visit_assign(self, node):
+        if not self.odoo_node:
+            return
         node_left = node.targets[0]
         if not isinstance(node_left, astroid.node_classes.AssName) or \
                 not node_left.name == '_inherit' or \
                 not isinstance(node.value, astroid.node_classes.Const):
             return
-        self.class_inherit_names.append(node.value.value)
+        key = (self.odoo_node, node.value.value)
+        if key in self.inh:
+            self.inh_dup.setdefault(key[0], set()).add(key[1])
+        else:
+            self.inh.append(key)
 
-    def leave_module(self, node):
-        super(ModuleChecker, self).leave_module(node)
-        if not self.manifest_file:
-            return
-        for duplicated in self.get_duplicated_items(self.class_inherit_names):
-            self.add_message('consider-merging-classes-inherited', node=node,
-                             args=(duplicated,))
-        self.class_inherit_names = []
+    def open(self):
+        """Define variables to use cache"""
+        self.inh = []
+        self.inh_dup = {}
+        super(ModuleChecker, self).open()
+
+    def close(self):
+        """Final process get all cached values and add messages"""
+        for odoo_node, class_dup_names in self.inh_dup.items():
+            for class_dup_name in class_dup_names:
+                self.add_message('consider-merging-classes-inherited',
+                                 node=odoo_node,
+                                 args=(class_dup_name,))
 
     def _check_rst_syntax_error(self):
         """Check if rst file there is syntax error
