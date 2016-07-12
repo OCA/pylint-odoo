@@ -475,7 +475,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
         module_files = set(self._get_module_files())
         referenced_files = set(self._get_manifest_referenced_files())
         for no_referenced_file in (module_files - referenced_files):
-            self.msg_args.append((no_referenced_file,))
+            if not no_referenced_file.startswith('static/'):
+                self.msg_args.append((no_referenced_file,))
         if self.msg_args:
             return False
         return True
