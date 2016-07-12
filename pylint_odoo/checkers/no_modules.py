@@ -469,18 +469,27 @@ class NoModuleChecker(BaseChecker):
         if node.exc is None:
             # ignore empty raise
             return
-        if not isinstance(node.exc, astroid.CallFunc):
+        expr = node.exc
+        if not isinstance(expr, astroid.CallFunc):
             # ignore raise without a call
             return
-        args = misc.join_node_args_kwargs(node.last_child())
-        func_name = node.exc.func.name
-        for argument in args:
-            if isinstance(argument, astroid.Const) and argument.name == 'str' \
-                    and func_name in self.config.odoo_exceptions:
-                self.add_message(
-                    'translation-required', node=node,
-                    args=(self.get_func_name(node.last_child().func),
-                          argument.as_string()))
+        if not expr.args:
+            return
+        func_name = self.get_func_name(expr.func)
+
+        argument = expr.args[0]
+        if isinstance(argument, astroid.CallFunc) and \
+                'format' == self.get_func_name(argument.func):
+            argument = argument.func.expr
+        elif isinstance(argument, astroid.BinOp):
+            argument = argument.left
+
+        if isinstance(argument, astroid.Const) and \
+                argument.name == 'str' and \
+                func_name in self.config.odoo_exceptions:
+            self.add_message(
+                'translation-required', node=node,
+                args=(func_name, argument.as_string()))
 
     def get_cursor_name(self, node):
         expr_list = []
