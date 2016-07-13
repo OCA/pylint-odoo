@@ -1,8 +1,8 @@
 {
-    // JSHint Default Configuration File (as on JSHint website)
+    // JSHint Default Configuration File (as on JSHint website plus custom changes)
     // See http://jshint.com/docs/ for more details
 
-    "maxerr"        : 50,       // {int} Maximum error before stopping
+    "maxerr"        : 15,       // {int} Maximum error before stopping
 
     // Enforcing
     "bitwise"       : true,     // true: Prohibit bitwise operators (&, |, ^, etc.)
@@ -18,7 +18,7 @@
     "noempty"       : true,     // true: Prohibit use of empty blocks
     "nonbsp"        : true,     // true: Prohibit "non-breaking whitespace" characters.
     "nonew"         : false,    // true: Prohibit use of constructors for side-effects (without assignment)
-    "plusplus"      : false,    // true: Prohibit use of `++` and `--`
+    "plusplus"      : true,     // true: Prohibit use of `++` and `--` Changed to true
     "quotmark"      : false,    // Quotation mark consistency:
                                 //   false    : do nothing (default)
                                 //   true     : ensure whatever is used is consistent
@@ -29,12 +29,12 @@
                                 //   true     : all variables, last function parameter
                                 //   "vars"   : all variables only
                                 //   "strict" : all variables, all function parameters
-    "strict"        : true,     // true: Requires all functions run in ES5 Strict Mode
+    "strict"        : false,     // true: Requires all functions run in ES5 Strict Mode
     "maxparams"     : false,    // {int} Max number of formal params allowed per function
-    "maxdepth"      : false,    // {int} Max depth of nested blocks (within functions)
-    "maxstatements" : false,    // {int} Max number statements per function
-    "maxcomplexity" : false,    // {int} Max cyclomatic complexity per function
-    "maxlen"        : false,    // {int} Max number of characters per line
+    "maxdepth"      : 5,        // {int} Max depth of nested blocks (within functions)
+    "maxstatements" : 50,    // {int} Max number statements per function
+    "maxcomplexity" : 15,    // {int} Max cyclomatic complexity per function
+    "maxlen"        : 120,    // {int} Max number of characters per line
     "varstmt"       : false,    // true: Disallow any var statements. Only `let` and `const` are allowed.
 
     // Relaxing
@@ -48,7 +48,7 @@
     "evil"          : false,     // true: Tolerate use of `eval` and `new Function()`
     "expr"          : false,     // true: Tolerate `ExpressionStatement` as Programs
     "funcscope"     : false,     // true: Tolerate defining variables inside control statements
-    "globalstrict"  : false,     // true: Allow global "use strict" (also enables 'strict')
+    "globalstrict"  : true,     // true: Allow global "use strict" (also enables 'strict')
     "iterator"      : false,     // true: Tolerate using the `__iterator__` property
     "lastsemic"     : false,     // true: Tolerate omitting a semicolon for the last statement of a 1-line block
     "laxbreak"      : false,     // true: Tolerate possibly unsafe line breakings
@@ -65,16 +65,16 @@
     "validthis"     : false,     // true: Tolerate using this in a non-constructor function
 
     // Environments
-    "browser"       : true,     // Web Browser (window, document, etc)
-    "browserify"    : false,    // Browserify (node.js code in the browser)
+    "browser"       : false,     // Web Browser (window, document, etc)
+    "browserify"    : true,    // Browserify (node.js code in the browser)
     "couch"         : false,    // CouchDB
-    "devel"         : true,     // Development/debugging (alert, confirm, etc)
+    "devel"         : false,     // Development/debugging (alert, confirm, etc)
     "dojo"          : false,    // Dojo Toolkit
     "jasmine"       : false,    // Jasmine
-    "jquery"        : false,    // jQuery
-    "mocha"         : true,     // Mocha
+    "jquery"        : true,    // jQuery
+    "mocha"         : false,     // Mocha
     "mootools"      : false,    // MooTools
-    "node"          : false,    // Node.js
+    "node"          : false,     // Node.js
     "nonstandard"   : false,    // Widely adopted globals (escape, unescape, etc)
     "phantom"       : false,    // PhantomJS
     "prototypejs"   : false,    // Prototype and Scriptaculous
@@ -86,6 +86,7 @@
     "wsh"           : false,    // Windows Scripting Host
     "yui"           : false,    // Yahoo User Interface
 
+    // "unused": false,  // More options http://jshint.com/docs/options/
     // Custom Globals
     "globals"       : {}        // additional predefined global variables
 }
