@@ -24,7 +24,7 @@
                                 //   true     : ensure whatever is used is consistent
                                 //   "single" : require single quotes
                                 //   "double" : require double quotes
-    "undef"         : true,     // true: Require all non-global variables to be declared (prevents global leaks)
+    "undef"         : false,     // true: Require all non-global variables to be declared (prevents global leaks)
     "unused"        : true,     // Unused variables:
                                 //   true     : all variables, last function parameter
                                 //   "vars"   : all variables only
@@ -90,43 +90,5 @@
     // Custom Globals
     "globals"       : {
         // additional predefined global variables
-        // alert, console, confirm, Debug, propmt, opera are developer variables
-        // escape, unescape are that are not part of ECMAScript standard
-        "openerp": false,   // odoo variable
-        "odoo": false,      // support possible future odoo variable
-        "_": false,         // Translation method of odoo
-        "self": false,      // python fashion
-        // variables extracted from odoo addons js files
-        "nv": false,
-        "google": false,
-        "d3": false,
-        "confirm": false,
-        "moment": false,
-        "website_ga": false,
-        "ZeroClipboard": false,
-        "MarkerClusterer": false,
-        "odoo_partner_data": false,
-        "init_kanban": false,
-        "gapi": false,
-        "ActiveXObject": false,
-        "vkbeautify": false,
-        "snippets_url": false,
-        "Vec2": false,
-        "CuteGraph": false,
-        "StripeCheckout": false,
-        "FastClick": false,
-        "py": false,
-        "xyz": false,
-        "QWeb2": false,
-        "e": false,
-        "Raphael": false,
-        "CuteNode": false,
-        "css": false,
-        "callback": false,
-        "framework": false,
-        "input_value": false,
-        "fuzzy": false,
-        "CuteEdge": false,
-        "ace": false
     }
 }
