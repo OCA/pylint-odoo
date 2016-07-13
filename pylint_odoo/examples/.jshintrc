@@ -78,7 +78,7 @@
     "nonstandard"   : false,    // Widely adopted globals (escape, unescape, etc)
     "phantom"       : false,    // PhantomJS
     "prototypejs"   : false,    // Prototype and Scriptaculous
-    "qunit"         : false,    // QUnit
+    "qunit"         : true,    // QUnit
     "rhino"         : false,    // Rhino
     "shelljs"       : false,    // ShellJS
     "typed"         : false,    // Globals for typed array constructions
@@ -90,8 +90,41 @@
     // Custom Globals
     "globals"       : {
         // additional predefined global variables
-        "openerp": false,  // odoo variable
-        "odoo": false,  // support possible future odoo variable
-        "_": false  // Translation method of odoo
+        // alert, console, confirm, Debug, propmt, opera are developer variables
+        // escape, unescape are that are not part of ECMAScript standard
+        "openerp": false,   // odoo variable
+        "odoo": false,      // support possible future odoo variable
+        "_": false,         // Translation method of odoo
+        "self": false,      // python fashion
+        // variables extracted from odoo addons js files
+        "nv": false,
+        "google": false,
+        "d3": false,
+        "confirm": false,
+        "moment": false,
+        "website_ga": false,
+        "ZeroClipboard": false,
+        "MarkerClusterer": false,
+        "odoo_partner_data": false,
+        "init_kanban": false,
+        "gapi": false,
+        "ActiveXObject": false,
+        "vkbeautify": false,
+        "snippets_url": false,
+        "Vec2": false,
+        "CuteGraph": false,
+        "StripeCheckout": false,
+        "FastClick": false,
+        "py": false,
+        "xyz": false,
+        "QWeb2": false,
+        "e": false,
+        "Raphael": false,
+        "CuteNode": false,
+        "css": false,
+        "callback": false,
+        "framework": false,
+        "input_value": false,
+        "fuzzy": false
     }
 }
