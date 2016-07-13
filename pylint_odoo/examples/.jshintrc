@@ -65,7 +65,7 @@
     "validthis"     : false,     // true: Tolerate using this in a non-constructor function
 
     // Environments
-    "browser"       : false,     // Web Browser (window, document, etc)
+    "browser"       : true,     // Web Browser (window, document, etc)
     "browserify"    : true,    // Browserify (node.js code in the browser)
     "couch"         : false,    // CouchDB
     "devel"         : false,     // Development/debugging (alert, confirm, etc)
