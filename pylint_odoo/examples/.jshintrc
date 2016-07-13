@@ -125,6 +125,8 @@
         "callback": false,
         "framework": false,
         "input_value": false,
-        "fuzzy": false
+        "fuzzy": false,
+        "CuteEdge": false,
+        "ace": false
     }
 }
