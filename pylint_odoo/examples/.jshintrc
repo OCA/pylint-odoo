@@ -88,5 +88,10 @@
 
     // "unused": false,  // More options http://jshint.com/docs/options/
     // Custom Globals
-    "globals"       : {}        // additional predefined global variables
+    "globals"       : {
+        // additional predefined global variables
+        "openerp": false,  // odoo variable
+        "odoo": false,  // support possible future odoo variable
+        "_": false  // Translation method of odoo
+    }
 }
