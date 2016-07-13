@@ -8,7 +8,7 @@
     "bitwise"       : true,     // true: Prohibit bitwise operators (&, |, ^, etc.)
     "camelcase"     : false,    // true: Identifiers must be in camelCase
     "curly"         : true,     // true: Require {} for every new block or scope
-    "eqeqeq"        : true,     // true: Require triple equals (===) for comparison
+    "eqeqeq"        : false,     // true: Require triple equals (===) for comparison
     "forin"         : true,     // true: Require filtering for..in loops with obj.hasOwnProperty()
     "freeze"        : true,     // true: prohibits overwriting prototypes of native objects such as Array, Date etc.
     "immed"         : false,    // true: Require immediate invocations to be wrapped in parens e.g. `(function () { } ());`
@@ -18,7 +18,7 @@
     "noempty"       : true,     // true: Prohibit use of empty blocks
     "nonbsp"        : true,     // true: Prohibit "non-breaking whitespace" characters.
     "nonew"         : false,    // true: Prohibit use of constructors for side-effects (without assignment)
-    "plusplus"      : true,     // true: Prohibit use of `++` and `--` Changed to true
+    "plusplus"      : false,     // true: Prohibit use of `++` and `--`
     "quotmark"      : false,    // Quotation mark consistency:
                                 //   false    : do nothing (default)
                                 //   true     : ensure whatever is used is consistent
@@ -34,7 +34,7 @@
     "maxdepth"      : 5,        // {int} Max depth of nested blocks (within functions)
     "maxstatements" : 50,    // {int} Max number statements per function
     "maxcomplexity" : 15,    // {int} Max cyclomatic complexity per function
-    "maxlen"        : 120,    // {int} Max number of characters per line
+    "maxlen"        : 0,    // {int} Max number of characters per line
     "varstmt"       : false,    // true: Disallow any var statements. Only `let` and `const` are allowed.
 
     // Relaxing
