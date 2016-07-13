@@ -1,5 +1,6 @@
 
 import os
+import sys
 
 import unittest
 
@@ -51,8 +52,8 @@ EXPECTED_ERRORS = {
 class MainTest(unittest.TestCase):
     def setUp(self):
         self.default_options = [
-            '--load-plugins=pylint_odoo', '--reports=no',
-            '--msg-template={path}:{line}: [{msg_id}({symbol}), {obj}] {msg}',
+            '--load-plugins=pylint_odoo', '--reports=no', '--msg-template='
+            '"{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}"',
             '--output-format=colorized',
         ]
         path_modules = os.path.join(
@@ -66,6 +67,10 @@ class MainTest(unittest.TestCase):
             '--disable=all',
             '--enable=odoolint,pointless-statement,trailing-newlines',
         ]
+        self.sys_path_origin = list(sys.path)
+
+    def tearDown(self):
+        sys.path = list(self.sys_path_origin)
 
     def run_pylint(self, paths, extra_params=None):
         for path in paths:
@@ -73,7 +78,10 @@ class MainTest(unittest.TestCase):
                 raise OSError('Path "{path}" not found.'.format(path=path))
         if extra_params is None:
             extra_params = self.default_extra_params
-        return Run(self.default_options + extra_params + paths, exit=False)
+        sys.path.extend(paths)
+        cmd = self.default_options + extra_params + paths
+        res = Run(cmd, exit=False)
+        return res
 
     def test_10_path_dont_exist(self):
         "self-test if path don't exist"
@@ -113,6 +121,15 @@ class MainTest(unittest.TestCase):
         sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
         sum_fails_expected = sum(EXPECTED_ERRORS.values())
         self.assertEqual(sum_fails_found, sum_fails_expected)
+
+    def test_40_deprecated_modules(self):
+        """Test deprecated modules"""
+        extra_params = ['--disable=all',
+                        '--enable=deprecated-module',
+                        '--deprecated-modules=openerp.osv']
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats['by_msg']
+        self.assertEqual(real_errors.items(), [('deprecated-module', 4)])
 
 
 if __name__ == '__main__':
