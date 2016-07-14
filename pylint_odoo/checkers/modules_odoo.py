@@ -95,7 +95,7 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'R%d80' % settings.BASE_OMODULE_ID: (
-        'Consider merging classes inherited to %s.',
+        'Consider merging classes inherited to "%s" from %s.',
         'consider-merging-classes-inherited',
         settings.DESC_DFLT
     ),
@@ -168,24 +168,27 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 not isinstance(node.value, astroid.node_classes.Const):
             return
         key = (self.odoo_node, node.value.value)
-        if key in self.inh:
-            self.inh_dup.setdefault(key[0], set()).add(key[1])
-        else:
-            self.inh.append(key)
+        node.file = self.linter.current_file
+        self.inh_dup.setdefault(key, []).append(node)
 
     def open(self):
         """Define variables to use cache"""
-        self.inh = []
         self.inh_dup = {}
         super(ModuleChecker, self).open()
 
     def close(self):
         """Final process get all cached values and add messages"""
-        for odoo_node, class_dup_names in self.inh_dup.items():
-            for class_dup_name in class_dup_names:
-                self.add_message('consider-merging-classes-inherited',
-                                 node=odoo_node,
-                                 args=(class_dup_name,))
+        for (odoo_node, class_dup_name), nodes in self.inh_dup.items():
+            if len(nodes) == 1:
+                continue
+            path_nodes = []
+            for node in nodes[1:]:
+                relpath = os.path.relpath(node.file,
+                                          os.path.dirname(odoo_node.file))
+                path_nodes.append("%s:%d" % (relpath, node.lineno))
+            self.add_message('consider-merging-classes-inherited',
+                             node=nodes[0],
+                             args=(class_dup_name, ', '.join(path_nodes)))
 
     def _check_rst_syntax_error(self):
         """Check if rst file there is syntax error
