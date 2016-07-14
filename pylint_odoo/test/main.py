@@ -1,5 +1,7 @@
 
 import os
+import sys
+
 import unittest
 from contextlib import contextmanager
 from cProfile import Profile
@@ -46,7 +48,7 @@ EXPECTED_ERRORS = {
     'rst-syntax-error': 2,
     'sql-injection': 6,
     'translation-field': 2,
-    'translation-required': 2,
+    'translation-required': 4,
     'use-vim-comment': 1,
     'wrong-tabs-instead-of-spaces': 2,
     'xml-syntax-error': 2,
@@ -63,8 +65,8 @@ def profiling(profile):
 class MainTest(unittest.TestCase):
     def setUp(self):
         self.default_options = [
-            '--load-plugins=pylint_odoo', '--reports=no',
-            '--msg-template={path}:{line}: [{msg_id}({symbol}), {obj}] {msg}',
+            '--load-plugins=pylint_odoo', '--reports=no', '--msg-template='
+            '"{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}"',
             '--output-format=colorized',
         ]
         path_modules = os.path.join(
@@ -81,8 +83,10 @@ class MainTest(unittest.TestCase):
             '--po-lint-disable=untranslated,isfuzzy',
         ]
         self.profile = Profile()
+        self.sys_path_origin = list(sys.path)
 
     def tearDown(self):
+        sys.path = list(self.sys_path_origin)
         test = self._testMethodName
         prefix = os.path.expanduser(os.environ.get('PYLINT_ODOO_STATS',
                                     '~/pylint_odoo_cprofile'))
@@ -96,8 +100,11 @@ class MainTest(unittest.TestCase):
                 raise OSError('Path "{path}" not found.'.format(path=path))
         if extra_params is None:
             extra_params = self.default_extra_params
+        sys.path.extend(paths)
+        cmd = self.default_options + extra_params + paths
         with profiling(self.profile):
-            return Run(self.default_options + extra_params + paths, exit=False)
+            res = Run(cmd, exit=False)
+        return res
 
     def test_10_path_dont_exist(self):
         "self-test if path don't exist"
@@ -137,6 +144,15 @@ class MainTest(unittest.TestCase):
         sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
         sum_fails_expected = sum(EXPECTED_ERRORS.values())
         self.assertEqual(sum_fails_found, sum_fails_expected)
+
+    def test_40_deprecated_modules(self):
+        """Test deprecated modules"""
+        extra_params = ['--disable=all',
+                        '--enable=deprecated-module',
+                        '--deprecated-modules=openerp.osv']
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats['by_msg']
+        self.assertEqual(real_errors.items(), [('deprecated-module', 4)])
 
 
 if __name__ == '__main__':

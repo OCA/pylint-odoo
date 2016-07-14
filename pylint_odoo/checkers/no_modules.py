@@ -208,6 +208,12 @@ DFTL_CURSOR_EXPR = [
     'self.cr',  # controllers and test
     'cr',  # old api
 ]
+DFTL_ODOO_EXCEPTIONS = [
+    # Extracted from openerp/exceptions.py of 8.0 and master
+    'AccessDenied', 'AccessError', 'DeferredException', 'except_orm',
+    'MissingError', 'QWebException', 'RedirectWarning', 'UserError',
+    'ValidationError', 'Warning',
+]
 
 
 class NoModuleChecker(BaseChecker):
@@ -270,6 +276,12 @@ class NoModuleChecker(BaseChecker):
             'default': DFTL_CURSOR_EXPR,
             'help': 'List of cursor expr separated by a comma.'
         }),
+        ('odoo_exceptions', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFTL_ODOO_EXCEPTIONS,
+            'help': 'List of odoo exceptions separated by a comma.'
+        }),
     )
 
     @utils.check_messages('translation-field', 'invalid-commit',
@@ -309,10 +321,11 @@ class NoModuleChecker(BaseChecker):
                 isinstance(node.func, astroid.Getattr) and \
                 node.func.attrname == 'execute' and \
                 self.get_cursor_name(node.func) in self.config.cursor_expr:
-            is_bin_op = isinstance(node.args[0], astroid.BinOp) and \
-                node.args[0].op == '%'
-            is_format = isinstance(node.args[0], astroid.CallFunc) and \
-                node.args[0].func.attrname
+            first_arg = node.args[0]
+            is_bin_op = isinstance(first_arg, astroid.BinOp) and \
+                first_arg.op == '%'
+            is_format = isinstance(first_arg, astroid.CallFunc) and \
+                self.get_func_name(first_arg.func) == 'format'
             if is_bin_op or is_format:
                 self.add_message('sql-injection', node=node)
 
@@ -474,14 +487,30 @@ class NoModuleChecker(BaseChecker):
               my_string = 'My String'  # wrong
               raise UserError(my_string)  # Detect variable string here
         """
-        args = misc.join_node_args_kwargs(node.last_child())
-        for argument in args:
-            if isinstance(argument, astroid.Const) and \
-                    argument.name == 'str':
-                self.add_message('translation-required', node=node,
-                                 args=(self.get_func_name(
-                                     node.last_child().func),
-                                     argument.as_string()))
+        if node.exc is None:
+            # ignore empty raise
+            return
+        expr = node.exc
+        if not isinstance(expr, astroid.CallFunc):
+            # ignore raise without a call
+            return
+        if not expr.args:
+            return
+        func_name = self.get_func_name(expr.func)
+
+        argument = expr.args[0]
+        if isinstance(argument, astroid.CallFunc) and \
+                'format' == self.get_func_name(argument.func):
+            argument = argument.func.expr
+        elif isinstance(argument, astroid.BinOp):
+            argument = argument.left
+
+        if isinstance(argument, astroid.Const) and \
+                argument.name == 'str' and \
+                func_name in self.config.odoo_exceptions:
+            self.add_message(
+                'translation-required', node=node,
+                args=(func_name, argument.as_string()))
 
     def get_cursor_name(self, node):
         expr_list = []

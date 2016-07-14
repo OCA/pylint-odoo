@@ -2,6 +2,7 @@
 
 from openerp import fields, models, _
 from openerp.exceptions import Warning as UserError
+from openerp import exceptions
 
 
 def function_no_method():
@@ -87,7 +88,35 @@ class TestModel(models.Model):
 
     def my_method10(self):
         # A example of built-in raise without parameters
+        # Shouldn't show error from lint
         raise ZeroDivisionError
+        raise ZeroDivisionError()
+
+    def my_method11(self):
+        # A example of built-in raise with parameters
+        # Shouldn't show error from lint
+        raise ZeroDivisionError("String without translation")
+        # raise without class-exception to increase coverage
+        raise
+        raise "obsolete case"
+
+    def my_method12(self):
+        # Should show error
+        raise exceptions.Warning(
+            'String with params format {p1}'.format(p1='v1'))
+        raise exceptions.Warning(
+            'qp2w String with params format %(p1)s' % {'p1': 'v1'})
+
+    def my_method13(self):
+        # Shouldn't show error
+        raise exceptions.Warning(_(
+            'String with params format {p1}').format(p1='v1'))
+        raise exceptions.Warning(_(
+            'String with params format {p1}'.format(p1='v1')))
+        raise exceptions.Warning(_(
+            'String with params format %(p1)s') % {'p1': 'v1'})
+        raise exceptions.Warning(_(
+            'String with params format %(p1)s' % {'p1': 'v1'}))
 
     def sql_method(self, ids, cr):
         # This is the better way and should not be detected
