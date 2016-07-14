@@ -17,3 +17,11 @@ class TestModel3(models.Model):
 
 class TestModel4(models.Model):
     _inherit = 'res.partner'
+
+
+class TestModel5(models.Model):
+    _inherit = 'valid.duplicated'  # pylint: disable=R7980
+
+
+class TestModel6(models.Model):
+    _inherit = 'valid.duplicated'

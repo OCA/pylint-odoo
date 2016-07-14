@@ -118,6 +118,11 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
     @utils.check_messages('consider-merging-classes-inherited')
     def visit_assign(self, node):
+        if not self.odoo_node:
+            return
+        if not self.linter.is_message_enabled(
+                'consider-merging-classes-inherited', node.lineno):
+            return
         node_left = node.targets[0]
         if not isinstance(node_left, astroid.node_classes.AssName) or \
                 not node_left.name == '_inherit' or \
