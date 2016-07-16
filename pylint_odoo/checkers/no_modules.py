@@ -289,7 +289,9 @@ class NoModuleChecker(BaseChecker):
                           'sql-injection', 'consider-add-field-help',
                           )
     def visit_call(self, node):
-        if node.as_string().lower().startswith('fields.'):
+        if 'fields' == self.get_func_lib(node.func) and \
+                isinstance(node.parent, astroid.Assign) and \
+                isinstance(node.parent.parent, astroid.ClassDef):
             has_help = False
             args = misc.join_node_args_kwargs(node)
             for argument in args:
@@ -304,11 +306,15 @@ class NoModuleChecker(BaseChecker):
                                          node=argument_aux)
                     elif argument.arg == 'help':
                         has_help = True
+                    elif argument.arg == 'selection_add':
+                        # The argument "selection_add" is for overwrite field.
+                        # Then don't need help.
+                        has_help = None
                 if isinstance(argument_aux, astroid.CallFunc) and \
                         isinstance(argument_aux.func, astroid.Name) and \
                         argument_aux.func.name == '_':
                     self.add_message('translation-field', node=argument_aux)
-            if not has_help:
+            if has_help is False:
                 self.add_message('consider-add-field-help', node=node)
         # Check cr.commit()
         if isinstance(node, astroid.CallFunc) and \
@@ -328,8 +334,6 @@ class NoModuleChecker(BaseChecker):
                 self.get_func_name(first_arg.func) == 'format'
             if is_bin_op or is_format:
                 self.add_message('sql-injection', node=node)
-
-    visit_callfunc = visit_call
 
     @utils.check_messages('manifest-required-author', 'manifest-required-key',
                           'manifest-deprecated-key')
@@ -429,8 +433,6 @@ class NoModuleChecker(BaseChecker):
             if first_args == ['self', 'cr', 'uid']:
                 self.add_message('old-api7-method-defined', node=node)
 
-    visit_function = visit_functiondef
-
     @utils.check_messages('openerp-exception-warning')
     def visit_importfrom(self, node):
         if node.modname == 'openerp.exceptions':
@@ -440,16 +442,12 @@ class NoModuleChecker(BaseChecker):
                     self.add_message(
                         'openerp-exception-warning', node=node)
 
-    visit_from = visit_importfrom
-
     @utils.check_messages('class-camelcase')
     def visit_classdef(self, node):
         camelized = self.camelize(node.name)
         if camelized != node.name:
             self.add_message('class-camelcase', node=node,
                              args=(camelized, node.name))
-
-    visit_class = visit_classdef
 
     @utils.check_messages('attribute-deprecated')
     def visit_assign(self, node):
@@ -476,6 +474,12 @@ class NoModuleChecker(BaseChecker):
         func_name = isinstance(node, astroid.Name) and node.name or \
             isinstance(node, astroid.Getattr) and node.attrname or ''
         return func_name
+
+    def get_func_lib(self, node):
+        if isinstance(node, astroid.Getattr) and \
+                isinstance(node.expr, astroid.Name):
+            return node.expr.name
+        return ""
 
     @utils.check_messages('translation-required')
     def visit_raise(self, node):

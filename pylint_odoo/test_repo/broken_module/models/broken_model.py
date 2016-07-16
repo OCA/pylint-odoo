@@ -5,6 +5,9 @@ from openerp.exceptions import Warning as UserError
 from openerp import exceptions
 
 
+other_field = fields.Char()
+
+
 def function_no_method():
     pass
 
@@ -38,7 +41,19 @@ class TestModel(models.Model):
         copy=True,
     )
 
+    # This is a inherit overwrite field then don't should show errors related
+    # with creation of fields.
+    field_state_overwrite = fields.Selection(
+        selection_add=[('new_item', 'New Item')])
+
     ids = ["parent_id_1", "parent_id_2"]
+
+    def method_date(self):
+        date = fields.Date.to_string(
+            fields.Datetime.context_timestamp(self,
+                                              timestamp=fields.Datetime.now())
+        )
+        return date
 
     def my_method1(self, variable1):
         #  Shouldn't show error of field-argument-translate
