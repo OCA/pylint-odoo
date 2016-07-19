@@ -94,6 +94,12 @@ ODOO_MSGS = {
         'file-not-used',
         settings.DESC_DFLT
     ),
+    'W%d40' % settings.BASE_OMODULE_ID: (
+        '%s:%s Dangerous use of "replace" from view '
+        'with priority %s < %s',
+        'dangerous-view-replace-wo-priority',
+        settings.DESC_DFLT
+    ),
     'R%d80' % settings.BASE_OMODULE_ID: (
         'Consider merging classes inherited to "%s" from %s.',
         'consider-merging-classes-inherited',
@@ -119,6 +125,7 @@ DFTL_JSHINTRC = os.path.join(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
     'examples', '.jshintrc'
 )
+DFTL_MIN_PRIORITY = 99
 
 
 class ModuleChecker(misc.WrapperModuleChecker):
@@ -163,6 +170,12 @@ class ModuleChecker(misc.WrapperModuleChecker):
             'help': ('A path to a file that contains a configuration file of '
                      'jshint. Default file based on https://github.com/'
                      'jshint/jshint/blob/master/examples/.jshintrc')
+        }),
+        ('min-priority', {
+            'type': 'int',
+            'metavar': '<int>',
+            'default': DFTL_MIN_PRIORITY,
+            'help': 'Minimum priority number of a view with replace of fields.'
         }),
     )
 
@@ -311,7 +324,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
         return True
 
     def _check_dangerous_filter_wo_user(self):
-        """Check dangeorous filter without a user assigned.
+        """Check dangerous filter without a user assigned.
         :return: False if exists errors and
                  add list of errors in self.msg_args
         """
@@ -325,9 +338,51 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 # if exists field="name" then is a new record
                 # then should be field="user_id" too
                 if ir_filter_fields and len(ir_filter_fields) == 1:
+                    # TODO: Add a list of msg_args before of return
+                    # TODO: Add source lineno in all xml checks
                     self.msg_args = (
                         xml_file, ir_filter_record.get('id'),)
                     return False
+        return True
+
+    @staticmethod
+    def _get_priority(view):
+        try:
+            return int(view.xpath("field[@name='priority'][1]")[0].text)
+        except (IndexError, ValueError):
+            pass
+        return 0
+
+    @staticmethod
+    def _is_replaced_field(view):
+        try:
+            arch = view.xpath("field[@name='arch' and @type='xml'][1]")[0]
+        except IndexError:
+            return None
+        replaces = \
+            arch.xpath(".//field[@name='name' and @position='replace'][1]") + \
+            arch.xpath(".//xpath[@position='replace'][1]")
+        return bool(replaces)
+
+    def _check_dangerous_view_replace_wo_priority(self):
+        """Check dangerous view defined with low priority
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
+        self.msg_args = []
+        xml_files = self.filter_files_ext('xml')
+        for xml_file in xml_files:
+            views = self.get_xml_records(
+                os.path.join(self.module_path, xml_file), model='ir.ui.view')
+            for view in views:
+                priority = self._get_priority(view)
+                is_replaced_field = self._is_replaced_field(view)
+                if is_replaced_field and priority < self.config.min_priority:
+                    self.msg_args.append((
+                        xml_file, view.sourceline, priority,
+                        self.config.min_priority))
+        if self.msg_args:
+            return False
         return True
 
     def _check_create_user_wo_reset_password(self):
