@@ -1,4 +1,4 @@
-git+https://github.com/PyCQA/astroid.git@72cb2ddff884b7dc03dd8c8365b260caca4e80d8#egg=astroid
+git+https://github.com/PyCQA/astroid.git@c61b992458e1b1b3d955abf11ac3b75c98a11503#egg=astroid
 pylint-plugin-utils==0.2.3
 docutils==0.12
 lxml>=2.3.2
@@ -8,6 +8,6 @@ MarkupSafe==0.23
 babel==2.3.4
 imagesize==0.7.1
 jinja2==2.8
-git+https://github.com/PyCQA/pylint.git@b3eda4369f5b217840bc8911fdf2725e8f1408c8#egg=pylint
+git+https://github.com/PyCQA/pylint.git@9a3dd9448f1987928791a9df25b7f57462720ad2#egg=pylint
 translate-toolkit==1.13.0
 polib==1.0.7
