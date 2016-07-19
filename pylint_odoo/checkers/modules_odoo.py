@@ -115,6 +115,10 @@ DFLT_PO_LINT_DISABLE = ['unchanged', 'short', 'acronyms',
                         'brackets', 'startcaps', 'puncspacing',
                         'singlequoting', 'sentencecount',
                         ]
+DFTL_JSHINTRC = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+    'examples', '.jshintrc'
+)
 
 
 class ModuleChecker(misc.WrapperModuleChecker):
@@ -151,6 +155,14 @@ class ModuleChecker(misc.WrapperModuleChecker):
             'metavar': '<comma separated values>',
             'default': DFLT_PO_LINT_DISABLE,
             'help': 'List of disabled po-lint checks separated by a comma.'
+        }),
+        ('jshintrc', {
+            'type': 'string',
+            'metavar': '<path to file>',
+            'default': DFTL_JSHINTRC,
+            'help': ('A path to a file that contains a configuration file of '
+                     'jshint. Default file based on https://github.com/'
+                     'jshint/jshint/blob/master/examples/.jshintrc')
         }),
     )
 
@@ -351,7 +363,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
             if 'lib' in os.path.dirname(js_file_rel).split(os.sep):
                 continue
             js_file = os.path.join(self.module_path, js_file_rel)
-            errors = self.check_js_lint(js_file)
+            errors = self.check_js_lint(js_file, self.config.jshintrc)
             for error in errors:
                 self.msg_args.append((js_file_rel + error,))
         if self.msg_args:
