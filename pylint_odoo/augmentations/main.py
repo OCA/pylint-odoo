@@ -31,6 +31,18 @@ def is_valid_openerp_osv_deprecated(node):
     return False
 
 
+def is_openerp_import(node):
+    """Verify if the node is a import openerp
+    :returns: True if is a openerp import
+    :rtype: boolean
+    """
+    modules = [submodule[0].split('.')[0] for submodule in node.names]
+    modules.append(getattr(node, 'modname', '').split('.')[0])
+    if 'odoo' in modules or 'openerp' in modules:
+        return True
+    return False
+
+
 def apply_augmentations(linter):
     """Apply suppression rules."""
 
@@ -46,3 +58,12 @@ def apply_augmentations(linter):
     discard = hasattr(ImportsChecker, 'visit_from') and \
         ImportsChecker.visit_from or ImportsChecker.visit_importfrom
     suppress_message(linter, discard, 'W0402', is_valid_openerp_osv_deprecated)
+
+    # E0401 - import-error
+    # if the package is openerp then should be ignored because
+    # is a runtime valid import
+    discard = ImportsChecker.visit_import
+    suppress_message(linter, discard, 'E0401', is_openerp_import)
+    discard = hasattr(ImportsChecker, 'visit_from') and \
+        ImportsChecker.visit_from or ImportsChecker.visit_importfrom
+    suppress_message(linter, discard, 'E0401', is_openerp_import)

@@ -25,6 +25,7 @@ EXPECTED_ERRORS = {
     'duplicate-xml-fields': 6,
     'duplicate-xml-record-id': 2,
     'file-not-used': 8,
+    'import-error': 4,
     'incoherent-interpreter-exec-perm': 3,
     'invalid-commit': 4,
     'javascript-lint': 4,
@@ -80,7 +81,8 @@ class MainTest(unittest.TestCase):
             self.paths_modules.append(os.path.join(root, path))
         self.default_extra_params = [
             '--disable=all',
-            '--enable=odoolint,pointless-statement,trailing-newlines',
+            '--enable=odoolint,pointless-statement,trailing-newlines,'
+            'import-error',
             '--po-lint-enable=acronyms,endpunc',
             '--po-lint-disable=untranslated,isfuzzy',
         ]
