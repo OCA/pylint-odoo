@@ -38,6 +38,7 @@ EXPECTED_ERRORS = {
     'missing-newline-extrafiles': 3,
     'missing-readme': 1,
     'no-utf8-coding-comment': 3,
+    'odoo-addons-relative-import': 4,
     'openerp-exception-warning': 3,
     'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
