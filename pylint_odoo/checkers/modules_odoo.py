@@ -351,8 +351,11 @@ class ModuleChecker(misc.WrapperModuleChecker):
     @staticmethod
     def _get_priority(view):
         try:
-            return int(view.xpath("field[@name='priority'][1]")[0].text)
+            priority_node = view.xpath("field[@name='priority'][1]")[0]
+            return int(priority_node.get('eval', priority_node.text) or 0)
         except (IndexError, ValueError):
+            # IndexError: If the field is not found
+            # ValueError: If the value found is not valid integer
             pass
         return 0
 
