@@ -437,10 +437,8 @@ class NoModuleChecker(BaseChecker):
     def visit_importfrom(self, node):
         if node.modname == 'openerp.exceptions':
             for (import_name, import_as_name) in node.names:
-                if import_name == 'Warning' \
-                        and import_as_name != 'UserError':
-                    self.add_message(
-                        'openerp-exception-warning', node=node)
+                if import_name == 'Warning' and import_as_name != 'UserError':
+                    self.add_message('openerp-exception-warning', node=node)
 
     @utils.check_messages('class-camelcase')
     def visit_classdef(self, node):

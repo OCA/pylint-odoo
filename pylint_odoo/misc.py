@@ -148,10 +148,13 @@ class WrapperModuleChecker(BaseChecker):
         self.manifest_file = self.get_manifest_file(node.file)
         if self.manifest_file:
             self.odoo_node = node
+            self.odoo_module_name = os.path.basename(
+                os.path.dirname(self.odoo_node.file))
         elif self.odoo_node and \
                 not os.path.dirname(self.odoo_node.file) in \
                 os.path.dirname(node.file):
             self.odoo_node = None
+            self.odoo_module_name = None
         self.node = node
         self.module_path = os.path.dirname(node.file)
         self.module = os.path.basename(self.module_path)
