@@ -1,5 +1,6 @@
 
 import os
+import re
 import sys
 import subprocess
 from contextlib import contextmanager
@@ -177,8 +178,35 @@ class WrapperModuleChecker(BaseChecker):
                     if not isinstance(self.msg_args, list):
                         self.msg_args = [self.msg_args]
                     for msg_args in self.msg_args:
-                        self.add_message(msg_code, node=node,
-                                         args=msg_args)
+                        node_file_original = node.file
+                        node_lineno_original = node.lineno
+                        msg_args_extra = self.set_extra_file(node, msg_args,
+                                                             msg_code)
+                        self.add_message(msg_code, line=node.lineno, node=node,
+                                         args=msg_args_extra)
+                        node.file = node_file_original
+                        node.lineno = node_lineno_original
+
+    def set_extra_file(self, node, msg_args, msg_code):
+        if isinstance(msg_args, basestring):
+            msg_args = (msg_args,)
+        first_arg = msg_args and msg_args[0] or ""
+        fregex_str = \
+            r"(?P<file>^[\w|\-|\.|/ \\]+):?(?P<lineno>\d+)?:?(?P<colno>\d+)?"
+        fregex = re.compile(fregex_str)
+        fmatch = fregex.match(first_arg)
+        msg = self.linter.msgs_store.check_message_id(msg_code).msg.\
+            strip('"\' ')
+        if not fmatch or not msg.startswith(r"%s"):
+            return msg_args
+        module_path = os.path.dirname(self.odoo_node.file)
+        fname = fmatch.group('file')
+        fpath = os.path.join(module_path, fname)
+        node.file = fpath if os.path.isfile(fpath) else module_path
+        lineno = (fmatch.group('lineno') or '')
+        node.lineno = lineno or 0
+        msg_strip = re.sub(fregex_str, '', first_arg, 1).strip(': ')
+        return (msg_strip,) + msg_args[1:]
 
     def filter_files_ext(self, fext, relpath=True):
         """Filter files of odoo modules with a file extension.
@@ -315,29 +343,6 @@ class WrapperModuleChecker(BaseChecker):
             doc.xpath("/odoo//record" + model_filter) \
             if not isinstance(doc, basestring) else []
 
-    def get_xml_record_ids(self, xml_file, module=None):
-        """Get xml ids from tags `record of a openerp xml file
-        :param xml_file: Path of file xml
-        :param model: String with record model to filter.
-                      if model is None then get all.
-                      Default None.
-        :return: List of string with module.xml_id found
-        """
-        xml_ids = []
-        for record in self.get_xml_records(xml_file):
-            xml_module, xml_id = record.get('id').split('.') \
-                if '.' in record.get('id') \
-                else [self.module, record.get('id')]
-            if module and xml_module != module:
-                continue
-            # Support case where using two xml_id:
-            #  1) With noupdate="1"
-            #  2) With noupdate="0"
-            noupdate = "noupdate=" + record.getparent().get('noupdate', '0')
-            xml_ids.append(
-                xml_module + '.' + xml_id + '.' + noupdate)
-        return xml_ids
-
     def get_field_csv(self, csv_file, field='id'):
         """Get xml ids from csv file
         :param csv_file: Path of file csv
@@ -348,53 +353,19 @@ class WrapperModuleChecker(BaseChecker):
             lines = csv.DictReader(csvfile)
             return [line[field] for line in lines if field in line]
 
-    def get_xml_record_fields(self, xml_file, module=None):
-        """Get duplicated xml fields from tags `record of a openerp xml file
-        :param xml_file: Path of file xml
-        :param model: String with record model to filter.
-                      if model is None then get all.
-                      Default None.
-        :return: List of string with module.xml_id found
-        """
-        dup_fields = []
-        for record in self.get_xml_records(xml_file):
-            if record.xpath('field[@name="inherit_id"]'):
-                continue
-            xml_fields = []
-            xml_module, xml_id = record.get('id').split('.') \
-                if '.' in record.get('id') \
-                else [self.module, record.get('id')]
-            list_fields = record.xpath('field')
-            for field in list_fields:
-                field_xml = field.attrib.get('name')
-                if not field_xml:
-                    continue
-                xml_fields.append('.'.join(
-                    [xml_module, xml_id, field_xml]))
-                list_xpaths = ['*/field', '*/field/*/field']
-                for str_xpath in list_xpaths:
-                    xml_fields_sv = []
-                    list_fields_sv = field.xpath(str_xpath)
-                    for field_sv in list_fields_sv:
-                        field_sv_xml = field_sv.values()[0]
-                        xml_fields_sv.append('.'.join(
-                            [xml_module, xml_id, field_xml, field_sv_xml]))
-                    dup_fields.extend(self.get_duplicated_items(xml_fields_sv))
-            dup_fields.extend(self.get_duplicated_items(xml_fields))
-        return dup_fields
-
     def get_xml_redundant_module_name(self, xml_file, module=None):
         """Get xml redundant name module in xml_id of a openerp xml file
         :param xml_file: Path of file xml
         :param model: String with record model to filter.
                       if model is None then get all.
                       Default None.
-        :return: List of string with module.xml_id found
+        :return: List of tuples with (string, integer) with
+            (module.xml_id, lineno) found
         """
         xml_ids = []
         for record in self.get_xml_records(xml_file):
             xml_module, xml_id = record.get('id').split('.') \
                 if '.' in record.get('id') else ['', record.get('id')]
             if module and xml_module == module:
-                xml_ids.append(xml_id)
+                xml_ids.append((xml_id, record.sourceline))
         return xml_ids
