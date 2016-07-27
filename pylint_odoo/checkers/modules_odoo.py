@@ -170,6 +170,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
     def _get_odoo_module_imported(self, node):
         odoo_module = []
+        if not hasattr(astroid, 'ImportFrom'):
+            astroid.ImportFrom = astroid.From
         if isinstance(node, astroid.ImportFrom) and \
                 ('openerp.addons' in node.modname or
                  'odoo.addons' in node.modname):
@@ -198,6 +200,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
     @utils.check_messages('odoo-addons-relative-import')
     def visit_importfrom(self, node):
         self.check_odoo_relative_import(node)
+
+    visit_from = visit_importfrom
 
     @utils.check_messages('odoo-addons-relative-import')
     def visit_import(self, node):
