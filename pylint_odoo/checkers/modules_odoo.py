@@ -128,7 +128,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
         ('extfiles_to_lint', {
             'type': 'csv',
             'metavar': '<comma separated values>',
-            'default': DFTL_EXTFILES_TO_LINT,
+            'default': DFLT_EXTFILES_TO_LINT,
             'help': 'List of extension files to check separated by a comma.'
         }),
         ('min-priority', {
