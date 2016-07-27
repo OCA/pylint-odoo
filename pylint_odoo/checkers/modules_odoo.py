@@ -4,7 +4,6 @@
 import os
 
 import astroid
-
 from pylint.checkers import utils
 
 from .. import misc, settings
