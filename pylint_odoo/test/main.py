@@ -21,6 +21,7 @@ EXPECTED_ERRORS = {
     'duplicate-id-csv': 2,
     'duplicate-xml-fields': 6,
     'duplicate-xml-record-id': 2,
+    'import-error': 4,
     'incoherent-interpreter-exec-perm': 3,
     'invalid-commit': 4,
     'javascript-lint': 2,
@@ -72,7 +73,8 @@ class MainTest(unittest.TestCase):
             self.paths_modules.append(os.path.join(root, path))
         self.default_extra_params = [
             '--disable=all',
-            '--enable=odoolint,pointless-statement,trailing-newlines',
+            '--enable=odoolint,pointless-statement,trailing-newlines,'
+            'import-error',
         ]
         self.profile = Profile()
         self.sys_path_origin = list(sys.path)
