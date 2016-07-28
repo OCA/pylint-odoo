@@ -124,11 +124,23 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 'consider-merging-classes-inherited', node.lineno):
             return
         node_left = node.targets[0]
+        if not hasattr(astroid, 'ClassDef'):
+            # Compatibility with old pylint versions
+            astroid.ClassDef = astroid.Class
         if not isinstance(node_left, astroid.node_classes.AssName) or \
-                not node_left.name == '_inherit' or \
-                not isinstance(node.value, astroid.node_classes.Const):
+                node_left.name not in ('_inherit', '_name') or \
+                not isinstance(node.value, astroid.node_classes.Const) or \
+                not isinstance(node.parent, astroid.ClassDef):
             return
-        key = (self.odoo_node, node.value.value)
+        if node_left.name == '_name':
+            node.parent.odoo_attribute_name = node.value.value
+            return
+        _name = getattr(node.parent, 'odoo_attribute_name', None)
+        _inherit = node.value.value
+        if _name and _name != _inherit:
+            # Skip _name='model.name' _inherit='other.model' because is valid
+            return
+        key = (self.odoo_node, _inherit)
         node.file = self.linter.current_file
         self.inh_dup.setdefault(key, []).append(node)
 
