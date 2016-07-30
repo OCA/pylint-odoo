@@ -111,7 +111,8 @@ DFTL_MIN_PRIORITY = 99
 # Files supported from manifest to convert
 # Extracted from openerp/tools/convert.py:def convert_file
 DFLT_EXTFILES_CONVERT = ['csv', 'sql', 'xml', 'yml']
-DFLT_EXTFILES_TO_LINT = DFLT_EXTFILES_CONVERT + ['po', 'js', 'mako', 'rst']
+DFLT_EXTFILES_TO_LINT = DFLT_EXTFILES_CONVERT + [
+    'po', 'js', 'mako', 'rst', 'md', 'markdown']
 
 
 class ModuleChecker(misc.WrapperModuleChecker):
