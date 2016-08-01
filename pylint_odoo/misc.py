@@ -97,6 +97,10 @@ class WrapperModuleChecker(BaseChecker):
     msg_args = None
     msg_code = None
     msg_name_key = None
+    odoo_node = None
+    odoo_module_name = None
+    manifest_file = None
+    module = None
 
     def get_manifest_file(self, node_file):
         """Get manifest file path
