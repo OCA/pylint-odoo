@@ -125,7 +125,7 @@ DFLT_PO_LINT_DISABLE = ['unchanged', 'short', 'acronyms',
                         'isfuzzy', 'doublewords', 'simpleplurals',
                         'pythonbraceformat', 'filepaths', 'startpunc',
                         'brackets', 'startcaps', 'puncspacing',
-                        'singlequoting', 'sentencecount',
+                        'singlequoting', 'sentencecount', 'printf',
                         ]
 DFTL_JSHINTRC = os.path.join(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
