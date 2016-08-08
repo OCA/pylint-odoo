@@ -11,6 +11,11 @@ from restructuredtext_lint import lint_file as rst_lint
 
 from . import settings
 
+try:
+    from shutil import which  # python3.x
+except ImportError:
+    from whichcraft import which
+
 
 def get_plugin_msgs(pylint_run_res):
     """Get all message of this pylint plugin.
@@ -210,19 +215,28 @@ class WrapperModuleChecker(BaseChecker):
         """
         return rst_lint(fname)
 
-    def check_js_lint(self, fname):
+    def check_js_lint(self, fname, frc=None):
         """Check javascript lint in fname.
         :param fname: String with full path of file to check
+        :param frc: String with full path of configuration file for
+            the javascript-lint tool
         :return: Return list of errors.
         """
-        cmd = ['jshint', '--reporter=unix', fname]
-        try:
-            output = subprocess.Popen(
-                cmd, stderr=subprocess.STDOUT,
-                stdout=subprocess.PIPE).stdout.read()
-        except OSError as oserr:
-            output_err = ' - ' + cmd[0] + ': ' + oserr.strerror
-            return [output_err]
+        lint_bin = which('eslint')
+        if not lint_bin:
+            return []
+        cmd = [lint_bin, '--format=unix', fname]
+        if frc:
+            cmd.append('--config=' + frc)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+        output, err = process.communicate()
+        if process.returncode != 0 and err:
+            return []
+        # Strip multi-line output https://github.com/eslint/eslint/issues/6810
+        for old in re.findall(r"`(.*)` instead.", output, re.DOTALL):
+            new = old.split('\n')[0][:20] + '...'
+            output = output.replace(old, new)
         output = output.replace(fname, '')
         output_spplited = []
         if output:
