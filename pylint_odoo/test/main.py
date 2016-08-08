@@ -1,6 +1,8 @@
 
 import os
+import stat
 import sys
+from tempfile import gettempdir
 
 import unittest
 from contextlib import contextmanager
@@ -28,7 +30,7 @@ EXPECTED_ERRORS = {
     'import-error': 4,
     'incoherent-interpreter-exec-perm': 3,
     'invalid-commit': 4,
-    'javascript-lint': 4,
+    'javascript-lint': 8,
     'license-allowed': 1,
     'manifest-author-string': 1,
     'manifest-deprecated-key': 1,
@@ -39,7 +41,7 @@ EXPECTED_ERRORS = {
     'method-inverse': 1,
     'method-required-super': 8,
     'method-search': 1,
-    'missing-newline-extrafiles': 3,
+    'missing-newline-extrafiles': 4,
     'missing-readme': 1,
     'no-utf8-coding-comment': 3,
     'odoo-addons-relative-import': 4,
@@ -141,12 +143,12 @@ class MainTest(unittest.TestCase):
         self.default_extra_params.append('--disable=dangerous-filter-wo-user')
         pylint_res = self.run_pylint(self.paths_modules)
         real_errors = pylint_res.linter.stats['by_msg']
-        global EXPECTED_ERRORS
-        EXPECTED_ERRORS.pop('dangerous-filter-wo-user')
+        expected_errors = EXPECTED_ERRORS.copy()
+        expected_errors.pop('dangerous-filter-wo-user')
         self.assertEqual(sorted(real_errors.items()),
-                         sorted(EXPECTED_ERRORS.items()))
+                         sorted(expected_errors.items()))
         sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
-        sum_fails_expected = sum(EXPECTED_ERRORS.values())
+        sum_fails_expected = sum(expected_errors.values())
         self.assertEqual(sum_fails_found, sum_fails_expected)
 
     def test_40_deprecated_modules(self):
@@ -157,6 +159,58 @@ class MainTest(unittest.TestCase):
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats['by_msg']
         self.assertEqual(real_errors.items(), [('deprecated-module', 4)])
+
+    def test_50_without_jslint_installed(self):
+        """Test without jslint installed"""
+        # if not self.jslint_bin_content:
+        #     return
+        # TODO: Use mock to create a monkey patch
+        which_original = misc.which
+
+        def my_which(bin_name, *args, **kwargs):
+            if bin_name == 'eslint':
+                return None
+            return which_original(bin_name)
+        misc.which = my_which
+        my_which("noeslint")
+        pylint_res = self.run_pylint(self.paths_modules)
+        misc.which = which_original
+        real_errors = pylint_res.linter.stats['by_msg']
+        expected_errors = EXPECTED_ERRORS.copy()
+        expected_errors.pop('javascript-lint')
+        self.assertEqual(sorted(real_errors.items()),
+                         sorted(expected_errors.items()))
+        sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
+        sum_fails_expected = sum(expected_errors.values())
+        self.assertEqual(sum_fails_found, sum_fails_expected)
+
+    def test_60_with_jslint_error(self):
+        """Test with jslint error"""
+        # TODO: Use mock to create a monkey patch
+        which_original = misc.which
+
+        def my_which(bin_name, *args, **kwargs):
+            if bin_name == 'eslint':
+                fname = os.path.join(gettempdir(), 'jslint.bad')
+                if not os.path.isfile(fname):
+                    with open(fname, "w") as f_jslint:
+                        f_jslint.write("#!/usr/bin/env node\n{}}")
+                    os.chmod(fname, os.stat(fname).st_mode | stat.S_IEXEC)
+                return fname
+            return which_original(bin_name)
+
+        my_which("noeslint")
+        misc.which = my_which
+        pylint_res = self.run_pylint(self.paths_modules)
+        misc.which = which_original
+        real_errors = pylint_res.linter.stats['by_msg']
+        expected_errors = EXPECTED_ERRORS.copy()
+        expected_errors.pop('javascript-lint')
+        self.assertEqual(sorted(real_errors.items()),
+                         sorted(expected_errors.items()))
+        sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
+        sum_fails_expected = sum(expected_errors.values())
+        self.assertEqual(sum_fails_found, sum_fails_expected)
 
 
 if __name__ == '__main__':

@@ -11,3 +11,4 @@ jinja2==2.8
 git+https://github.com/PyCQA/pylint.git@9a3dd9448f1987928791a9df25b7f57462720ad2#egg=pylint
 translate-toolkit==1.13.0
 polib==1.0.7
+whichcraft
