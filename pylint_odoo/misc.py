@@ -215,6 +215,23 @@ class WrapperModuleChecker(BaseChecker):
         """
         return rst_lint(fname)
 
+    def npm_which_module(self, module):
+        module_bin = which(module)
+        npm_bin = which('npm')
+        if not module_bin and npm_bin:
+            npm_bin_paths = []
+            for cmd in ([npm_bin, 'bin'], [npm_bin, 'bin', '-g']):
+                process = subprocess.Popen(cmd,
+                                           stdout=subprocess.PIPE,
+                                           stderr=subprocess.PIPE)
+                output, err = process.communicate()
+                npm_bin_path = output.strip('\n ')
+                if os.path.isdir(npm_bin_path) and not err:
+                    npm_bin_paths.append(npm_bin_path)
+            if npm_bin_paths:
+                module_bin = which(module, path=os.pathsep.join(npm_bin_paths))
+        return module_bin
+
     def check_js_lint(self, fname, frc=None):
         """Check javascript lint in fname.
         :param fname: String with full path of file to check
@@ -222,7 +239,7 @@ class WrapperModuleChecker(BaseChecker):
             the javascript-lint tool
         :return: Return list of errors.
         """
-        lint_bin = which('eslint')
+        lint_bin = self.npm_which_module('eslint')
         if not lint_bin:
             return []
         cmd = [lint_bin, '--format=unix', fname]

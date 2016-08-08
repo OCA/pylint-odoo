@@ -183,16 +183,12 @@ class MainTest(unittest.TestCase):
         which_original = misc.which
 
         def my_which(bin_name, *args, **kwargs):
-            if bin_name == 'eslint':
-                fname = os.path.join(gettempdir(), 'jslint.bad')
-                if not os.path.isfile(fname):
-                    with open(fname, "w") as f_jslint:
-                        f_jslint.write("#!/usr/bin/env node\n{}}")
-                    os.chmod(fname, os.stat(fname).st_mode | stat.S_IEXEC)
-                return fname
-            return which_original(bin_name)
+            fname = os.path.join(gettempdir(), 'jslint.bad')
+            with open(fname, "w") as f_jslint:
+                f_jslint.write("#!/usr/bin/env node\n{}}")
+            os.chmod(fname, os.stat(fname).st_mode | stat.S_IEXEC)
+            return fname
 
-        my_which("noeslint")
         misc.which = my_which
         pylint_res = self.run_pylint(self.paths_modules)
         misc.which = which_original
