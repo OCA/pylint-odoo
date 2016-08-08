@@ -254,7 +254,7 @@ class WrapperModuleChecker(BaseChecker):
                                            stderr=subprocess.PIPE)
                 output, err = process.communicate()
                 npm_bin_path = output.strip('\n ')
-                if os.path.isdir(npm_bin_path) and not err:
+                if os.path.isdir(npm_bin_path):
                     npm_bin_paths.append(npm_bin_path)
             if npm_bin_paths:
                 module_bin = which(module, path=os.pathsep.join(npm_bin_paths))
