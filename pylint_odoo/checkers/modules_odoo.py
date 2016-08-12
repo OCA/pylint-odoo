@@ -84,7 +84,8 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'W%d50' % settings.BASE_OMODULE_ID: (
-        'Odoo addons relative import, should use "." '
+        'Same Odoo module absolute import. You should use '
+        'relative import with "." '
         'instead of "openerp.addons.%s"',
         'odoo-addons-relative-import',
         settings.DESC_DFLT
