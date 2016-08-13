@@ -91,6 +91,9 @@ class WrapperModuleChecker(BaseChecker):
         """Clear caches"""
         self.clear_caches()
 
+    def open(self):
+        self.odoo_node = None
+
     def wrapper_visit_module(self, node):
         """Call methods named with name-key from self.msgs
         Method should be named with next standard:
@@ -104,6 +107,12 @@ class WrapperModuleChecker(BaseChecker):
         :return: None
         """
         self.manifest_file = self.get_manifest_file(node.file)
+        if self.manifest_file:
+            self.odoo_node = node
+        elif self.odoo_node and \
+                not os.path.dirname(self.odoo_node.file) in \
+                os.path.dirname(node.file):
+            self.odoo_node = None
         self.node = node
         self.module_path = os.path.dirname(node.file)
         self.module = os.path.basename(self.module_path)

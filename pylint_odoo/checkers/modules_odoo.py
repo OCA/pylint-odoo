@@ -3,6 +3,8 @@
 
 import os
 
+import astroid
+
 from pylint.checkers import utils
 
 from .. import misc, settings
@@ -77,6 +79,11 @@ ODOO_MSGS = {
         'wrong-tabs-instead-of-spaces',
         settings.DESC_DFLT
     ),
+    'R%d80' % settings.BASE_OMODULE_ID: (
+        'Consider merging classes inherited to "%s" from %s.',
+        'consider-merging-classes-inherited',
+        settings.DESC_DFLT
+    ),
 }
 
 
@@ -103,9 +110,58 @@ class ModuleChecker(misc.WrapperModuleChecker):
         }),
     )
 
+    class_inherit_names = []
+
     @utils.check_messages(*(ODOO_MSGS.keys()))
     def visit_module(self, node):
         self.wrapper_visit_module(node)
+
+    @utils.check_messages('consider-merging-classes-inherited')
+    def visit_assign(self, node):
+        if not self.odoo_node:
+            return
+        if not self.linter.is_message_enabled(
+                'consider-merging-classes-inherited', node.lineno):
+            return
+        node_left = node.targets[0]
+        if not hasattr(astroid, 'ClassDef'):
+            # Compatibility with old pylint versions
+            astroid.ClassDef = astroid.Class
+        if not isinstance(node_left, astroid.node_classes.AssName) or \
+                node_left.name not in ('_inherit', '_name') or \
+                not isinstance(node.value, astroid.node_classes.Const) or \
+                not isinstance(node.parent, astroid.ClassDef):
+            return
+        if node_left.name == '_name':
+            node.parent.odoo_attribute_name = node.value.value
+            return
+        _name = getattr(node.parent, 'odoo_attribute_name', None)
+        _inherit = node.value.value
+        if _name and _name != _inherit:
+            # Skip _name='model.name' _inherit='other.model' because is valid
+            return
+        key = (self.odoo_node, _inherit)
+        node.file = self.linter.current_file
+        self.inh_dup.setdefault(key, []).append(node)
+
+    def open(self):
+        """Define variables to use cache"""
+        self.inh_dup = {}
+        super(ModuleChecker, self).open()
+
+    def close(self):
+        """Final process get all cached values and add messages"""
+        for (odoo_node, class_dup_name), nodes in self.inh_dup.items():
+            if len(nodes) == 1:
+                continue
+            path_nodes = []
+            for node in nodes[1:]:
+                relpath = os.path.relpath(node.file,
+                                          os.path.dirname(odoo_node.file))
+                path_nodes.append("%s:%d" % (relpath, node.lineno))
+            self.add_message('consider-merging-classes-inherited',
+                             node=nodes[0],
+                             args=(class_dup_name, ', '.join(path_nodes)))
 
     def _check_rst_syntax_error(self):
         """Check if rst file there is syntax error
