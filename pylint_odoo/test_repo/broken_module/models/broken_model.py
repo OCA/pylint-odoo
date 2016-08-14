@@ -4,9 +4,15 @@ from openerp import fields, models, _
 from openerp.exceptions import Warning as UserError
 from openerp import exceptions
 
+# Relatives import for odoo addons
+from openerp.addons.broken_module import broken_model as broken_model1
+from openerp.addons import broken_module as broken_module1
+import openerp.addons.broken_module as broken_module2
+import openerp.addons.broken_module.broken_model as broken_model2
+
 
 def function_no_method():
-    pass
+    return broken_model1, broken_module1, broken_module2, broken_model2
 
 
 class TestModel(models.Model):

@@ -4,7 +4,6 @@
 import os
 
 import astroid
-
 from pylint.checkers import utils
 
 from .. import misc, settings
@@ -82,6 +81,13 @@ ODOO_MSGS = {
     'R%d80' % settings.BASE_OMODULE_ID: (
         'Consider merging classes inherited to "%s" from %s.',
         'consider-merging-classes-inherited',
+        settings.DESC_DFLT
+    ),
+    'W%d50' % settings.BASE_OMODULE_ID: (
+        'Same Odoo module absolute import. You should use '
+        'relative import with "." '
+        'instead of "openerp.addons.%s"',
+        'odoo-addons-relative-import',
         settings.DESC_DFLT
     ),
 }
@@ -162,6 +168,45 @@ class ModuleChecker(misc.WrapperModuleChecker):
             self.add_message('consider-merging-classes-inherited',
                              node=nodes[0],
                              args=(class_dup_name, ', '.join(path_nodes)))
+
+    def _get_odoo_module_imported(self, node):
+        odoo_module = []
+        if not hasattr(astroid, 'ImportFrom'):
+            astroid.ImportFrom = astroid.From
+        if isinstance(node, astroid.ImportFrom) and \
+                ('openerp.addons' in node.modname or
+                 'odoo.addons' in node.modname):
+            packages = node.modname.split('.')
+            if len(packages) >= 3:
+                # from openerp.addons.odoo_module import models
+                odoo_module.append(packages[2])
+            else:
+                # from openerp.addons import odoo_module
+                odoo_module.append(node.names[0][0])
+        elif isinstance(node, astroid.Import):
+            for name, _ in node.names:
+                if 'openerp.addons' not in name and 'odoo.addons' not in name:
+                    continue
+                packages = name.split('.')
+                if len(packages) >= 3:
+                    # import openerp.addons.odoo_module
+                    odoo_module.append(packages[2])
+        return odoo_module
+
+    def check_odoo_relative_import(self, node):
+        if self.odoo_module_name in self._get_odoo_module_imported(node):
+            self.add_message('odoo-addons-relative-import', node=node,
+                             args=(self.odoo_module_name))
+
+    @utils.check_messages('odoo-addons-relative-import')
+    def visit_importfrom(self, node):
+        self.check_odoo_relative_import(node)
+
+    visit_from = visit_importfrom
+
+    @utils.check_messages('odoo-addons-relative-import')
+    def visit_import(self, node):
+        self.check_odoo_relative_import(node)
 
     def _check_rst_syntax_error(self):
         """Check if rst file there is syntax error
