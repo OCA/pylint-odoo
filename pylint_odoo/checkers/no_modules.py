@@ -416,7 +416,9 @@ class NoModuleChecker(BaseChecker):
 
         if self.linter.is_message_enabled('old-api7-method-defined'):
             first_args = [arg.name for arg in node.args.args][:3]
-            if first_args == ['self', 'cr', 'uid']:
+            if len(first_args) == 3 and first_args[0] == 'self' and \
+               first_args[1] in ['cr', 'cursor'] and \
+               first_args[2] in ['uid', 'user', 'user_id']:
                 self.add_message('old-api7-method-defined', node=node)
 
     visit_function = visit_functiondef
