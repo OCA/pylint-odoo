@@ -175,6 +175,11 @@ ODOO_MSGS = {
         'method-inverse',
         settings.DESC_DFLT
     ),
+    'R%d10' % settings.BASE_NOMODULE_ID: (
+        'Method defined with old api version 7',
+        'old-api7-method-defined',
+        settings.DESC_DFLT
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ['license']
@@ -370,7 +375,8 @@ class NoModuleChecker(BaseChecker):
 
     @utils.check_messages('api-one-multi-together',
                           'copy-wo-api-one', 'api-one-deprecated',
-                          'method-required-super')
+                          'method-required-super', 'old-api7-method-defined',
+                          )
     def visit_functiondef(self, node):
         """Check that `api.one` and `api.multi` decorators not exists together
         Check that method `copy` exists `api.one` decorator
@@ -407,6 +413,13 @@ class NoModuleChecker(BaseChecker):
             if 'super' not in calls:
                 self.add_message('method-required-super',
                                  node=node, args=(node.name))
+
+        if self.linter.is_message_enabled('old-api7-method-defined'):
+            first_args = [arg.name for arg in node.args.args][:3]
+            if len(first_args) == 3 and first_args[0] == 'self' and \
+               first_args[1] in ['cr', 'cursor'] and \
+               first_args[2] in ['uid', 'user', 'user_id']:
+                self.add_message('old-api7-method-defined', node=node)
 
     visit_function = visit_functiondef
 
