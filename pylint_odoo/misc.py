@@ -171,12 +171,15 @@ class WrapperModuleChecker(BaseChecker):
         """
         return rst_lint(fname)
 
-    def check_js_lint(self, fname):
+    def check_js_lint(self, fname, frc=None):
         """Check javascript lint in fname.
         :param fname: String with full path of file to check
+        :param frc: String with full path of configuration file of jshint
         :return: Return list of errors.
         """
         cmd = ['jshint', '--reporter=unix', fname]
+        if frc:
+            cmd.append('--config=' + frc)
         try:
             output = subprocess.Popen(
                 cmd, stderr=subprocess.STDOUT,
