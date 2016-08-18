@@ -49,6 +49,7 @@ EXPECTED_ERRORS = {
     'openerp-exception-warning': 3,
     'po-lint': 4,
     'po-syntax-error': 1,
+    'prefer-other-formatting': 4,
     'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
     'sql-injection': 6,

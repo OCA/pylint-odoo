@@ -1,3 +1,4 @@
+# coding: utf-8
 """Enable checkers to visit all nodes different to modules.
 You can use:
     visit_arguments
@@ -185,6 +186,15 @@ ODOO_MSGS = {
         'old-api7-method-defined',
         settings.DESC_DFLT
     ),
+    'R%d11' % settings.BASE_NOMODULE_ID: (
+        'Prefer "%(varname)" over .format(). This is better for translation '
+        u' and clarity. En otras palabras, estás completamente seguro '
+        u'que tienes controlado la codificación de los'
+        ' caracteres. Si tu respuesta es NO, entonces usa '
+        '"%(varname)s" panita/wey.',
+        'prefer-other-formatting',
+        settings.DESC_DFLT
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ['license']
@@ -287,8 +297,11 @@ class NoModuleChecker(BaseChecker):
     @utils.check_messages('translation-field', 'invalid-commit',
                           'method-compute', 'method-search', 'method-inverse',
                           'sql-injection', 'consider-add-field-help',
+                          'prefer-other-formatting'
                           )
     def visit_call(self, node):
+        if self.get_func_name(node.func) == 'format':
+            self.add_message('prefer-other-formatting', node=node)
         if 'fields' == self.get_func_lib(node.func) and \
                 isinstance(node.parent, astroid.Assign) and \
                 isinstance(node.parent.parent, astroid.ClassDef):
