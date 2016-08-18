@@ -43,6 +43,7 @@ EXPECTED_ERRORS = {
     'odoo-addons-relative-import': 4,
     'old-api7-method-defined': 2,
     'openerp-exception-warning': 3,
+    'prefer-other-formatting': 4,
     'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
     'sql-injection': 6,
