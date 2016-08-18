@@ -21,6 +21,89 @@
                 </tree>
             </field>
         </record>
+        <!-- Replace without priority with field-replace-->
+        <record id="view_model_form10" model="ir.ui.view">
+            <field name="name">view.model.form10</field>
+            <field name="model">test.model</field>
+            <field name="arch" type="xml">
+                <form string="Test model">
+                    <field name="name" position="replace">
+                        <field name="other_field"/>
+                    </field>
+                </form>
+            </field>
+        </record>
+        <!-- Replace without priority with xpath-replace-->
+        <record id="view_model_form20" model="ir.ui.view">
+            <field name="name">view.model.form20</field>
+            <field name="model">test.model</field>
+            <field name="arch" type="xml">
+                <form string="Test model">
+                    <xpath expr="//field[@name='name']" position="replace"/>
+                </form>
+            </field>
+        </record>
+        <!-- Seudo-replace just change string without params-->
+        <record id="view_model_form30" model="ir.ui.view">
+            <field name="name">view.model.form30</field>
+            <field name="model">test.model</field>
+            <field name="arch" type="xml">
+                <form string="Test model">
+                    <field name="name" position="replace">
+                        <field name="name" string="Other string"/>
+                    </field>
+                </form>
+            </field>
+        </record>
+        <!-- Replace with high priority -->
+        <record id="view_model_form40" model="ir.ui.view">
+            <field name="name">view.model.form40</field>
+            <field name="model">test.model</field>
+            <field name="priority">100</field>
+            <field name="arch" type="xml">
+                <form string="Test model">
+                    <field name="name" position="replace"/>
+                </form>
+            </field>
+        </record>
+        <!-- Replace with low priority -->
+        <record id="view_model_form50" model="ir.ui.view">
+            <field name="name">view.model.form50</field>
+            <field name="model">test.model</field>
+            <field name="priority">10</field>
+            <field name="arch" type="xml">
+                <form string="Test model">
+                    <field name="name" position="replace"/>
+                </form>
+            </field>
+        </record>
+        <!-- Replace with high priority -->
+        <record id="view_model_form60" model="ir.ui.view">
+            <field name="name">view.model.form60</field>
+            <field name="model">test.model</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <form string="Test model">
+                    <field name="name" position="replace"/>
+                </form>
+            </field>
+        </record>
+        <!-- Replace with low priority eval-->
+        <record id="view_model_form70" model="ir.ui.view">
+            <field name="name">view.model.form70</field>
+            <field name="model">test.model</field>
+            <field name="priority" eval="10"/>
+            <field name="arch" type="xml">
+                <form string="Test model">
+                    <field name="name" position="replace"/>
+                </form>
+            </field>
+        </record>
+        <!-- view without arch -->
+        <record id="view_model_form80" model="ir.ui.view">
+            <field name="name">view.model.form80</field>
+            <field name="model">test.model</field>
+        </record>
 
     </data>
 </openerp>
