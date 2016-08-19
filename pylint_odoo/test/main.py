@@ -23,6 +23,7 @@ EXPECTED_ERRORS = {
     'duplicate-id-csv': 2,
     'duplicate-xml-fields': 6,
     'duplicate-xml-record-id': 2,
+    'file-not-used': 8,
     'incoherent-interpreter-exec-perm': 3,
     'invalid-commit': 4,
     'javascript-lint': 2,

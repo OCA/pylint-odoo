@@ -9,6 +9,8 @@
     ],
     'data': [
         'security/ir.model.access.csv',
+        'res_users.xml',
+        'model_view.xml',
     ],
     'external_dependencies': {
         'bin': [
