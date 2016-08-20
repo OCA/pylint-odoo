@@ -14,7 +14,7 @@ ODOO_MSGS = {
 
     # Visit odoo module with settings.BASE_OMODULE_ID
     'C%d02' % settings.BASE_OMODULE_ID: (
-        'README.rst missing file. Template here: %s',
+        'Missing ./README.rst file. Template here: %s',
         'missing-readme',
         settings.DESC_DFLT
     ),
