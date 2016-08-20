@@ -438,8 +438,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
         """
         self.msg_args = []
         for js_file_rel in self.filter_files_ext('js', relpath=True):
-            if 'lib' in os.path.dirname(js_file_rel).split(os.sep):
-                continue
             js_file = os.path.join(self.module_path, js_file_rel)
             errors = self.check_js_lint(js_file)
             for error in errors:
@@ -475,9 +473,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
         self.msg_args = []
         for type_file in self.config.extfiles_to_lint:
             for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
-                if 'lib' in os.path.dirname(ext_file_rel).split(os.sep):
-                    continue
-
                 ext_file = os.path.join(self.module_path, ext_file_rel)
                 countline = 0
                 with open(ext_file, 'rb') as fp:
@@ -498,8 +493,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
         self.msg_args = []
         for type_file in self.config.extfiles_to_lint:
             for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
-                if 'lib' in os.path.dirname(ext_file_rel).split(os.sep):
-                    continue
                 ext_file = os.path.join(self.module_path, ext_file_rel)
                 last_line = ''
                 with open(ext_file, 'rb') as fp:
