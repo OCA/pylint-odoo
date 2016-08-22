@@ -167,8 +167,7 @@ class WrapperModuleChecker(BaseChecker):
         fname = fmatch.group('file')
         fpath = os.path.join(module_path, fname)
         node.file = fpath if os.path.isfile(fpath) else module_path
-        lineno = (fmatch.group('lineno') or '')
-        node.lineno = lineno or 0
+        node.lineno = int(fmatch.group('lineno') or 0)
         msg_strip = re.sub(fregex_str, '', first_arg, 1).strip(': ')
         return (msg_strip,) + msg_args[1:]
 
