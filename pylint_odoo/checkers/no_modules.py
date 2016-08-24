@@ -290,7 +290,9 @@ class NoModuleChecker(BaseChecker):
                           'sql-injection', 'prefer-other-formatting',
                           )
     def visit_call(self, node):
-        if self.get_func_name(node.func) == 'format':
+        node_infer = utils.safe_infer(node.func)
+        if utils.is_builtin_object(node_infer) and \
+                self.get_func_name(node.func) == 'format':
             self.add_message('prefer-other-formatting', node=node)
         if node.as_string().lower().startswith('fields.'):
             args = misc.join_node_args_kwargs(node)
