@@ -300,7 +300,9 @@ class NoModuleChecker(BaseChecker):
                           'prefer-other-formatting'
                           )
     def visit_call(self, node):
-        if self.get_func_name(node.func) == 'format':
+        node_infer = utils.safe_infer(node.func)
+        if utils.is_builtin_object(node_infer) and \
+                self.get_func_name(node.func) == 'format':
             self.add_message('prefer-other-formatting', node=node)
         if 'fields' == self.get_func_lib(node.func) and \
                 isinstance(node.parent, astroid.Assign) and \
