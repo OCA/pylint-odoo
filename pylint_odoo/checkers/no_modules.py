@@ -176,14 +176,19 @@ ODOO_MSGS = {
         'method-inverse',
         settings.DESC_DFLT
     ),
-    'C%d20' % settings.BASE_NOMODULE_ID: (
-        'Consider add "help" to odoo field',
-        'consider-add-field-help',
-        settings.DESC_DFLT
-    ),
     'R%d10' % settings.BASE_NOMODULE_ID: (
         'Method defined with old api version 7',
         'old-api7-method-defined',
+        settings.DESC_DFLT
+    ),
+}
+
+
+# Checks not oca just vx to avoid oca conflicts
+ODOO_MSGS.update(
+    'C%d20' % settings.BASE_NOMODULE_ID: (
+        'Consider add "help" to odoo field',
+        'consider-add-field-help',
         settings.DESC_DFLT
     ),
     'R%d11' % settings.BASE_NOMODULE_ID: (
@@ -195,7 +200,8 @@ ODOO_MSGS = {
         'prefer-other-formatting',
         settings.DESC_DFLT
     ),
-}
+)
+
 
 DFTL_MANIFEST_REQUIRED_KEYS = ['license']
 DFTL_MANIFEST_REQUIRED_AUTHOR = 'Odoo Community Association (OCA)'
@@ -440,7 +446,9 @@ class NoModuleChecker(BaseChecker):
 
         if self.linter.is_message_enabled('old-api7-method-defined'):
             first_args = [arg.name for arg in node.args.args][:3]
-            if first_args == ['self', 'cr', 'uid']:
+            if len(first_args) == 3 and first_args[0] == 'self' and \
+               first_args[1] in ['cr', 'cursor'] and \
+               first_args[2] in ['uid', 'user', 'user_id']:
                 self.add_message('old-api7-method-defined', node=node)
 
     @utils.check_messages('openerp-exception-warning')

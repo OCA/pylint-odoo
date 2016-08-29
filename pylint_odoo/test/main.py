@@ -1,9 +1,13 @@
 
 import os
+<<<<<<< HEAD
 import stat
 import sys
 from tempfile import gettempdir
 
+=======
+import sys
+>>>>>>> oca/master
 import unittest
 from contextlib import contextmanager
 from cProfile import Profile
@@ -16,7 +20,6 @@ EXPECTED_ERRORS = {
     'api-one-multi-together': 2,
     'attribute-deprecated': 2,
     'class-camelcase': 1,
-    'consider-add-field-help': 2,
     'consider-merging-classes-inherited': 2,
     'copy-wo-api-one': 2,
     'create-user-wo-reset-password': 1,
@@ -45,11 +48,8 @@ EXPECTED_ERRORS = {
     'missing-readme': 1,
     'no-utf8-coding-comment': 3,
     'odoo-addons-relative-import': 4,
-    'old-api7-method-defined': 1,
+    'old-api7-method-defined': 2,
     'openerp-exception-warning': 3,
-    'po-lint': 4,
-    'po-syntax-error': 1,
-    'prefer-other-formatting': 4,
     'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
     'sql-injection': 6,
@@ -59,6 +59,15 @@ EXPECTED_ERRORS = {
     'wrong-tabs-instead-of-spaces': 2,
     'xml-syntax-error': 2,
 }
+
+
+# Checks not oca just vx to avoid oca conflicts
+EXPECTED_ERRORS.update({
+    'consider-add-field-help': 2,
+    'po-lint': 4,
+    'po-syntax-error': 1,
+    'prefer-other-formatting': 4,
+})
 
 
 @contextmanager
@@ -208,6 +217,15 @@ class MainTest(unittest.TestCase):
         sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
         sum_fails_expected = sum(expected_errors.values())
         self.assertEqual(sum_fails_found, sum_fails_expected)
+
+    def test_40_deprecated_modules(self):
+        """Test deprecated modules"""
+        extra_params = ['--disable=all',
+                        '--enable=deprecated-module',
+                        '--deprecated-modules=openerp.osv']
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats['by_msg']
+        self.assertEqual(real_errors.items(), [('deprecated-module', 4)])
 
 
 if __name__ == '__main__':
