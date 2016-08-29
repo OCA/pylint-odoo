@@ -184,8 +184,8 @@ ODOO_MSGS = {
 }
 
 
-# Checks not oca just vx to avoid oca conflicts
-ODOO_MSGS.update(
+# Checks not oca just vx to avoid oca conflicts
+ODOO_MSGS.update({
     'C%d20' % settings.BASE_NOMODULE_ID: (
         'Consider add "help" to odoo field',
         'consider-add-field-help',
@@ -200,7 +200,7 @@ ODOO_MSGS.update(
         'prefer-other-formatting',
         settings.DESC_DFLT
     ),
-)
+})
 
 
 DFTL_MANIFEST_REQUIRED_KEYS = ['license']

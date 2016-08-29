@@ -92,7 +92,7 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'W%d40' % settings.BASE_OMODULE_ID: (
-        '%s:%s Dangerous use of "replace" from view '
+        '%s Dangerous use of "replace" from view '
         'with priority %s < %s',
         'dangerous-view-replace-wo-priority',
         settings.DESC_DFLT
@@ -105,7 +105,7 @@ ODOO_MSGS = {
 }
 
 
-# Checks not oca just vx to avoid oca conflicts
+# Checks not oca just vx to avoid oca conflicts
 ODOO_MSGS.update({
     'E%d03' % settings.BASE_OMODULE_ID: (
         '%s',
@@ -186,7 +186,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
     )
 
     # Custom options for check of vx to avoid oca conflicts
-    options.add(
+    options += (
         ('po-lint-enable', {
             'type': 'csv',
             'metavar': '<comma separated values>',
@@ -254,8 +254,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
     def _get_odoo_module_imported(self, node):
         odoo_module = []
-        if not hasattr(astroid, 'ImportFrom'):
-            astroid.ImportFrom = astroid.From
         if isinstance(node, astroid.ImportFrom) and \
                 ('openerp.addons' in node.modname or
                  'odoo.addons' in node.modname):
@@ -637,8 +635,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
         self.msg_args = []
         for type_file in self.config.extfiles_to_lint:
             for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
-                if 'lib' in os.path.dirname(ext_file_rel).split(os.sep):
-                    continue
                 ext_file = os.path.join(self.module_path, ext_file_rel)
                 last_line = ''
                 with open(ext_file, 'rb') as fp:

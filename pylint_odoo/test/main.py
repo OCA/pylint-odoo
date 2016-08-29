@@ -1,13 +1,9 @@
 
 import os
-<<<<<<< HEAD
 import stat
 import sys
 from tempfile import gettempdir
 
-=======
-import sys
->>>>>>> oca/master
 import unittest
 from contextlib import contextmanager
 from cProfile import Profile
@@ -61,7 +57,7 @@ EXPECTED_ERRORS = {
 }
 
 
-# Checks not oca just vx to avoid oca conflicts
+# Checks not oca just vx to avoid oca conflicts
 EXPECTED_ERRORS.update({
     'consider-add-field-help': 2,
     'po-lint': 4,
@@ -217,15 +213,6 @@ class MainTest(unittest.TestCase):
         sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
         sum_fails_expected = sum(expected_errors.values())
         self.assertEqual(sum_fails_found, sum_fails_expected)
-
-    def test_40_deprecated_modules(self):
-        """Test deprecated modules"""
-        extra_params = ['--disable=all',
-                        '--enable=deprecated-module',
-                        '--deprecated-modules=openerp.osv']
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
-        real_errors = pylint_res.linter.stats['by_msg']
-        self.assertEqual(real_errors.items(), [('deprecated-module', 4)])
 
 
 if __name__ == '__main__':
