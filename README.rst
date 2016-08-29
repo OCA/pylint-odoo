@@ -113,6 +113,9 @@ Example to test just odoo-lint case:
 
 ``pylint --load-plugins=pylint_odoo -d all -e odoolint {ADDONS-PATH}``
 
+If you have external files you can add them in ``examples`` folder to skip.
+
+
 .. |Build Status| image:: https://travis-ci.org/OCA/pylint-odoo.svg?branch=master
    :target: https://travis-ci.org/OCA/pylint-odoo
 .. |Coverage Status| image:: https://coveralls.io/repos/OCA/pylint-odoo/badge.svg?branch=master&service=github
