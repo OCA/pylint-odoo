@@ -28,11 +28,6 @@ ODOO_MSGS = {
         'xml-syntax-error',
         settings.DESC_DFLT
     ),
-    'E%d03' % settings.BASE_OMODULE_ID: (
-        '%s',
-        'po-syntax-error',
-        settings.DESC_DFLT
-    ),
     'W%d01' % settings.BASE_OMODULE_ID: (
         '%s Dangerous filter without explicit `user_id` in xml_id %s',
         'dangerous-filter-wo-user',
@@ -84,14 +79,16 @@ ODOO_MSGS = {
         'wrong-tabs-instead-of-spaces',
         settings.DESC_DFLT
     ),
-    'W%d11' % settings.BASE_OMODULE_ID: (
-        '%s',
-        'po-lint',
+    'R%d80' % settings.BASE_OMODULE_ID: (
+        'Consider merging classes inherited to "%s" from %s.',
+        'consider-merging-classes-inherited',
         settings.DESC_DFLT
     ),
-    'W%d30' % settings.BASE_OMODULE_ID: (
-        '%s Not used from manifest',
-        'file-not-used',
+    'W%d50' % settings.BASE_OMODULE_ID: (
+        'Same Odoo module absolute import. You should use '
+        'relative import with "." '
+        'instead of "openerp.addons.%s"',
+        'odoo-addons-relative-import',
         settings.DESC_DFLT
     ),
     'W%d40' % settings.BASE_OMODULE_ID: (
@@ -100,26 +97,45 @@ ODOO_MSGS = {
         'dangerous-view-replace-wo-priority',
         settings.DESC_DFLT
     ),
-    'W%d50' % settings.BASE_OMODULE_ID: (
-        'Odoo addons relative import, should use "." '
-        'instead of "openerp.addons.%s"',
-        'odoo-addons-relative-import',
-        settings.DESC_DFLT
-    ),
-    'R%d80' % settings.BASE_OMODULE_ID: (
-        'Consider merging classes inherited to "%s" from %s.',
-        'consider-merging-classes-inherited',
+    'W%d30' % settings.BASE_OMODULE_ID: (
+        '%s not used from manifest',
+        'file-not-used',
         settings.DESC_DFLT
     ),
 }
 
 
+# Checks not oca just vx to avoid oca conflicts
+ODOO_MSGS.update({
+    'E%d03' % settings.BASE_OMODULE_ID: (
+        '%s',
+        'po-syntax-error',
+        settings.DESC_DFLT
+    ),
+    'W%d11' % settings.BASE_OMODULE_ID: (
+        '%s',
+        'po-lint',
+        settings.DESC_DFLT
+    ),
+})
+
+
 DFLT_README_TMPL_URL = 'https://github.com/OCA/maintainer-tools' + \
     '/blob/master/template/module/README.rst'
+DFTL_MIN_PRIORITY = 99
 # Files supported from manifest to convert
 # Extracted from openerp/tools/convert.py:def convert_file
 DFLT_EXTFILES_CONVERT = ['csv', 'sql', 'xml', 'yml']
-DFLT_EXTFILES_TO_LINT = DFLT_EXTFILES_CONVERT + ['po', 'js', 'mako']
+DFLT_EXTFILES_TO_LINT = DFLT_EXTFILES_CONVERT + [
+    'po', 'js', 'mako', 'rst', 'md', 'markdown']
+
+
+DFTL_JSLINTRC = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+    'examples', '.jslintrc'
+)
+
+
 DFLT_PO_LINT_ENABLE = []
 DFLT_PO_LINT_DISABLE = ['unchanged', 'short', 'acronyms',
                         'isfuzzy', 'doublewords', 'simpleplurals',
@@ -128,11 +144,6 @@ DFLT_PO_LINT_DISABLE = ['unchanged', 'short', 'acronyms',
                         'singlequoting', 'sentencecount', 'printf',
                         'numbers',
                         ]
-DFTL_JSLINTRC = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-    'examples', '.jslintrc'
-)
-DFTL_MIN_PRIORITY = 99
 
 
 class ModuleChecker(misc.WrapperModuleChecker):
@@ -151,6 +162,12 @@ class ModuleChecker(misc.WrapperModuleChecker):
             'default': DFLT_EXTFILES_TO_LINT,
             'help': 'List of extension files to check separated by a comma.'
         }),
+        ('min-priority', {
+            'type': 'int',
+            'metavar': '<int>',
+            'default': DFTL_MIN_PRIORITY,
+            'help': 'Minimum priority number of a view with replace of fields.'
+        }),
         ('extfiles_convert', {
             'type': 'csv',
             'metavar': '<comma separated values>',
@@ -158,6 +175,18 @@ class ModuleChecker(misc.WrapperModuleChecker):
             'help': 'List of extension files supported to convert '
                     'from manifest separated by a comma.'
         }),
+        ('jslintrc', {
+            'type': 'string',
+            'metavar': '<path to file>',
+            'default': os.environ.get('PYLINT_ODOO_JSLINTRC') or DFTL_JSLINTRC,
+            'help': ('A path to a file that contains a configuration file of '
+                     'javascript lint. You can use the environment variable '
+                     '"PYLINT_ODOO_JSLINTRC" too. Default: %s' % DFTL_JSLINTRC)
+        }),
+    )
+
+    # Custom options for check of vx to avoid oca conflicts
+    options += (
         ('po-lint-enable', {
             'type': 'csv',
             'metavar': '<comma separated values>',
@@ -170,21 +199,9 @@ class ModuleChecker(misc.WrapperModuleChecker):
             'default': DFLT_PO_LINT_DISABLE,
             'help': 'List of disabled po-lint checks separated by a comma.'
         }),
-        ('jslintrc', {
-            'type': 'string',
-            'metavar': '<path to file>',
-            'default': os.environ.get('PYLINT_ODOO_JSLINTRC') or DFTL_JSLINTRC,
-            'help': ('A path to a file that contains a configuration file of '
-                     'javascript lint. You can use the environment variable '
-                     '"PYLINT_ODOO_JSLINTRC" too. Default: %s' % DFTL_JSLINTRC)
-        }),
-        ('min-priority', {
-            'type': 'int',
-            'metavar': '<int>',
-            'default': DFTL_MIN_PRIORITY,
-            'help': 'Minimum priority number of a view with replace of fields.'
-        }),
     )
+
+    class_inherit_names = []
 
     @utils.check_messages(*(ODOO_MSGS.keys()))
     def visit_module(self, node):
@@ -198,13 +215,42 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 'consider-merging-classes-inherited', node.lineno):
             return
         node_left = node.targets[0]
+
         if not isinstance(node_left, astroid.node_classes.AssName) or \
-                not node_left.name == '_inherit' or \
-                not isinstance(node.value, astroid.node_classes.Const):
+                node_left.name not in ('_inherit', '_name') or \
+                not isinstance(node.value, astroid.node_classes.Const) or \
+                not isinstance(node.parent, astroid.ClassDef):
             return
-        key = (self.odoo_node, node.value.value)
+        if node_left.name == '_name':
+            node.parent.odoo_attribute_name = node.value.value
+            return
+        _name = getattr(node.parent, 'odoo_attribute_name', None)
+        _inherit = node.value.value
+        if _name and _name != _inherit:
+            # Skip _name='model.name' _inherit='other.model' because is valid
+            return
+        key = (self.odoo_node, _inherit)
         node.file = self.linter.current_file
         self.inh_dup.setdefault(key, []).append(node)
+
+    def open(self):
+        """Define variables to use cache"""
+        self.inh_dup = {}
+        super(ModuleChecker, self).open()
+
+    def close(self):
+        """Final process get all cached values and add messages"""
+        for (odoo_node, class_dup_name), nodes in self.inh_dup.items():
+            if len(nodes) == 1:
+                continue
+            path_nodes = []
+            for node in nodes[1:]:
+                relpath = os.path.relpath(node.file,
+                                          os.path.dirname(odoo_node.file))
+                path_nodes.append("%s:%d" % (relpath, node.lineno))
+            self.add_message('consider-merging-classes-inherited',
+                             node=nodes[0],
+                             args=(class_dup_name, ', '.join(path_nodes)))
 
     def _get_odoo_module_imported(self, node):
         odoo_module = []
@@ -240,25 +286,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
     @utils.check_messages('odoo-addons-relative-import')
     def visit_import(self, node):
         self.check_odoo_relative_import(node)
-
-    def open(self):
-        """Define variables to use cache"""
-        self.inh_dup = {}
-        super(ModuleChecker, self).open()
-
-    def close(self):
-        """Final process get all cached values and add messages"""
-        for (odoo_node, class_dup_name), nodes in self.inh_dup.items():
-            if len(nodes) == 1:
-                continue
-            path_nodes = []
-            for node in nodes[1:]:
-                relpath = os.path.relpath(node.file,
-                                          os.path.dirname(odoo_node.file))
-                path_nodes.append("%s:%d" % (relpath, node.lineno))
-            self.add_message('consider-merging-classes-inherited',
-                             node=nodes[0],
-                             args=(class_dup_name, ', '.join(path_nodes)))
 
     def _check_rst_syntax_error(self):
         """Check if rst file there is syntax error
@@ -516,8 +543,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
         """
         self.msg_args = []
         for js_file_rel in self.filter_files_ext('js', relpath=True):
-            if 'lib' in os.path.dirname(js_file_rel).split(os.sep):
-                continue
             js_file = os.path.join(self.module_path, js_file_rel)
             errors = self.check_js_lint(js_file, self.config.jslintrc)
             for error in errors:
@@ -589,9 +614,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
         self.msg_args = []
         for type_file in self.config.extfiles_to_lint:
             for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
-                if 'lib' in os.path.dirname(ext_file_rel).split(os.sep):
-                    continue
-
                 ext_file = os.path.join(self.module_path, ext_file_rel)
                 countline = 0
                 with open(ext_file, 'rb') as fp:
@@ -613,8 +635,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
         self.msg_args = []
         for type_file in self.config.extfiles_to_lint:
             for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
-                if 'lib' in os.path.dirname(ext_file_rel).split(os.sep):
-                    continue
                 ext_file = os.path.join(self.module_path, ext_file_rel)
                 last_line = ''
                 with open(ext_file, 'rb') as fp:

@@ -216,19 +216,30 @@ class WrapperModuleChecker(BaseChecker):
         msg_strip = re.sub(fregex_str, '', first_arg, 1).strip(': ')
         return (msg_strip,) + msg_args[1:]
 
-    def filter_files_ext(self, fext, relpath=True):
+    def filter_files_ext(self, fext, relpath=True, skip_examples=True):
         """Filter files of odoo modules with a file extension.
         :param fext: Extension name of files to filter.
         :param relpath: Boolean to choose absolute path or relative path
                         If relpath is True then return relative paths
                         else return absolute paths
+        :param skip_examples: Boolean to skip "examples" folder
         :return: List of paths of files matched
                  with extension fext.
         """
+        dirnames_to_skip = []
+        if skip_examples:
+            dirnames_to_skip.extend(['example', 'examples', 'sample',
+                                     'samples', 'lib'])
         if not fext.startswith('.'):
             fext = '.' + fext
         fext = fext.lower()
         fnames = self.ext_files.get(fext, [])
+        for fname in list(fnames):
+            dirnames = os.path.dirname(fname).split(os.sep)
+            for dirname_to_skip in dirnames_to_skip:
+                if dirname_to_skip in dirnames:
+                    fnames.remove(fname)
+                    break
         if not relpath:
             fnames = [
                 os.path.join(self.module_path, fname)

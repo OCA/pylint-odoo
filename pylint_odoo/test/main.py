@@ -16,7 +16,6 @@ EXPECTED_ERRORS = {
     'api-one-multi-together': 2,
     'attribute-deprecated': 2,
     'class-camelcase': 1,
-    'consider-add-field-help': 2,
     'consider-merging-classes-inherited': 2,
     'copy-wo-api-one': 2,
     'create-user-wo-reset-password': 1,
@@ -45,11 +44,8 @@ EXPECTED_ERRORS = {
     'missing-readme': 1,
     'no-utf8-coding-comment': 3,
     'odoo-addons-relative-import': 4,
-    'old-api7-method-defined': 1,
+    'old-api7-method-defined': 2,
     'openerp-exception-warning': 3,
-    'po-lint': 4,
-    'po-syntax-error': 1,
-    'prefer-other-formatting': 4,
     'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
     'sql-injection': 6,
@@ -59,6 +55,15 @@ EXPECTED_ERRORS = {
     'wrong-tabs-instead-of-spaces': 2,
     'xml-syntax-error': 2,
 }
+
+
+# Checks not oca just vx to avoid oca conflicts
+EXPECTED_ERRORS.update({
+    'consider-add-field-help': 2,
+    'po-lint': 4,
+    'po-syntax-error': 1,
+    'prefer-other-formatting': 4,
+})
 
 
 @contextmanager
