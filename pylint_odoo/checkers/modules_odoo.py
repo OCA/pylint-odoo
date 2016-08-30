@@ -251,8 +251,11 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 os.path.join(self.module_path, rst_file))
             for error in errors:
                 msg = error.full_message
-                res = re.search(r'No directive entry for "([\w|\-]+)"|'
-                                r'Unknown directive type "([\w|\-]+)"', msg)
+                res = re.search(
+                    r'No directive entry for "([\w|\-]+)"|'
+                    r'Unknown directive type "([\w|\-]+)"|'
+                    r'No role entry for "([\w|\-]+)"|'
+                    r'Unknown interpreted text role "([\w|\-]+)"', msg)
                 # TODO: Add support for sphinx directives after fix
                 # https://github.com/twolfson/restructuredtext-lint/issues/29
                 if res:

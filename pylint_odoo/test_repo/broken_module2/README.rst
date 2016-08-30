@@ -26,3 +26,11 @@ Developer's guide
 
    guides/concepts.rst
    guides/code_overview.rst
+
+******************
+Indices and tables
+******************
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
