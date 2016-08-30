@@ -409,8 +409,11 @@ class WrapperModuleChecker(BaseChecker):
         """
         xml_ids = []
         for record in self.get_xml_records(xml_file):
-            xml_module, xml_id = record.get('id').split('.') \
-                if '.' in record.get('id') else ['', record.get('id')]
+            record_id = record.get('id')
+            if not record_id:
+                continue
+            xml_module, xml_id = record_id.split('.') \
+                if '.' in record_id else ['', record_id]
             if module and xml_module == module:
                 xml_ids.append((xml_id, record.sourceline))
         return xml_ids

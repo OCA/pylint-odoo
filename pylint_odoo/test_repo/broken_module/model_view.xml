@@ -11,6 +11,8 @@
                 </form>
             </field>
         </record>
+        <!-- Record without "id" -->
+        <record model="ir.ui.view"/>
 
     </data>
 </openerp>
