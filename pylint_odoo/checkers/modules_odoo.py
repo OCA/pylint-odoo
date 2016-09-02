@@ -19,7 +19,7 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'E%d01' % settings.BASE_OMODULE_ID: (
-        '%s:%s %s',
+        '%s %s',
         'rst-syntax-error',
         settings.DESC_DFLT
     ),
@@ -29,12 +29,12 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'W%d01' % settings.BASE_OMODULE_ID: (
-        'Dangerous filter without explicit `user_id` in xml_id %s',
+        '%s Dangerous filter without explicit `user_id` in xml_id %s',
         'dangerous-filter-wo-user',
         settings.DESC_DFLT
     ),
     'W%d02' % settings.BASE_OMODULE_ID: (
-        'Duplicate xml record id %s',
+        '%s Duplicate xml record id "%s" in %s',
         'duplicate-xml-record-id',
         settings.DESC_DFLT
     ),
@@ -44,23 +44,23 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'W%d04' % settings.BASE_OMODULE_ID: (
-        '%s:%d Deprecated <openerp> xml node',
+        '%s Deprecated <openerp> xml node',
         'deprecated-openerp-xml-node',
         settings.DESC_DFLT
     ),
     'W%d05' % settings.BASE_OMODULE_ID: (
-        '%s:%d record res.users without '
+        '%s record res.users without '
         'context="{\'no_reset_password\': True}"',
         'create-user-wo-reset-password',
         settings.DESC_DFLT
     ),
     'W%d06' % settings.BASE_OMODULE_ID: (
-        '%s duplicate id "%s"',
+        '%s Duplicate id "%s"',
         'duplicate-id-csv',
         settings.DESC_DFLT
     ),
     'W%d07' % settings.BASE_OMODULE_ID: (
-        'Duplicate xml field "%s"',
+        '%s Duplicate xml field "%s" in lines %s',
         'duplicate-xml-fields',
         settings.DESC_DFLT
     ),
@@ -75,7 +75,7 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'W%d10' % settings.BASE_OMODULE_ID: (
-        '%s:%s Use wrong tabs indentation instead of four spaces',
+        '%s Use wrong tabs indentation instead of four spaces',
         'wrong-tabs-instead-of-spaces',
         settings.DESC_DFLT
     ),
@@ -92,7 +92,7 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'W%d40' % settings.BASE_OMODULE_ID: (
-        '%s:%s Dangerous use of "replace" from view '
+        '%s Dangerous use of "replace" from view '
         'with priority %s < %s',
         'dangerous-view-replace-wo-priority',
         settings.DESC_DFLT
@@ -250,7 +250,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 os.path.join(self.module_path, rst_file))
             for error in errors:
                 self.msg_args.append((
-                    rst_file, error.line,
+                    "%s:%d" % (rst_file, error.line),
                     error.full_message.strip('\n').replace('\n', '|')))
         if self.msg_args:
             return False
@@ -278,17 +278,44 @@ class ModuleChecker(misc.WrapperModuleChecker):
             return False
         return True
 
+    def _get_duplicate_xml_record_id(self, records):
+        """Get duplicated records based on attribute id
+        :param records list: List of lxml.etree.Element "<record"
+        :return: Duplicated items.
+            e.g. {record.id: [record_node1, record_node2]}
+        :rtype: dict
+        """
+        all_records = {}
+        for record in records:
+            record_id = record.attrib.get('id', '') + '.' + "noupdate" + \
+                record.getparent().attrib.get('noupdate', '0')
+            all_records.setdefault(record_id, []).append(record)
+        # Remove all keys which not duplicated
+        for key, items in all_records.items():
+            if len(items) < 2:
+                all_records.pop(key)
+        return all_records
+
     def _check_duplicate_xml_record_id(self):
         """Check duplicate xml record id all xml files of a odoo module.
         :return: False if exists errors and
                  add list of errors in self.msg_args
         """
+        self.msg_args = []
         all_xml_ids = []
         for xml_file in self.filter_files_ext('xml', relpath=False):
-            all_xml_ids.extend(self.get_xml_record_ids(xml_file, self.module))
-        duplicated_xml_ids = self.get_duplicated_items(all_xml_ids)
-        if duplicated_xml_ids:
-            self.msg_args = duplicated_xml_ids
+            all_xml_ids.extend(self.get_xml_records(xml_file))
+        for name, fobjs in \
+                self._get_duplicate_xml_record_id(all_xml_ids).items():
+            self.msg_args.append((
+                "%s:%d" % (os.path.relpath(fobjs[0].base, self.module_path),
+                           fobjs[0].sourceline),
+                name,
+                ', '.join([os.path.relpath(fobj.base, self.module_path) +
+                           ':' + str(fobj.sourceline)
+                           for fobj in fobjs[1:]]),
+            ))
+        if self.msg_args:
             return False
         return True
 
@@ -318,14 +345,32 @@ class ModuleChecker(misc.WrapperModuleChecker):
         self.msg_args = []
         for xml_file_rel in self.filter_files_ext('xml', relpath=True):
             xml_file = os.path.join(self.module_path, xml_file_rel)
-            all_xml_ids = self.get_xml_redundant_module_name(xml_file,
-                                                             self.module)
-            if all_xml_ids:
+            for xml_id, lineno in self.get_xml_redundant_module_name(
+                    xml_file, self.module):
                 self.msg_args.append(
-                    (xml_file_rel, ','.join(all_xml_ids)))
+                    ("%s:%d" % (xml_file_rel, lineno), xml_id))
         if self.msg_args:
             return False
         return True
+
+    def _get_duplicate_xml_fields(self, fields):
+        """Get duplicated xml fields based on attribute name
+        :param fields list: List of lxml.etree.Element "<field"
+        :return: Duplicated items.
+            e.g. {field.name: [field_node1, field_node2]}
+        :rtype: dict
+        """
+        all_fields = {}
+        for field in fields:
+            field_xml = field.attrib.get('name')
+            if not field_xml:
+                continue
+            all_fields.setdefault(field_xml, []).append(field)
+        # Remove all keys which not duplicated
+        for key, items in all_fields.items():
+            if len(items) < 2:
+                all_fields.pop(key)
+        return all_fields
 
     def _check_duplicate_xml_fields(self):
         """Check duplicate field in all record of xml files of a odoo module.
@@ -333,13 +378,23 @@ class ModuleChecker(misc.WrapperModuleChecker):
         :return: False if exists errors and
                  add list of errors in self.msg_args
         """
-        duplicated_xml_fields = []
-        for xml_file in self.filter_files_ext('xml', relpath=False):
-            all_xml_fields = (self.get_xml_record_fields(xml_file,
-                                                         self.module))
-            duplicated_xml_fields.extend(all_xml_fields)
-        if duplicated_xml_fields:
-            self.msg_args = duplicated_xml_fields
+        self.msg_args = []
+        for xml_file in self.filter_files_ext('xml', relpath=True):
+            for record in self.get_xml_records(
+                    os.path.join(self.module_path, xml_file)):
+                if record.xpath('field[@name="inherit_id"]'):
+                    continue
+                for xpath in ['field', 'field/*/field',
+                              'field/*/field/tree/field',
+                              'field/*/field/form/field']:
+                    for name, fobjs in self._get_duplicate_xml_fields(
+                            record.xpath(xpath)).items():
+                        self.msg_args.append((
+                            "%s:%d" % (xml_file, fobjs[0].sourceline), name,
+                            ', '.join([str(fobj.sourceline)
+                                       for fobj in fobjs[1:]]),
+                        ))
+        if self.msg_args:
             return False
         return True
 
@@ -361,7 +416,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
                     # TODO: Add a list of msg_args before of return
                     # TODO: Add source lineno in all xml checks
                     self.msg_args = (
-                        xml_file + ':' + ir_filter_record.get('id'),)
+                        "%s:%d" % (xml_file, ir_filter_record.sourceline),
+                        ir_filter_record.get('id'),)
                     return False
         return True
 
@@ -402,7 +458,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 is_replaced_field = self._is_replaced_field(view)
                 if is_replaced_field and priority < self.config.min_priority:
                     self.msg_args.append((
-                        xml_file, view.sourceline, priority,
+                        "%s:%s" % (xml_file, view.sourceline), priority,
                         self.config.min_priority))
         if self.msg_args:
             return False
@@ -423,7 +479,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
             # if exists field="name" then is a new record
             # then should be context
             self.msg_args.extend([
-                (xml_file, user_record.sourceline)
+                ("%s:%s" % (xml_file, user_record.sourceline))
                 for user_record in user_records
                 if user_record.xpath("field[@name='name']") and
                 'no_reset_password' not in (user_record.get('context') or '')])
@@ -459,8 +515,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 if not isinstance(doc, basestring) else []
             if openerp_nodes:
                 lineno = openerp_nodes[0].sourceline
-                self.msg_args.append((
-                    xml_file, lineno))
+                self.msg_args.append(("%s:%s" % (xml_file, lineno)))
         if self.msg_args:
             return False
         return True
@@ -480,7 +535,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
                         countline += 1
                         line_space_trip = line.lstrip(' ')
                         if line_space_trip != line_space_trip.lstrip('\t'):
-                            self.msg_args.append((ext_file_rel, countline))
+                            self.msg_args.append(
+                                ("%s:%d" % (ext_file_rel, countline)))
         if self.msg_args:
             return False
         return True

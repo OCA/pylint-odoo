@@ -324,54 +324,51 @@ class NoModuleChecker(BaseChecker):
     @utils.check_messages('manifest-required-author', 'manifest-required-key',
                           'manifest-deprecated-key')
     def visit_dict(self, node):
-        if os.path.basename(self.linter.current_file) in \
+        if not os.path.basename(self.linter.current_file) in \
                 settings.MANIFEST_FILES \
-                and isinstance(node.parent, astroid.Discard):
-            manifest_dict = ast.literal_eval(node.as_string())
+                or not isinstance(node.parent, astroid.Discard):
+            return
+        manifest_dict = ast.literal_eval(node.as_string())
 
-            # Check author is a string
-            author = manifest_dict.get('author', '')
-            if not isinstance(author, types.StringTypes):
-                self.add_message('manifest-author-string',
-                                 node=node)
-            else:
-                # Check author required
-                authors = map(
-                    lambda author: author.strip(),
-                    author.split(','))
-                required_author = self.config.manifest_required_author
-                if required_author not in authors:
-                    self.add_message('manifest-required-author',
-                                     node=node, args=(required_author,))
+        # Check author is a string
+        author = manifest_dict.get('author', '')
+        if not isinstance(author, types.StringTypes):
+            self.add_message('manifest-author-string', node=node)
+        else:
+            # Check author required
+            authors = map(lambda author: author.strip(), author.split(','))
+            required_author = self.config.manifest_required_author
+            if required_author not in authors:
+                self.add_message('manifest-required-author', node=node,
+                                 args=(required_author,))
 
-            # Check keys required
-            required_keys = self.config.manifest_required_keys
-            for required_key in required_keys:
-                if required_key not in manifest_dict:
-                    self.add_message('manifest-required-key',
-                                     node=node, args=(required_key,))
+        # Check keys required
+        required_keys = self.config.manifest_required_keys
+        for required_key in required_keys:
+            if required_key not in manifest_dict:
+                self.add_message('manifest-required-key', node=node,
+                                 args=(required_key,))
 
-            # Check keys deprecated
-            deprecated_keys = self.config.manifest_deprecated_keys
-            for deprecated_key in deprecated_keys:
-                if deprecated_key in manifest_dict:
-                    self.add_message('manifest-deprecated-key',
-                                     node=node, args=(deprecated_key,))
+        # Check keys deprecated
+        deprecated_keys = self.config.manifest_deprecated_keys
+        for deprecated_key in deprecated_keys:
+            if deprecated_key in manifest_dict:
+                self.add_message('manifest-deprecated-key', node=node,
+                                 args=(deprecated_key,))
 
-            # Check license allowed
-            license = manifest_dict.get('license', None)
-            if license and license not in self.config.license_allowed:
-                self.add_message('license-allowed',
-                                 node=node, args=(license,))
+        # Check license allowed
+        license = manifest_dict.get('license', None)
+        if license and license not in self.config.license_allowed:
+            self.add_message('license-allowed',
+                             node=node, args=(license,))
 
-            # Check version format
-            version_format = manifest_dict.get('version', '')
-            formatrgx = self.formatversion(version_format)
-            if version_format and not formatrgx:
-                self.add_message('manifest-version-format',
-                                 node=node, args=(
-                                     version_format,
-                                     self.config.manifest_version_format,))
+        # Check version format
+        version_format = manifest_dict.get('version', '')
+        formatrgx = self.formatversion(version_format)
+        if version_format and not formatrgx:
+            self.add_message('manifest-version-format', node=node,
+                             args=(version_format,
+                                   self.config.manifest_version_format,))
 
     @utils.check_messages('api-one-multi-together',
                           'copy-wo-api-one', 'api-one-deprecated',
@@ -392,8 +389,7 @@ class NoModuleChecker(BaseChecker):
         if self.linter.is_message_enabled('api-one-multi-together'):
             if 'one' in decor_lastnames \
                     and 'multi' in decor_lastnames:
-                self.add_message('api-one-multi-together',
-                                 node=node)
+                self.add_message('api-one-multi-together', node=node)
 
         if self.linter.is_message_enabled('copy-wo-api-one'):
             if 'copy' == node.name and ('one' not in decor_lastnames and
@@ -402,8 +398,7 @@ class NoModuleChecker(BaseChecker):
 
         if self.linter.is_message_enabled('api-one-deprecated'):
             if 'one' in decor_lastnames:
-                self.add_message('api-one-deprecated',
-                                 node=node)
+                self.add_message('api-one-deprecated', node=node)
 
         if node.name in self.config.method_required_super:
             calls = [
@@ -411,8 +406,8 @@ class NoModuleChecker(BaseChecker):
                 for call_func in node.nodes_of_class((astroid.CallFunc,))
                 if isinstance(call_func.func, astroid.Name)]
             if 'super' not in calls:
-                self.add_message('method-required-super',
-                                 node=node, args=(node.name))
+                self.add_message('method-required-super', node=node,
+                                 args=(node.name))
 
         if self.linter.is_message_enabled('old-api7-method-defined'):
             first_args = [arg.name for arg in node.args.args][:3]
