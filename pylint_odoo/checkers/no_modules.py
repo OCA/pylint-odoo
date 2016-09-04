@@ -319,8 +319,6 @@ class NoModuleChecker(BaseChecker):
             if is_bin_op or is_format:
                 self.add_message('sql-injection', node=node)
 
-    visit_callfunc = visit_call
-
     @utils.check_messages('manifest-required-author', 'manifest-required-key',
                           'manifest-deprecated-key')
     def visit_dict(self, node):
@@ -416,8 +414,6 @@ class NoModuleChecker(BaseChecker):
                first_args[2] in ['uid', 'user', 'user_id']:
                 self.add_message('old-api7-method-defined', node=node)
 
-    visit_function = visit_functiondef
-
     @utils.check_messages('openerp-exception-warning')
     def visit_importfrom(self, node):
         if node.modname == 'openerp.exceptions':
@@ -425,16 +421,12 @@ class NoModuleChecker(BaseChecker):
                 if import_name == 'Warning' and import_as_name != 'UserError':
                     self.add_message('openerp-exception-warning', node=node)
 
-    visit_from = visit_importfrom
-
     @utils.check_messages('class-camelcase')
     def visit_classdef(self, node):
         camelized = self.camelize(node.name)
         if camelized != node.name:
             self.add_message('class-camelcase', node=node,
                              args=(camelized, node.name))
-
-    visit_class = visit_classdef
 
     @utils.check_messages('attribute-deprecated')
     def visit_assign(self, node):

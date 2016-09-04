@@ -232,8 +232,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
     def visit_importfrom(self, node):
         self.check_odoo_relative_import(node)
 
-    visit_from = visit_importfrom
-
     @utils.check_messages('odoo-addons-relative-import')
     def visit_import(self, node):
         self.check_odoo_relative_import(node)
