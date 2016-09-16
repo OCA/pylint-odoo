@@ -3,6 +3,7 @@
 
 import ast
 import os
+import re
 
 import astroid
 from pylint.checkers import utils
@@ -249,9 +250,20 @@ class ModuleChecker(misc.WrapperModuleChecker):
             errors = self.check_rst_syntax(
                 os.path.join(self.module_path, rst_file))
             for error in errors:
+                msg = error.full_message
+                res = re.search(
+                    r'No directive entry for "([\w|\-]+)"|'
+                    r'Unknown directive type "([\w|\-]+)"|'
+                    r'No role entry for "([\w|\-]+)"|'
+                    r'Unknown interpreted text role "([\w|\-]+)"', msg)
+                # TODO: Add support for sphinx directives after fix
+                # https://github.com/twolfson/restructuredtext-lint/issues/29
+                if res:
+                    # Skip directive errors
+                    continue
                 self.msg_args.append((
                     "%s:%d" % (rst_file, error.line),
-                    error.full_message.strip('\n').replace('\n', '|')))
+                    msg.strip('\n').replace('\n', '|')))
         if self.msg_args:
             return False
         return True

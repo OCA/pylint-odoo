@@ -115,6 +115,8 @@ Example to test just odoo-lint case:
 
 If you have external files you can add them in ``examples`` folder to skip.
 
+For rst-syntax-error skip unknown directives
+
 
 .. |Build Status| image:: https://travis-ci.org/OCA/pylint-odoo.svg?branch=master
    :target: https://travis-ci.org/OCA/pylint-odoo
