@@ -115,6 +115,8 @@ Extra linter parameters
   - ``--po-lint-enable``: a comma separated list of checks to enable.
   - ``--po-lint-disable``: a comma separated list of checks to disable.
 
+For rst-syntax-error skip unknown directives
+
 
 .. _here: http://docs.translatehouse.org/projects/translate-toolkit/en/latest/commands/pofilter_tests.html#test-description
 .. |Build Status| image:: https://travis-ci.org/Vauxoo/pylint-odoo.svg?branch=master
