@@ -1,11 +1,11 @@
 """Visit module to add odoo checks
 """
 
-import ast
 import os
 import re
 
 import astroid
+import isort
 from pylint.checkers import utils
 
 from .. import misc, settings
@@ -103,6 +103,20 @@ ODOO_MSGS = {
         'file-not-used',
         settings.DESC_DFLT
     ),
+    'W%d35' % settings.BASE_OMODULE_ID: (
+        'External dependency "%s" without ImportError. More info: '
+        'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
+        '#external-dependencies',
+        'missing-import-error',
+        settings.DESC_DFLT
+    ),
+    'W%d36' % settings.BASE_OMODULE_ID: (
+        'Missing external dependency "%s" from manifest. More info: '
+        'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
+        '#external-dependencies',
+        'missing-manifest-dependency',
+        settings.DESC_DFLT
+    ),
 }
 
 
@@ -129,6 +143,15 @@ DFTL_MIN_PRIORITY = 99
 DFLT_EXTFILES_CONVERT = ['csv', 'sql', 'xml', 'yml']
 DFLT_EXTFILES_TO_LINT = DFLT_EXTFILES_CONVERT + [
     'po', 'js', 'mako', 'rst', 'md', 'markdown']
+DFLT_IMPORT_NAME_WHITELIST = [
+    # self-odoo
+    'odoo', 'openerp',
+    # Known external packages of odoo
+    'PIL', 'babel', 'dateutil', 'decorator', 'docutils', 'faces',
+    'jinja2', 'ldap', 'lxml', 'mako', 'mock', 'odf', 'openid', 'passlib',
+    'pkg_resources', 'psycopg2', 'pyPdf', 'pychart', 'pytz', 'reportlab',
+    'requests', 'serial', 'simplejson', 'unittest2', 'usb', 'werkzeug', 'yaml',
+]
 
 
 DFTL_JSLINTRC = os.path.join(
@@ -199,6 +222,13 @@ class ModuleChecker(misc.WrapperModuleChecker):
             'metavar': '<comma separated values>',
             'default': DFLT_PO_LINT_DISABLE,
             'help': 'List of disabled po-lint checks separated by a comma.'
+        }),
+        ('import_name_whitelist', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFLT_IMPORT_NAME_WHITELIST,
+            'help': 'List of known import dependencies of odoo,'
+            ' separated by a comma.'
         }),
     )
 
@@ -280,13 +310,72 @@ class ModuleChecker(misc.WrapperModuleChecker):
             self.add_message('odoo-addons-relative-import', node=node,
                              args=(self.odoo_module_name))
 
-    @utils.check_messages('odoo-addons-relative-import')
+    @staticmethod
+    def _is_absolute_import(node, name):
+        modnode = node.root()
+        importedmodnode = ModuleChecker._get_imported_module(node, name)
+        if importedmodnode and importedmodnode.file and \
+                modnode is not importedmodnode and \
+                importedmodnode.name != name:
+            return True
+        return False
+
+    @staticmethod
+    def _get_imported_module(importnode, modname):
+        try:
+            return importnode.do_import_module(modname)
+        except:
+            pass
+
+    def _check_imported_packages(self, node, module_name):
+        """Check if the import node is a external dependency to validate it"""
+        if not module_name:
+            # skip local packages because is not a external dependency.
+            return
+        if not self.manifest_dict:
+            # skip if is not a module of odoo
+            return
+        if not isinstance(node.parent, astroid.Module):
+            # skip nested import sentences
+            return
+        if self._is_absolute_import(node, module_name):
+            # skip absolute imports
+            return
+        isort_obj = isort.SortImports(
+            file_contents='',
+            known_standard_library=self.config.import_name_whitelist,
+        )
+        import_category = isort_obj.place_module(module_name)
+        if import_category not in ('FIRSTPARTY', 'THIRDPARTY'):
+            # skip if is not a external library or is a white list library
+            return
+        self.add_message('missing-import-error', node=node,
+                         args=(module_name,))
+
+        ext_deps = self.manifest_dict.get('external_dependencies') or {}
+        py_ext_deps = ext_deps.get('python') or []
+        if module_name not in py_ext_deps and \
+                module_name.split('.')[0] not in py_ext_deps:
+            self.add_message('missing-manifest-dependency', node=node,
+                             args=(module_name,))
+
+    @utils.check_messages('odoo-addons-relative-import',
+                          'missing-import-error',
+                          'missing-manifest-dependency')
     def visit_importfrom(self, node):
         self.check_odoo_relative_import(node)
+        if isinstance(node.scope(), astroid.Module):
+            package = node.modname
+            self._check_imported_packages(node, package)
 
-    @utils.check_messages('odoo-addons-relative-import')
+    @utils.check_messages('odoo-addons-relative-import',
+                          'missing-import-error',
+                          'missing-manifest-dependency')
     def visit_import(self, node):
         self.check_odoo_relative_import(node)
+        for name, _ in node.names:
+            if isinstance(node.scope(), astroid.Module):
+                self._check_imported_packages(node, name)
 
     def _check_rst_syntax_error(self):
         """Check if rst file there is syntax error
@@ -664,10 +753,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
         referenced_files = []
         data_keys = ['data', 'demo', 'demo_xml', 'init_xml', 'test',
                      'update_xml']
-        with open(self.manifest_file) as f_manifest:
-            manifest_dict = ast.literal_eval(f_manifest.read())
-            for key in data_keys:
-                referenced_files.extend(manifest_dict.get(key) or [])
+        for key in data_keys:
+            referenced_files.extend(self.manifest_dict.get(key) or [])
         return referenced_files
 
     def _get_module_files(self):
