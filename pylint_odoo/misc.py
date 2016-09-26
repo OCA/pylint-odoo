@@ -1,4 +1,4 @@
-
+import ast
 import csv
 import os
 import re
@@ -61,6 +61,8 @@ class WrapperModuleChecker(BaseChecker):
     odoo_module_name = None
     manifest_file = None
     module = None
+    manifest_dict = None
+    is_main_odoo_module = None
 
     def get_manifest_file(self, node_file):
         """Get manifest file path
@@ -110,16 +112,25 @@ class WrapperModuleChecker(BaseChecker):
         :param node: A astroid.scoped_nodes.Module
         :return: None
         """
-        self.manifest_file = self.get_manifest_file(node.file)
-        if self.manifest_file:
+        manifest_file = self.get_manifest_file(node.file)
+        if manifest_file:
+            self.manifest_file = manifest_file
             self.odoo_node = node
             self.odoo_module_name = os.path.basename(
                 os.path.dirname(self.odoo_node.file))
-        elif self.odoo_node and \
-                not os.path.dirname(self.odoo_node.file) in \
+            with open(self.manifest_file) as f_manifest:
+                self.manifest_dict = ast.literal_eval(f_manifest.read())
+        elif self.odoo_node and not os.path.dirname(self.odoo_node.file) in \
                 os.path.dirname(node.file):
+            # It's not a sub-module python of a odoo module and
+            #  it's not a odoo module
             self.odoo_node = None
             self.odoo_module_name = None
+            self.manifest_dict = None
+            self.manifest_file = None
+        self.is_main_odoo_module = False
+        if self.odoo_node and self.odoo_node.file == node.file:
+            self.is_main_odoo_module = True
         self.node = node
         self.module_path = os.path.dirname(node.file)
         self.module = os.path.basename(self.module_path)
@@ -134,7 +145,7 @@ class WrapperModuleChecker(BaseChecker):
             check_method = getattr(
                 self, '_check_' + name_key.replace('-', '_'),
                 None)
-            is_odoo_check = self.manifest_file and \
+            is_odoo_check = self.is_main_odoo_module and \
                 msg_code[1:3] == str(settings.BASE_OMODULE_ID)
             is_py_check = msg_code[1:3] == str(settings.BASE_PYMODULE_ID)
             if callable(check_method) and (is_odoo_check or is_py_check):

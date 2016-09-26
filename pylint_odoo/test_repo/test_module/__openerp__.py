@@ -18,6 +18,7 @@
         ],
         'python': [
             'os',
+            'manifest_lib',
         ],
     },
 }
