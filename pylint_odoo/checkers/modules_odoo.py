@@ -191,9 +191,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 'consider-merging-classes-inherited', node.lineno):
             return
         node_left = node.targets[0]
-        if not hasattr(astroid, 'ClassDef'):
-            # Compatibility with old pylint versions
-            astroid.ClassDef = astroid.Class
         if not isinstance(node_left, astroid.node_classes.AssName) or \
                 node_left.name not in ('_inherit', '_name') or \
                 not isinstance(node.value, astroid.node_classes.Const) or \
@@ -232,8 +229,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
     def _get_odoo_module_imported(self, node):
         odoo_module = []
-        if not hasattr(astroid, 'ImportFrom'):
-            astroid.ImportFrom = astroid.From
         if isinstance(node, astroid.ImportFrom) and \
                 ('openerp.addons' in node.modname or
                  'odoo.addons' in node.modname):
@@ -316,8 +311,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
         if isinstance(node.scope(), astroid.Module):
             package = node.modname
             self._check_imported_packages(node, package)
-
-    visit_from = visit_importfrom
 
     @utils.check_messages('odoo-addons-relative-import',
                           'missing-import-error',
