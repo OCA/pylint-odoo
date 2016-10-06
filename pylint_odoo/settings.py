@@ -12,7 +12,12 @@ BASE_NOMODULE_ID = 81
 BASE_FORMAT_ID = 82
 
 # Manifest files of odoo
-MANIFEST_FILES = ['__odoo__.py', '__openerp__.py', '__terp__.py']
+MANIFEST_FILES = [
+    '__manifest__.py',
+    '__odoo__.py',
+    '__openerp__.py',
+    '__terp__.py',
+]
 
 # Message description default
 DESC_DFLT = 'You can review guidelines here: ' + \
