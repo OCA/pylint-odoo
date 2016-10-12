@@ -293,8 +293,15 @@ class ModuleChecker(misc.WrapperModuleChecker):
         if import_category not in ('FIRSTPARTY', 'THIRDPARTY'):
             # skip if is not a external library or is a white list library
             return
-        self.add_message('missing-import-error', node=node,
-                         args=(module_name,))
+        relpath = os.path.relpath(
+            node.parent.file, os.path.dirname(self.manifest_file))
+        if os.path.dirname(relpath) != 'tests':
+            # missing-import-error rule doesn't apply to the test files
+            # since these files are loaded only when running tests
+            # and in such a case your
+            # module and their external dependencies are installed.
+            self.add_message('missing-import-error', node=node,
+                             args=(module_name,))
 
         ext_deps = self.manifest_dict.get('external_dependencies') or {}
         py_ext_deps = ext_deps.get('python') or []
