@@ -147,10 +147,16 @@ DFLT_IMPORT_NAME_WHITELIST = [
     # self-odoo
     'odoo', 'openerp',
     # Known external packages of odoo
-    'PIL', 'babel', 'dateutil', 'decorator', 'docutils', 'faces',
-    'jinja2', 'ldap', 'lxml', 'mako', 'mock', 'odf', 'openid', 'passlib',
-    'pkg_resources', 'psycopg2', 'pyPdf', 'pychart', 'pytz', 'reportlab',
-    'requests', 'serial', 'simplejson', 'unittest2', 'usb', 'werkzeug', 'yaml',
+    'PIL', 'argparse', 'babel', 'dateutil',
+    'decorator', 'docutils', 'faces', 'feedparser',
+    'gdata', 'gevent', 'greenlet', 'jcconv', 'jinja2',
+    'ldap', 'lxml', 'mako', 'markupsafe', 'mock', 'odf',
+    'ofxparse', 'openid', 'passlib', 'pkg_resources',
+    'psutil', 'psycogreen', 'psycopg2', 'pyPdf', 'pychart',
+    'pydot', 'pyparsing', 'pytz', 'qrcode', 'reportlab',
+    'requests', 'serial', 'simplejson', 'six', 'suds',
+    'unittest2', 'usb', 'vatnumber', 'vobject', 'werkzeug',
+    'wsgiref', 'xlsxwriter', 'xlwt', 'yaml',
 ]
 
 
