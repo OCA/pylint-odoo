@@ -367,8 +367,10 @@ class NoModuleChecker(BaseChecker):
             if is_bin_op or is_format:
                 self.add_message('sql-injection', node=node)
 
-    @utils.check_messages('manifest-required-author', 'manifest-required-key',
-                          'manifest-deprecated-key')
+    @utils.check_messages(
+        'license-allowed', 'manifest-author-string', 'manifest-deprecated-key',
+        'manifest-required-author', 'manifest-required-key',
+        'manifest-version-format')
     def visit_dict(self, node):
         if not os.path.basename(self.linter.current_file) in \
                 settings.MANIFEST_FILES \
