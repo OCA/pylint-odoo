@@ -147,8 +147,8 @@ DFLT_IMPORT_NAME_WHITELIST = [
     # self-odoo
     'odoo', 'openerp',
     # Known external packages of odoo
-    'PIL', 'argparse', 'babel', 'dateutil',
-    'decorator', 'docutils', 'faces', 'feedparser',
+    'PIL', 'anybox.testing.openerp', 'argparse', 'babel',
+    'dateutil', 'decorator', 'docutils', 'faces', 'feedparser',
     'gdata', 'gevent', 'greenlet', 'jcconv', 'jinja2',
     'ldap', 'lxml', 'mako', 'markupsafe', 'mock', 'odf',
     'ofxparse', 'openid', 'passlib', 'pkg_resources',
