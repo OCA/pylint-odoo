@@ -147,10 +147,16 @@ DFLT_IMPORT_NAME_WHITELIST = [
     # self-odoo
     'odoo', 'openerp',
     # Known external packages of odoo
-    'PIL', 'babel', 'dateutil', 'decorator', 'docutils', 'faces',
-    'jinja2', 'ldap', 'lxml', 'mako', 'mock', 'odf', 'openid', 'passlib',
-    'pkg_resources', 'psycopg2', 'pyPdf', 'pychart', 'pytz', 'reportlab',
-    'requests', 'serial', 'simplejson', 'unittest2', 'usb', 'werkzeug', 'yaml',
+    'PIL', 'anybox.testing.openerp', 'argparse', 'babel',
+    'dateutil', 'decorator', 'docutils', 'faces', 'feedparser',
+    'gdata', 'gevent', 'greenlet', 'jcconv', 'jinja2',
+    'ldap', 'lxml', 'mako', 'markupsafe', 'mock', 'odf',
+    'ofxparse', 'openid', 'passlib', 'pkg_resources',
+    'psutil', 'psycogreen', 'psycopg2', 'pyPdf', 'pychart',
+    'pydot', 'pyparsing', 'pytz', 'qrcode', 'reportlab',
+    'requests', 'serial', 'simplejson', 'six', 'suds',
+    'unittest2', 'usb', 'vatnumber', 'vobject', 'werkzeug',
+    'wsgiref', 'xlsxwriter', 'xlwt', 'yaml',
 ]
 
 
@@ -349,8 +355,15 @@ class ModuleChecker(misc.WrapperModuleChecker):
         if import_category not in ('FIRSTPARTY', 'THIRDPARTY'):
             # skip if is not a external library or is a white list library
             return
-        self.add_message('missing-import-error', node=node,
-                         args=(module_name,))
+        relpath = os.path.relpath(
+            node.parent.file, os.path.dirname(self.manifest_file))
+        if os.path.dirname(relpath) != 'tests':
+            # missing-import-error rule doesn't apply to the test files
+            # since these files are loaded only when running tests
+            # and in such a case your
+            # module and their external dependencies are installed.
+            self.add_message('missing-import-error', node=node,
+                             args=(module_name,))
 
         ext_deps = self.manifest_dict.get('external_dependencies') or {}
         py_ext_deps = ext_deps.get('python') or []

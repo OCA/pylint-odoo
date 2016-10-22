@@ -218,7 +218,10 @@ DFTL_METHOD_REQUIRED_SUPER = [
     'create', 'write', 'read', 'unlink', 'copy',
     'setUp', 'tearDown', 'default_get',
 ]
-DFTL_MANIFEST_VERSION_FORMAT = r"(\d+.\d+.\d+.\d+.\d+)"
+DFTL_VALID_ODOO_VERSIONS = [
+    '4.2', '5.0', '6.0', '6.1', '7.0', '8.0', '9.0', '10.0'
+]
+DFTL_MANIFEST_VERSION_FORMAT = r"(%(valid_odoo_versions)s)\.\d+\.\d+\.\d+"
 DFTL_CURSOR_EXPR = [
     'self.env.cr', 'self._cr',  # new api
     'self.cr',  # controllers and test
@@ -284,7 +287,9 @@ class NoModuleChecker(BaseChecker):
             'type': 'string',
             'metavar': '<string>',
             'default': DFTL_MANIFEST_VERSION_FORMAT,
-            'help': 'Regex to check version format in manifest file'
+            'help': 'Regex to check version format in manifest file. '
+            'Use "%(valid_odoo_versions)s" to check the parameter of '
+            '"valid_odoo_versions"'
         }),
         ('cursor_expr', {
             'type': 'csv',
@@ -297,6 +302,12 @@ class NoModuleChecker(BaseChecker):
             'metavar': '<comma separated values>',
             'default': DFTL_ODOO_EXCEPTIONS,
             'help': 'List of odoo exceptions separated by a comma.'
+        }),
+        ('valid_odoo_versions', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFTL_VALID_ODOO_VERSIONS,
+            'help': 'List of valid odoo versions separated by a comma.'
         }),
     )
 
@@ -356,8 +367,10 @@ class NoModuleChecker(BaseChecker):
             if is_bin_op or is_format:
                 self.add_message('sql-injection', node=node)
 
-    @utils.check_messages('manifest-required-author', 'manifest-required-key',
-                          'manifest-deprecated-key')
+    @utils.check_messages(
+        'license-allowed', 'manifest-author-string', 'manifest-deprecated-key',
+        'manifest-required-author', 'manifest-required-key',
+        'manifest-version-format')
     def visit_dict(self, node):
         if not os.path.basename(self.linter.current_file) in \
                 settings.MANIFEST_FILES \
@@ -403,7 +416,7 @@ class NoModuleChecker(BaseChecker):
         if version_format and not formatrgx:
             self.add_message('manifest-version-format', node=node,
                              args=(version_format,
-                                   self.config.manifest_version_format,))
+                                   self.config.manifest_version_format_parsed))
 
     @utils.check_messages('api-one-multi-together',
                           'copy-wo-api-one', 'api-one-deprecated',
@@ -477,7 +490,10 @@ class NoModuleChecker(BaseChecker):
         return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string)
 
     def formatversion(self, string):
-        return re.match(self.config.manifest_version_format, string)
+        self.config.manifest_version_format_parsed = \
+            self.config.manifest_version_format % dict(
+                valid_odoo_versions='|'.join(self.config.valid_odoo_versions))
+        return re.match(self.config.manifest_version_format_parsed, string)
 
     def get_decorators_names(self, decorators):
         nodes = []
