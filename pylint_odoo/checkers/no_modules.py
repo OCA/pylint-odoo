@@ -101,6 +101,11 @@ ODOO_MSGS = {
         'method-required-super',
         settings.DESC_DFLT
     ),
+    'W%d10' % settings.BASE_NOMODULE_ID: (
+        'Missing `return` (`super` is used) in method %s.',
+        'missing-return',
+        settings.DESC_DFLT
+    ),
     'E%d01' % settings.BASE_NOMODULE_ID: (
         'The author key in the manifest file must be a string '
         '(with comma separated values)',
@@ -212,6 +217,9 @@ DFTL_ODOO_EXCEPTIONS = [
     'MissingError', 'QWebException', 'RedirectWarning', 'UserError',
     'ValidationError', 'Warning',
 ]
+DFTL_NO_MISSING_RETURN = [
+    '__init__', 'setUp', 'tearDown',
+]
 
 
 class NoModuleChecker(BaseChecker):
@@ -287,6 +295,13 @@ class NoModuleChecker(BaseChecker):
             'metavar': '<comma separated values>',
             'default': DFTL_VALID_ODOO_VERSIONS,
             'help': 'List of valid odoo versions separated by a comma.'
+        }),
+        ('no_missing_return', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFTL_NO_MISSING_RETURN,
+            'help': 'List of valid missing return method names, '
+            'separated by a comma.'
         }),
     )
 
@@ -384,6 +399,7 @@ class NoModuleChecker(BaseChecker):
     @utils.check_messages('api-one-multi-together',
                           'copy-wo-api-one', 'api-one-deprecated',
                           'method-required-super', 'old-api7-method-defined',
+                          'missing-return',
                           )
     def visit_functiondef(self, node):
         """Check that `api.one` and `api.multi` decorators not exists together
@@ -426,6 +442,22 @@ class NoModuleChecker(BaseChecker):
                first_args[1] in ['cr', 'cursor'] and \
                first_args[2] in ['uid', 'user', 'user_id']:
                 self.add_message('old-api7-method-defined', node=node)
+
+        there_is_super = False
+        for stmt in node.nodes_of_class(astroid.Call):
+            func = stmt.func
+            if isinstance(func, astroid.Name) and func.name == 'super':
+                there_is_super = True
+                break
+        there_is_return = False
+        for stmt in node.nodes_of_class(astroid.Return,
+                                        skip_klass=(astroid.FunctionDef,
+                                                    astroid.ClassDef)):
+            there_is_return = True
+            break
+        if there_is_super and not there_is_return and \
+           node.name not in self.config.no_missing_return:
+            self.add_message('missing-return', node=node, args=(node.name))
 
     @utils.check_messages('openerp-exception-warning')
     def visit_importfrom(self, node):
