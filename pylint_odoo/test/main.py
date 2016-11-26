@@ -1,12 +1,12 @@
 
+import json
 import os
 import stat
 import sys
-from tempfile import gettempdir
-
 import unittest
 from contextlib import contextmanager
 from cProfile import Profile
+from tempfile import gettempdir
 
 from pylint.lint import Run
 from pylint_odoo import misc
@@ -99,6 +99,7 @@ class MainTest(unittest.TestCase):
         ]
         self.profile = Profile()
         self.sys_path_origin = list(sys.path)
+        self.maxDiff = None
 
     def tearDown(self):
         sys.path = list(self.sys_path_origin)
@@ -133,19 +134,9 @@ class MainTest(unittest.TestCase):
         pylint_res = self.run_pylint(self.paths_modules)
         # Expected vs found errors
         real_errors = pylint_res.linter.stats['by_msg']
-        self.assertEqual(sorted(real_errors.items()),
-                         sorted(EXPECTED_ERRORS.items()))
-        # All odoolint name errors vs found
-        msgs_found = pylint_res.linter.stats['by_msg'].keys()
-        plugin_msgs = misc.get_plugin_msgs(pylint_res)
-        test_missed_msgs = sorted(list(set(plugin_msgs) - set(msgs_found)))
-        self.assertEqual(
-            test_missed_msgs, [],
-            "Checks without test case: {test_missed_msgs}".format(
-                test_missed_msgs=test_missed_msgs))
-        sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
-        sum_fails_expected = sum(EXPECTED_ERRORS.values())
-        self.assertEqual(sum_fails_found, sum_fails_expected)
+        expected_errors = json.loads(json.dumps(EXPECTED_ERRORS))
+        real_errors = json.loads(json.dumps(real_errors))
+        self.assertEqual(expected_errors, real_errors)
 
     def test_30_disabling_errors(self):
         # Disabling
@@ -154,11 +145,9 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats['by_msg']
         expected_errors = EXPECTED_ERRORS.copy()
         expected_errors.pop('dangerous-filter-wo-user')
-        self.assertEqual(sorted(real_errors.items()),
-                         sorted(expected_errors.items()))
-        sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
-        sum_fails_expected = sum(expected_errors.values())
-        self.assertEqual(sum_fails_found, sum_fails_expected)
+        expected_errors = json.loads(json.dumps(expected_errors))
+        real_errors = json.loads(json.dumps(real_errors))
+        self.assertEqual(expected_errors, real_errors)
 
     def test_40_deprecated_modules(self):
         """Test deprecated modules"""
@@ -187,11 +176,9 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats['by_msg']
         expected_errors = EXPECTED_ERRORS.copy()
         expected_errors.pop('javascript-lint')
-        self.assertEqual(sorted(real_errors.items()),
-                         sorted(expected_errors.items()))
-        sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
-        sum_fails_expected = sum(expected_errors.values())
-        self.assertEqual(sum_fails_found, sum_fails_expected)
+        expected_errors = json.loads(json.dumps(expected_errors))
+        real_errors = json.loads(json.dumps(real_errors))
+        self.assertEqual(expected_errors, real_errors)
 
     def test_60_with_jslint_error(self):
         """Test with jslint error"""
@@ -211,11 +198,9 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats['by_msg']
         expected_errors = EXPECTED_ERRORS.copy()
         expected_errors.pop('javascript-lint')
-        self.assertEqual(sorted(real_errors.items()),
-                         sorted(expected_errors.items()))
-        sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
-        sum_fails_expected = sum(expected_errors.values())
-        self.assertEqual(sum_fails_found, sum_fails_expected)
+        expected_errors = json.loads(json.dumps(expected_errors))
+        real_errors = json.loads(json.dumps(real_errors))
+        self.assertEqual(expected_errors, real_errors)
 
 
 if __name__ == '__main__':
