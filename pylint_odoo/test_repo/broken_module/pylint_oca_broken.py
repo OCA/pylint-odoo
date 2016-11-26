@@ -21,6 +21,13 @@ class UseUnusedImport(object):
     def method1(self):
         return UserError, OtherName, Warning, AE, ValidationError, UserError2
 
+    def inherited_method(self):
+        # Missing return()
+        super(UseUnusedImport, self).inherited_method()
+
+    def write(self):
+        return super(UseUnusedImport, self).write()
+
 
 class ApiOne(object):
     @api.one

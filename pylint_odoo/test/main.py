@@ -41,6 +41,7 @@ EXPECTED_ERRORS = {
     'missing-manifest-dependency': 2,
     'missing-newline-extrafiles': 3,
     'missing-readme': 1,
+    'missing-return': 1,
     'no-utf8-coding-comment': 3,
     'odoo-addons-relative-import': 4,
     'old-api7-method-defined': 2,
