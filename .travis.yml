@@ -40,7 +40,7 @@ install:
     - pip install tox
 
 script:
-    - flake8 --exclude=__init__.py .
+    - flake8 --ignore=F999 --exclude=__init__.py .
     - tox -e $TOXENV,profile-stats
 
 after_success:

@@ -20,6 +20,7 @@ class TestModel(models.Model):
 
     _columns = {}  # deprecated columns
     _defaults = {}  # deprecated defaults
+    length = fields.Integer()  # Deprecated length by js errors
 
     name = fields.Char(
         _(u"Näme"),  # Don't need translate

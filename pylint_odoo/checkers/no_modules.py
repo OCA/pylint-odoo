@@ -196,7 +196,7 @@ DFTL_LICENSE_ALLOWED = [
     'Other OSI approved licence', 'Other proprietary',
 ]
 DFTL_ATTRIBUTE_DEPRECATED = [
-    '_columns', '_defaults',
+    '_columns', '_defaults', 'length',
 ]
 DFTL_METHOD_REQUIRED_SUPER = [
     'create', 'write', 'read', 'unlink', 'copy',

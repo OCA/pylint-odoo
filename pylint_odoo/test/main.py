@@ -12,7 +12,7 @@ from pylint_odoo import misc
 EXPECTED_ERRORS = {
     'api-one-deprecated': 4,
     'api-one-multi-together': 2,
-    'attribute-deprecated': 2,
+    'attribute-deprecated': 3,
     'class-camelcase': 1,
     'consider-merging-classes-inherited': 2,
     'copy-wo-api-one': 2,
