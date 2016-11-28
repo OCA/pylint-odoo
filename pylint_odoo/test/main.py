@@ -132,8 +132,14 @@ class MainTest(unittest.TestCase):
 
     def test_20_expected_errors(self):
         pylint_res = self.run_pylint(self.paths_modules)
-        # Expected vs found errors
         real_errors = pylint_res.linter.stats['by_msg']
+        # All odoolint name errors vs found
+        test_missed_msgs = set(
+            misc.get_plugin_msgs(pylint_res)) - set(real_errors.keys())
+        self.assertFalse(test_missed_msgs,
+                         "Checks without test case: {test_missed_msgs}".format(
+                             test_missed_msgs=test_missed_msgs))
+        # Expected vs found errors
         expected_errors = json.loads(json.dumps(EXPECTED_ERRORS))
         real_errors = json.loads(json.dumps(real_errors))
         self.assertEqual(expected_errors, real_errors)
