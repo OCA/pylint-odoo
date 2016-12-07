@@ -318,7 +318,8 @@ class NoModuleChecker(BaseChecker):
                     argument_aux = argument.value
                     if argument.arg in ['compute', 'search', 'inverse'] and \
                             isinstance(argument.value, astroid.Const) and \
-                            not argument.value.value.startswith(
+                            argument_aux.value and \
+                            not argument_aux.value.startswith(
                                 '_' + argument.arg + '_'):
                         self.add_message('method-' + argument.arg,
                                          node=argument_aux)
