@@ -407,7 +407,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
         return all_records
 
     def _check_duplicate_xml_record_id(self):
-        """Check duplicate xml record id all xml files of a odoo module.
+        """Check duplicated XML-IDs inside of the files of 
+        each manifest-section treated them separately
         :return: False if exists errors and
                  add list of errors in self.msg_args
         """
