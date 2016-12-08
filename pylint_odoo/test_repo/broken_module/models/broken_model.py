@@ -39,6 +39,7 @@ class TestModel(models.Model):
         search='my_method_search',  # bad search method name
         inverse='my_method_inverse',  # bad inverse method name
     )
+    compute_none = fields.Char(compute=None)
 
     other_field2 = fields.char(
         'Other Field2',
