@@ -218,7 +218,7 @@ DFTL_LICENSE_ALLOWED = [
     'OEEL-1',
 ]
 DFTL_ATTRIBUTE_DEPRECATED = [
-    '_columns', '_defaults',
+    '_columns', '_defaults', 'length',
 ]
 DFTL_METHOD_REQUIRED_SUPER = [
     'create', 'write', 'read', 'unlink', 'copy',
@@ -348,7 +348,8 @@ class NoModuleChecker(BaseChecker):
                     argument_aux = argument.value
                     if argument.arg in ['compute', 'search', 'inverse'] and \
                             isinstance(argument.value, astroid.Const) and \
-                            not argument.value.value.startswith(
+                            argument_aux.value and \
+                            not argument_aux.value.startswith(
                                 '_' + argument.arg + '_'):
                         self.add_message('method-' + argument.arg,
                                          node=argument_aux)

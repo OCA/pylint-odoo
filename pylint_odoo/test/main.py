@@ -14,7 +14,7 @@ from pylint_odoo import misc
 EXPECTED_ERRORS = {
     'api-one-deprecated': 4,
     'api-one-multi-together': 2,
-    'attribute-deprecated': 2,
+    'attribute-deprecated': 3,
     'class-camelcase': 1,
     'consider-merging-classes-inherited': 2,
     'copy-wo-api-one': 2,
@@ -62,7 +62,7 @@ EXPECTED_ERRORS = {
 
 # Checks not oca just vx to avoid oca conflicts
 EXPECTED_ERRORS.update({
-    'consider-add-field-help': 2,
+    'consider-add-field-help': 4,
     'po-lint': 4,
     'po-syntax-error': 1,
     'prefer-other-formatting': 4,
