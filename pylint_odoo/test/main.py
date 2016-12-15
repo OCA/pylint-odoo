@@ -23,7 +23,7 @@ EXPECTED_ERRORS = {
     'duplicate-id-csv': 2,
     'duplicate-xml-fields': 6,
     'duplicate-xml-record-id': 2,
-    'file-not-used': 8,
+    'file-not-used': 6,
     'incoherent-interpreter-exec-perm': 3,
     'invalid-commit': 4,
     'javascript-lint': 2,
@@ -84,6 +84,7 @@ class MainTest(unittest.TestCase):
         ]
         self.profile = Profile()
         self.sys_path_origin = list(sys.path)
+        self.maxDiff = None
 
     def tearDown(self):
         sys.path = list(self.sys_path_origin)
@@ -118,8 +119,7 @@ class MainTest(unittest.TestCase):
         pylint_res = self.run_pylint(self.paths_modules)
         # Expected vs found errors
         real_errors = pylint_res.linter.stats['by_msg']
-        self.assertEqual(sorted(real_errors.items()),
-                         sorted(EXPECTED_ERRORS.items()))
+        self.assertEqual(EXPECTED_ERRORS, real_errors)
         # All odoolint name errors vs found
         msgs_found = pylint_res.linter.stats['by_msg'].keys()
         plugin_msgs = misc.get_plugin_msgs(pylint_res)
@@ -139,8 +139,7 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats['by_msg']
         global EXPECTED_ERRORS
         EXPECTED_ERRORS.pop('dangerous-filter-wo-user')
-        self.assertEqual(sorted(real_errors.items()),
-                         sorted(EXPECTED_ERRORS.items()))
+        self.assertEqual(EXPECTED_ERRORS, real_errors)
         sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
         sum_fails_expected = sum(EXPECTED_ERRORS.values())
         self.assertEqual(sum_fails_found, sum_fails_expected)

@@ -394,8 +394,11 @@ class ModuleChecker(misc.WrapperModuleChecker):
         """
         all_records = {}
         for record in records:
-            record_id = record.attrib.get('id', '') + '.' + "noupdate" + \
-                record.getparent().attrib.get('noupdate', '0')
+            record_id = "%s/%s_noupdate_%s" % (
+                record.attrib.get('section', ''),
+                record.attrib.get('id', ''),
+                record.getparent().attrib.get('noupdate', '0'),
+            )
             all_records.setdefault(record_id, []).append(record)
         # Remove all keys which not duplicated
         for key, items in all_records.items():
@@ -404,16 +407,22 @@ class ModuleChecker(misc.WrapperModuleChecker):
         return all_records
 
     def _check_duplicate_xml_record_id(self):
-        """Check duplicate xml record id all xml files of a odoo module.
+        """Check duplicated XML-IDs inside of the files of
+        each manifest-section treated them separately
         :return: False if exists errors and
                  add list of errors in self.msg_args
         """
         self.msg_args = []
-        all_xml_ids = []
-        for xml_file in self.filter_files_ext('xml', relpath=False):
-            all_xml_ids.extend(self.get_xml_records(xml_file))
+        xml_records = []
+        for fname, section in self._get_manifest_referenced_files().items():
+            if os.path.splitext(fname)[1].lower() != '.xml':
+                continue
+            fname = os.path.join(self.module_path, fname)
+            for xml_record in self.get_xml_records(fname):
+                xml_record.attrib['section'] = section
+                xml_records.append(xml_record)
         for name, fobjs in \
-                self._get_duplicate_xml_record_id(all_xml_ids).items():
+                self._get_duplicate_xml_record_id(xml_records).items():
             self.msg_args.append((
                 "%s:%d" % (os.path.relpath(fobjs[0].base, self.module_path),
                            fobjs[0].sourceline),
@@ -670,11 +679,12 @@ class ModuleChecker(misc.WrapperModuleChecker):
         return True
 
     def _get_manifest_referenced_files(self):
-        referenced_files = []
+        referenced_files = {}
         data_keys = ['data', 'demo', 'demo_xml', 'init_xml', 'test',
                      'update_xml']
-        for key in data_keys:
-            referenced_files.extend(self.manifest_dict.get(key) or [])
+        for data_type in data_keys:
+            for fname in self.manifest_dict.get(data_type) or []:
+                referenced_files[fname] = data_type
         return referenced_files
 
     def _get_module_files(self):

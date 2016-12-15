@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- duplicate record id but from demo -->
+        <record id="view_model_form10" model="ir.ui.view">
+            <field name="name">view.model.form</field>
+            <field name="model">test.model</field>
+            <field name="arch" type="xml">
+                <tree string="Test model">
+                    <field name="name"></field>
+                </tree>
+            </field>
+        </record>
+
+    </data>
+</odoo>
