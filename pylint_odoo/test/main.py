@@ -25,10 +25,9 @@ EXPECTED_ERRORS = {
     'duplicate-xml-fields': 6,
     'duplicate-xml-record-id': 2,
     'file-not-used': 6,
-    'import-error': 6,
     'incoherent-interpreter-exec-perm': 3,
     'invalid-commit': 4,
-    'javascript-lint': 8,
+    'javascript-lint': 2,
     'license-allowed': 1,
     'manifest-author-string': 1,
     'manifest-deprecated-key': 1,
@@ -62,6 +61,11 @@ EXPECTED_ERRORS = {
 # Checks not oca just vx to avoid oca conflicts
 EXPECTED_ERRORS.update({
     'consider-add-field-help': 4,
+    'import-error': 6,
+    'javascript-lint': 8,
+    'missing-import-error': 5,
+    'missing-manifest-dependency': 4,
+    'missing-newline-extrafiles': 4,
     'po-lint': 4,
     'po-syntax-error': 1,
     'prefer-other-formatting': 4,
@@ -148,9 +152,6 @@ class MainTest(unittest.TestCase):
         global EXPECTED_ERRORS
         EXPECTED_ERRORS.pop('dangerous-filter-wo-user')
         self.assertEqual(EXPECTED_ERRORS, real_errors)
-        sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
-        sum_fails_expected = sum(EXPECTED_ERRORS.values())
-        self.assertEqual(sum_fails_found, sum_fails_expected)
 
     def test_40_deprecated_modules(self):
         """Test deprecated modules"""
