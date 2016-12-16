@@ -242,7 +242,8 @@ class WrapperModuleChecker(BaseChecker):
                     fnames.remove(fname)
                     break
         if not relpath:
-            fnames = [
+            # Unused section is not delete it for compatibility
+            fnames = [  # pragma: no cover
                 os.path.join(self.module_path, fname)
                 for fname in fnames]
         return fnames
