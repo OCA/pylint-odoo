@@ -1,5 +1,4 @@
 
-import json
 import os
 import stat
 import sys
@@ -25,11 +24,10 @@ EXPECTED_ERRORS = {
     'duplicate-id-csv': 2,
     'duplicate-xml-fields': 6,
     'duplicate-xml-record-id': 2,
-    'file-not-used': 8,
-    'import-error': 6,
+    'file-not-used': 6,
     'incoherent-interpreter-exec-perm': 3,
     'invalid-commit': 4,
-    'javascript-lint': 8,
+    'javascript-lint': 2,
     'license-allowed': 1,
     'manifest-author-string': 1,
     'manifest-deprecated-key': 1,
@@ -40,9 +38,9 @@ EXPECTED_ERRORS = {
     'method-inverse': 1,
     'method-required-super': 8,
     'method-search': 1,
-    'missing-import-error': 5,
-    'missing-manifest-dependency': 4,
-    'missing-newline-extrafiles': 4,
+    'missing-import-error': 3,
+    'missing-manifest-dependency': 2,
+    'missing-newline-extrafiles': 3,
     'missing-readme': 1,
     'missing-return': 1,
     'no-utf8-coding-comment': 3,
@@ -63,6 +61,11 @@ EXPECTED_ERRORS = {
 # Checks not oca just vx to avoid oca conflicts
 EXPECTED_ERRORS.update({
     'consider-add-field-help': 4,
+    'import-error': 6,
+    'javascript-lint': 8,
+    'missing-import-error': 5,
+    'missing-manifest-dependency': 4,
+    'missing-newline-extrafiles': 4,
     'po-lint': 4,
     'po-syntax-error': 1,
     'prefer-other-formatting': 4,
@@ -133,16 +136,13 @@ class MainTest(unittest.TestCase):
     def test_20_expected_errors(self):
         pylint_res = self.run_pylint(self.paths_modules)
         real_errors = pylint_res.linter.stats['by_msg']
+        self.assertEqual(EXPECTED_ERRORS, real_errors)
         # All odoolint name errors vs found
         test_missed_msgs = set(
             misc.get_plugin_msgs(pylint_res)) - set(real_errors.keys())
         self.assertFalse(test_missed_msgs,
                          "Checks without test case: {test_missed_msgs}".format(
                              test_missed_msgs=test_missed_msgs))
-        # Expected vs found errors
-        expected_errors = json.loads(json.dumps(EXPECTED_ERRORS))
-        real_errors = json.loads(json.dumps(real_errors))
-        self.assertEqual(expected_errors, real_errors)
 
     def test_30_disabling_errors(self):
         # Disabling
@@ -151,8 +151,6 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats['by_msg']
         expected_errors = EXPECTED_ERRORS.copy()
         expected_errors.pop('dangerous-filter-wo-user')
-        expected_errors = json.loads(json.dumps(expected_errors))
-        real_errors = json.loads(json.dumps(real_errors))
         self.assertEqual(expected_errors, real_errors)
 
     def test_40_deprecated_modules(self):
@@ -182,8 +180,6 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats['by_msg']
         expected_errors = EXPECTED_ERRORS.copy()
         expected_errors.pop('javascript-lint')
-        expected_errors = json.loads(json.dumps(expected_errors))
-        real_errors = json.loads(json.dumps(real_errors))
         self.assertEqual(expected_errors, real_errors)
 
     def test_60_with_jslint_error(self):
@@ -204,8 +200,6 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats['by_msg']
         expected_errors = EXPECTED_ERRORS.copy()
         expected_errors.pop('javascript-lint')
-        expected_errors = json.loads(json.dumps(expected_errors))
-        real_errors = json.loads(json.dumps(real_errors))
         self.assertEqual(expected_errors, real_errors)
 
 
