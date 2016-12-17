@@ -149,9 +149,9 @@ class MainTest(unittest.TestCase):
         self.default_extra_params.append('--disable=dangerous-filter-wo-user')
         pylint_res = self.run_pylint(self.paths_modules)
         real_errors = pylint_res.linter.stats['by_msg']
-        global EXPECTED_ERRORS
-        EXPECTED_ERRORS.pop('dangerous-filter-wo-user')
-        self.assertEqual(EXPECTED_ERRORS, real_errors)
+        expected_errors = EXPECTED_ERRORS.copy()
+        expected_errors.pop('dangerous-filter-wo-user')
+        self.assertEqual(expected_errors, real_errors)
 
     def test_40_deprecated_modules(self):
         """Test deprecated modules"""
