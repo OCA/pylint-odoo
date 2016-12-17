@@ -85,6 +85,7 @@ class MainTest(unittest.TestCase):
         self.profile = Profile()
         self.sys_path_origin = list(sys.path)
         self.maxDiff = None
+        self.expected_errors = EXPECTED_ERRORS
 
     def tearDown(self):
         sys.path = list(self.sys_path_origin)
@@ -108,7 +109,7 @@ class MainTest(unittest.TestCase):
         return res
 
     def test_10_path_dont_exist(self):
-        "self-test if path don't exist"
+        """test if path don't exist"""
         path_unexist = u'/tmp/____unexist______'
         with self.assertRaisesRegexp(
                 OSError,
@@ -116,33 +117,29 @@ class MainTest(unittest.TestCase):
             self.run_pylint([path_unexist])
 
     def test_20_expected_errors(self):
+        """Expected vs found errors"""
         pylint_res = self.run_pylint(self.paths_modules)
-        # Expected vs found errors
         real_errors = pylint_res.linter.stats['by_msg']
-        self.assertEqual(EXPECTED_ERRORS, real_errors)
-        # All odoolint name errors vs found
+        self.assertEqual(self.expected_errors, real_errors)
+
+    def test_25_checks_without_coverage(self):
+        """All odoolint errors vs found"""
+        pylint_res = self.run_pylint(self.paths_modules)
         msgs_found = pylint_res.linter.stats['by_msg'].keys()
         plugin_msgs = misc.get_plugin_msgs(pylint_res)
         test_missed_msgs = sorted(list(set(plugin_msgs) - set(msgs_found)))
-        self.assertEqual(
-            test_missed_msgs, [],
+        self.assertFalse(
+            test_missed_msgs,
             "Checks without test case: {test_missed_msgs}".format(
                 test_missed_msgs=test_missed_msgs))
-        sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
-        sum_fails_expected = sum(EXPECTED_ERRORS.values())
-        self.assertEqual(sum_fails_found, sum_fails_expected)
 
     def test_30_disabling_errors(self):
-        # Disabling
+        """Test disabling checkers"""
         self.default_extra_params.append('--disable=dangerous-filter-wo-user')
         pylint_res = self.run_pylint(self.paths_modules)
         real_errors = pylint_res.linter.stats['by_msg']
-        global EXPECTED_ERRORS
-        EXPECTED_ERRORS.pop('dangerous-filter-wo-user')
-        self.assertEqual(EXPECTED_ERRORS, real_errors)
-        sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
-        sum_fails_expected = sum(EXPECTED_ERRORS.values())
-        self.assertEqual(sum_fails_found, sum_fails_expected)
+        self.expected_errors.pop('dangerous-filter-wo-user')
+        self.assertEqual(self.expected_errors, real_errors)
 
     def test_40_deprecated_modules(self):
         """Test deprecated modules"""
