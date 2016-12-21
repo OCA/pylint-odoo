@@ -88,7 +88,7 @@ class MainTest(unittest.TestCase):
         self.profile = Profile()
         self.sys_path_origin = list(sys.path)
         self.maxDiff = None
-        self.expected_errors = EXPECTED_ERRORS
+        self.expected_errors = EXPECTED_ERRORS.copy()
 
     def tearDown(self):
         sys.path = list(self.sys_path_origin)
@@ -169,13 +169,8 @@ class MainTest(unittest.TestCase):
         pylint_res = self.run_pylint(self.paths_modules)
         misc.which = which_original
         real_errors = pylint_res.linter.stats['by_msg']
-        expected_errors = EXPECTED_ERRORS.copy()
-        expected_errors.pop('javascript-lint')
-        self.assertEqual(sorted(real_errors.items()),
-                         sorted(expected_errors.items()))
-        sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
-        sum_fails_expected = sum(expected_errors.values())
-        self.assertEqual(sum_fails_found, sum_fails_expected)
+        self.expected_errors.pop('javascript-lint')
+        self.assertEqual(self.expected_errors, real_errors)
 
     def test_60_with_jslint_error(self):
         """Test with jslint error"""
@@ -193,13 +188,8 @@ class MainTest(unittest.TestCase):
         pylint_res = self.run_pylint(self.paths_modules)
         misc.which = which_original
         real_errors = pylint_res.linter.stats['by_msg']
-        expected_errors = EXPECTED_ERRORS.copy()
-        expected_errors.pop('javascript-lint')
-        self.assertEqual(sorted(real_errors.items()),
-                         sorted(expected_errors.items()))
-        sum_fails_found = misc.get_sum_fails(pylint_res.linter.stats)
-        sum_fails_expected = sum(expected_errors.values())
-        self.assertEqual(sum_fails_found, sum_fails_expected)
+        self.expected_errors.pop('javascript-lint')
+        self.assertEqual(self.expected_errors, real_errors)
 
 
 if __name__ == '__main__':
