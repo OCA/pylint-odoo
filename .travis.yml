@@ -10,6 +10,7 @@ addons:
   apt:
     packages:
       - python-lxml  # because pip installation is slow 
+      - nodejs
 
 virtualenv:
   system_site_packages: true
@@ -24,11 +25,9 @@ matrix:
         TOXENV=py27-pylint20
 
 install:
-    - nvm install 6  # Update nodejs version to 6.latest, required by eslint
     # Remove packages installed from addons-apt-packages of travis file
-    - sed -i '/lxml/d'  ${TRAVIS_BUILD_DIR}/requirements.txt
-    - sed -i '/node/d' ${TRAVIS_BUILD_DIR}/install.sh
-    - sed -i '/pip install ./d' ${TRAVIS_BUILD_DIR}/install.sh
+    - find -L ${TRAVIS_BUILD_DIR} -name requirements.txt -exec sed -i '/lxml/d'  {} \;
+    - find -L ${TRAVIS_BUILD_DIR} -name install.sh -exec sed -i '/node/d'  {} \;
 
     # Install dependencies
     - ${TRAVIS_BUILD_DIR}/install.sh

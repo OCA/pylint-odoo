@@ -11,11 +11,6 @@ from restructuredtext_lint import lint_file as rst_lint
 
 from . import settings
 
-try:
-    from shutil import which  # python3.x
-except ImportError:
-    from whichcraft import which
-
 
 def get_plugin_msgs(pylint_run_res):
     """Get all message of this pylint plugin.
@@ -190,9 +185,7 @@ class WrapperModuleChecker(BaseChecker):
         dirnames_to_skip = []
         if skip_examples:
             dirnames_to_skip.extend(['example', 'examples', 'sample',
-                                     'samples', 'lib', 'doc',
-                                     'templates',
-                                     ])
+                                     'samples', 'lib'])
         if not fext.startswith('.'):
             fext = '.' + fext
         fext = fext.lower()
@@ -217,45 +210,19 @@ class WrapperModuleChecker(BaseChecker):
         """
         return rst_lint(fname)
 
-    def npm_which_module(self, module):
-        module_bin = which(module)
-        npm_bin = which('npm')
-        if not module_bin and npm_bin:
-            npm_bin_paths = []
-            for cmd in ([npm_bin, 'bin'], [npm_bin, 'bin', '-g']):
-                process = subprocess.Popen(cmd,
-                                           stdout=subprocess.PIPE,
-                                           stderr=subprocess.PIPE)
-                output, err = process.communicate()
-                npm_bin_path = output.strip('\n ')
-                if os.path.isdir(npm_bin_path) and not err:
-                    npm_bin_paths.append(npm_bin_path)
-            if npm_bin_paths:
-                module_bin = which(module, path=os.pathsep.join(npm_bin_paths))
-        return module_bin
-
-    def check_js_lint(self, fname, frc=None):
+    def check_js_lint(self, fname):
         """Check javascript lint in fname.
         :param fname: String with full path of file to check
-        :param frc: String with full path of configuration file for
-            the javascript-lint tool
         :return: Return list of errors.
         """
-        lint_bin = self.npm_which_module('eslint')
-        if not lint_bin:
-            return []
-        cmd = [lint_bin, '--format=unix', fname]
-        if frc:
-            cmd.append('--config=' + frc)
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        output, err = process.communicate()
-        if process.returncode != 0 and err:
-            return []
-        # Strip multi-line output https://github.com/eslint/eslint/issues/6810
-        for old in re.findall(r"`(.*)` instead.", output, re.DOTALL):
-            new = old.split('\n')[0][:20] + '...'
-            output = output.replace(old, new)
+        cmd = ['jshint', '--reporter=unix', fname]
+        try:
+            output = subprocess.Popen(
+                cmd, stderr=subprocess.STDOUT,
+                stdout=subprocess.PIPE).stdout.read()
+        except OSError as oserr:
+            output_err = ' - ' + cmd[0] + ': ' + oserr.strerror
+            return [output_err]
         output = output.replace(fname, '')
         output_spplited = []
         if output:
