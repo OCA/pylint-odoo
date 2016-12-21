@@ -260,7 +260,10 @@ class ModuleChecker(misc.WrapperModuleChecker):
         if node_left.name == '_name':
             node.parent.odoo_attribute_name = node.value.value
             return
-        _name = getattr(node.parent, 'odoo_attribute_name', None)
+        try:
+            _name = node.parent.igetattr('_name').next().value
+        except:
+            _name = None
         _inherit = node.value.value
         if _name and _name != _inherit:
             # Skip _name='model.name' _inherit='other.model' because is valid

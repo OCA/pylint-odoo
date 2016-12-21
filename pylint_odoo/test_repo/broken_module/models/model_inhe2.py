@@ -47,3 +47,12 @@ class TestModel8(models.Model):
     def method_2(self):
         _inherit = 'not-class-attribute'
         return _inherit
+
+
+class TestModel9(models.Model):
+    _inherit = 'res.user'
+
+
+class TestModel10(models.Model):
+    _inherit = 'res.user'
+    _name = 'my.inherited.user'
