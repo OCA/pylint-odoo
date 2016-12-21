@@ -26,16 +26,6 @@ def get_plugin_msgs(pylint_run_res):
     return all_plugin_msgs
 
 
-def get_sum_fails(pylint_stats):
-    """Get a sum of all fails.
-    :param pylint_stats: Object returned by pylint.run method.
-    :return: Integer with sum of all errors found.
-    """
-    return sum([
-        pylint_stats['by_msg'][msg]
-        for msg in pylint_stats['by_msg']])
-
-
 def join_node_args_kwargs(node):
     """Method to join args and keywords
     :param node: node to get args and keywords
