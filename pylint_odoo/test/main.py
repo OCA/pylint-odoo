@@ -88,7 +88,7 @@ class MainTest(unittest.TestCase):
         self.profile = Profile()
         self.sys_path_origin = list(sys.path)
         self.maxDiff = None
-        self.expected_errors = EXPECTED_ERRORS
+        self.expected_errors = EXPECTED_ERRORS.copy()
 
     def tearDown(self):
         sys.path = list(self.sys_path_origin)
