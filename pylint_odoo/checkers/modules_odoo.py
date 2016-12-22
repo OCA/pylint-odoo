@@ -501,7 +501,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 if record.xpath('field[@name="inherit_id"]'):
                     continue
                 for xpath in ['field', 'field/*/field',
-                              'field/*/field/tree/field',
                               'field/*/field/form/field']:
                     for name, fobjs in self._get_duplicate_xml_fields(
                             record.xpath(xpath)).items():
@@ -510,6 +509,16 @@ class ModuleChecker(misc.WrapperModuleChecker):
                             ', '.join([str(fobj.sourceline)
                                        for fobj in fobjs[1:]]),
                         ))
+                # Eval *2M fields
+                # Issue https://github.com/OCA/pylint-odoo/issues/76
+                x2many_fields = record.xpath('field/*/field/tree/field')
+                for field in x2many_fields:
+                    for name, fobjs in self._get_duplicate_xml_fields(
+                            field).items():
+                        self.msg_args.append((
+                            "%s:%d" % (xml_file, fobjs[0].sourceline), name,
+                            ', '.join(
+                                [str(fobj.sourceline) for fobj in fobjs[1:]])))
         if self.msg_args:
             return False
         return True
