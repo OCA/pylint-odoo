@@ -3,6 +3,7 @@
 
 import os
 import re
+import collections
 
 import astroid
 import isort
@@ -484,6 +485,16 @@ class ModuleChecker(misc.WrapperModuleChecker):
             all_fields.setdefault(field_xml, []).append(field)
         # Remove all keys which not duplicated
         for key, items in all_fields.items():
+            parents = [e.getparent() for e in items]
+            same_parent = [
+                item for item, count in collections.Counter(parents).items()
+                if count > 1]
+            # Remove elements which are in different parent element
+            # Parents in items but not in same_parent list
+            exclude = list(set(parents) - set(same_parent))
+            for item in items:
+                if item.getparent() in exclude:
+                    items.remove(item)
             if len(items) < 2:
                 all_fields.pop(key)
         return all_fields

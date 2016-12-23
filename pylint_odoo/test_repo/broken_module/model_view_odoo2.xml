@@ -85,5 +85,25 @@
             </field>
         </record>
 
+        <!-- duplicate record field "name" in *2M field-->
+        <record id="view_model_form5" model="ir.ui.view">
+            <field name="name">view.model.form</field>
+            <field name="model">test.model</field>
+            <field name="arch" type="xml">
+                <form string="Test model6">
+                    <field name="picking_ids">
+                        <tree>
+                            <field name="name"/>
+                        </tree>
+                    </field>
+                    <field name="value_ids">
+                        <tree>
+                            <field name="name"/>
+                        </tree>
+                    </field>
+                </form>
+            </field>
+        </record>
+
     </data>
 </odoo>
