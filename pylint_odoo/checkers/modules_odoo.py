@@ -492,7 +492,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
             # Remove elements which are in different parent element
             # Parents in items but not in same_parent list
             exclude = list(set(parents) - set(same_parent))
-            for item in items:
+            for item in list(items):
                 if item.getparent() in exclude:
                     items.remove(item)
             if len(items) < 2:
