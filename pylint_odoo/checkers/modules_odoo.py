@@ -485,31 +485,12 @@ class ModuleChecker(misc.WrapperModuleChecker):
             all_fields.setdefault(field_xml, []).append(field)
         # Remove all keys which not duplicated
         for key, items in all_fields.items():
-            if len(items) < 2:
-                all_fields.pop(key)
-        return all_fields
-
-    def _get_duplicate_xml_x2m_fields(self, fields):
-        """Get duplicated xml fields based on attribute name
-        :param fields list: List of lxml.etree.Element "<field"
-        :return: Duplicated items.
-            e.g. {field.name: [field_node1, field_node2]}
-        :rtype: dict
-        """
-        all_fields = {}
-        for field in fields:
-            field_xml = field.attrib.get('name')
-            if not field_xml:
-                continue
-            all_fields.setdefault(field_xml, []).append(field)
-        # Remove all keys which not duplicated
-        for key, items in all_fields.items():
             parents = [e.getparent() for e in items]
             same_parent = [
                 item for item, count in collections.Counter(parents).items()
                 if count > 1]
             # Remove elements which are in different parent element
-            # Parents in intems but not in same_parent list
+            # Parents in items but not in same_parent list
             exclude = list(set(parents) - set(same_parent))
             for item in items:
                 if item.getparent() in exclude:
@@ -542,7 +523,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 # Eval *2M fields
                 # Issue https://github.com/OCA/pylint-odoo/issues/76
                 x2m_fields = record.xpath('field/*/field/tree/field')
-                for name, fobjs in self._get_duplicate_xml_x2m_fields(
+                for name, fobjs in self._get_duplicate_xml_fields(
                         x2m_fields).items():
                     self.msg_args.append((
                         "%s:%d" % (xml_file, fobjs[0].sourceline), name,
