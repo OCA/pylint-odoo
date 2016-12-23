@@ -3,7 +3,6 @@
 
 import os
 import re
-import collections
 
 import astroid
 import isort
@@ -470,33 +469,32 @@ class ModuleChecker(misc.WrapperModuleChecker):
             return False
         return True
 
-    def _get_duplicate_xml_fields(self, fields):
+    def _get_fields_by_parents(self, fields):
+        parents = {}
+        all_fields = {}
+        for field in fields:
+            field_xml = field.attrib.get('name')
+            if not field_xml:
+                continue
+            parent = field.getparent()
+            parents.setdefault(
+                parent, {}).setdefault((field_xml, parent), []).append(field)
+            all_fields.setdefault((field_xml, parent), []).append(field)
+        return parents, all_fields
+
+    def _get_duplicate_xml_fields(self, xml_fields):
         """Get duplicated xml fields based on attribute name
         :param fields list: List of lxml.etree.Element "<field"
         :return: Duplicated items.
             e.g. {field.name: [field_node1, field_node2]}
         :rtype: dict
         """
-        all_fields = {}
-        for field in fields:
-            field_xml = field.attrib.get('name')
-            if not field_xml:
-                continue
-            all_fields.setdefault(field_xml, []).append(field)
+        fields_by_parent, all_fields = self._get_fields_by_parents(xml_fields)
         # Remove all keys which not duplicated
-        for key, items in all_fields.items():
-            parents = [e.getparent() for e in items]
-            same_parent = [
-                item for item, count in collections.Counter(parents).items()
-                if count > 1]
-            # Remove elements which are in different parent element
-            # Parents in items but not in same_parent list
-            exclude = list(set(parents) - set(same_parent))
-            for item in list(items):
-                if item.getparent() in exclude:
-                    items.remove(item)
-            if len(items) < 2:
-                all_fields.pop(key)
+        for parent, fields in fields_by_parent.items():
+            for key, items in fields.items():
+                if len(items) < 2:
+                    all_fields.pop(key)
         return all_fields
 
     def _check_duplicate_xml_fields(self):
@@ -517,7 +515,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                     for name, fobjs in self._get_duplicate_xml_fields(
                             record.xpath(xpath)).items():
                         self.msg_args.append((
-                            "%s:%d" % (xml_file, fobjs[0].sourceline), name,
+                            "%s:%d" % (xml_file, fobjs[0].sourceline), name[0],
                             ', '.join([str(fobj.sourceline)
                                        for fobj in fobjs[1:]]),
                         ))
