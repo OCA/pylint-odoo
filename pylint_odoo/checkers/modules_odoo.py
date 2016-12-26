@@ -469,33 +469,25 @@ class ModuleChecker(misc.WrapperModuleChecker):
             return False
         return True
 
-    def _get_fields_by_parents(self, fields):
-        parents = {}
-        all_fields = {}
-        for field in fields:
-            field_xml = field.attrib.get('name')
-            if not field_xml:
-                continue
-            parent = field.getparent()
-            parents.setdefault(
-                parent, {}).setdefault((field_xml, parent), []).append(field)
-            all_fields.setdefault((field_xml, parent), []).append(field)
-        return parents, all_fields
-
-    def _get_duplicate_xml_fields(self, xml_fields):
+    def _get_duplicate_xml_fields(self, fields):
         """Get duplicated xml fields based on attribute name
         :param fields list: List of lxml.etree.Element "<field"
         :return: Duplicated items.
             e.g. {field.name: [field_node1, field_node2]}
         :rtype: dict
         """
-        fields_by_parent, all_fields = self._get_fields_by_parents(xml_fields)
+        all_fields = {}
+        for field in fields:
+            field_xml = field.attrib.get('name')
+            if not field_xml:
+                continue
+            all_fields.setdefault(
+                (field_xml, field.getparent()), []).append(field)
         # Remove all keys which not duplicated
-        for parent, fields in fields_by_parent.items():
-            for key, items in fields.items():
-                if len(items) < 2:
-                    all_fields.pop(key)
-        return all_fields
+        single_fields = dict(((field_xml_name, parent_node), nodes) for
+                             (field_xml_name, parent_node), nodes in
+                             all_fields.items() if len(nodes) >= 2)
+        return single_fields
 
     def _check_duplicate_xml_fields(self):
         """Check duplicate field in all record of xml files of a odoo module.
