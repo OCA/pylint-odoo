@@ -56,6 +56,7 @@ import re
 import types
 
 import astroid
+from six import string_types
 from pylint.checkers import BaseChecker, utils
 from pylint.interfaces import IAstroidChecker
 
@@ -317,8 +318,8 @@ class NoModuleChecker(BaseChecker):
                 if isinstance(argument, astroid.Keyword):
                     argument_aux = argument.value
                     if argument.arg in ['compute', 'search', 'inverse'] and \
-                            isinstance(argument.value, astroid.Const) and \
-                            argument_aux.value and \
+                            isinstance(argument_aux, astroid.Const) and \
+                            isinstance(argument_aux.value, string_types) and \
                             not argument_aux.value.startswith(
                                 '_' + argument.arg + '_'):
                         self.add_message('method-' + argument.arg,
