@@ -348,7 +348,7 @@ class NoModuleChecker(BaseChecker):
         >>> self.colon_list_to_dict(['colon:list', 'empty_key:'])
         {'colon': 'list', 'empty_key': ''}
         """
-        return dict([item.split(":") for item in colon_list])
+        return dict(item.split(":") for item in colon_list)
 
     @utils.check_messages('translation-field', 'invalid-commit',
                           'method-compute', 'method-search', 'method-inverse',
@@ -362,6 +362,7 @@ class NoModuleChecker(BaseChecker):
                 argument_aux = argument
                 if isinstance(argument, astroid.Keyword):
                     argument_aux = argument.value
+                    deprecated = self.config.deprecated_field_parameters
                     if argument.arg in ['compute', 'search', 'inverse'] and \
                             isinstance(argument_aux, astroid.Const) and \
                             isinstance(argument_aux.value, string_types) and \
@@ -369,14 +370,10 @@ class NoModuleChecker(BaseChecker):
                                 '_' + argument.arg + '_'):
                         self.add_message('method-' + argument.arg,
                                          node=argument_aux)
-                    elif (argument.arg in
-                            self.config.deprecated_field_parameters):
-                        new_param = self.config.deprecated_field_parameters[
-                            argument.arg
-                        ]
+                    elif (argument.arg in deprecated):
                         self.add_message(
                             'renamed-field-parameter', node=node,
-                            args=(argument.arg, new_param)
+                            args=(argument.arg, deprecated[argument.arg])
                         )
                 if isinstance(argument_aux, astroid.CallFunc) and \
                         isinstance(argument_aux.func, astroid.Name) and \
