@@ -186,6 +186,12 @@ ODOO_MSGS = {
         'old-api7-method-defined',
         settings.DESC_DFLT
     ),
+    'R%d11' % settings.BASE_NOMODULE_ID: (
+        'Prefer "%(varname)"s over .format(). This is better for translation '
+        ' and clarity.',
+        'prefer-other-formatting',
+        settings.DESC_DFLT
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ['license']
@@ -308,9 +314,13 @@ class NoModuleChecker(BaseChecker):
 
     @utils.check_messages('translation-field', 'invalid-commit',
                           'method-compute', 'method-search', 'method-inverse',
-                          'sql-injection',
+                          'sql-injection', 'prefer-other-formatting',
                           )
     def visit_call(self, node):
+        node_infer = utils.safe_infer(node.func)
+        if utils.is_builtin_object(node_infer) and \
+                self.get_func_name(node.func) == 'format':
+            self.add_message('prefer-other-formatting', node=node)
         if node.as_string().lower().startswith('fields.'):
             args = misc.join_node_args_kwargs(node)
             for argument in args:
