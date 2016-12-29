@@ -46,6 +46,112 @@ class TestModel(models.Model):
         copy=True,
     )
 
+    my_ok_field = fields.Float(
+        "My correctly named field",
+        help="My ok field",
+    )
+
+    my_ko_field = fields.Float(
+        string="My Ko Field",  # String parameter equal to name of variable
+        help="My ko field",
+    )
+
+    """The name of the variable is equal to the string parameter
+    Tested all fields.*"""
+
+    boolean_variable_1 = fields.Boolean(string='Boolean Variable 1',
+                                        help="Help")
+    boolean_variable_2 = fields.Boolean("Boolean Variable 2", help="Help")
+
+    char_variable_1 = fields.Char(string='Char Variable 1', help="Help")
+    char_variable_2 = fields.Char("Char Variable 2", help="Help")
+
+    text_variable_1 = fields.Text(string='Text Variable 1', help="Help")
+    text_variable_2 = fields.Text("Text Variable 2", help="Help")
+
+    html_variable_1 = fields.Html(string='Html Variable 1', help="Help")
+    html_variable_2 = fields.Html("Html Variable 2", help="Help")
+
+    integer_variable_1 = fields.Integer(string='Integer Variable 1',
+                                        help="Help")
+    integer_variable_2 = fields.Integer("Integer Variable 2", help="Help")
+
+    float_variable_1 = fields.Float(string='Float Variable 1', help="Help")
+    float_variable_2 = fields.Float("Float Variable 2", help="Help")
+
+    date_variable_1 = fields.Date(string='Date Variable 1', help="Help")
+    date_variable_2 = fields.Date("Date Variable 2", help="Help")
+
+    date_time_variable_1 = fields.DateTime(string='Date Time Variable 1',
+                                           help="Help")
+    date_time_variable_2 = fields.DateTime("Date Time Variable 2", help="Help")
+
+    binary_variable_1 = fields.Binary(string='Binary Variable 1', help="Help")
+    binary_variable_2 = fields.Binary("Binary Variable 2", help="Help")
+
+    selection_variable_1 = fields.Selection(selection=[('a', 'A')],
+                                            string='Selection Variable 1',
+                                            help="Help")
+    selection_variable_2 = fields.Selection([('a', 'A')],
+                                            "Selection Variable 2",
+                                            help="Help")
+
+    reference_variable_1 = fields.Reference(selection=[('res.user', 'User')],
+                                            string="Reference Variable 1",
+                                            help="Help")
+    reference_variable_2 = fields.Reference([('res.user', 'User')],
+                                            "Reference Variable 2",
+                                            help="Help")
+
+    many_2_one_variable_1 = fields.Many2one(comodel_name='res.users',
+                                            string='Many 2 One Variable 1',
+                                            help="Help")
+    many_2_one_variable_2 = fields.Many2one('res.users',
+                                            "Many 2 One Variable 2",
+                                            help="Help")
+
+    one_2_many_variable_1 = fields.One2many(comodel_name='res.users',
+                                            inverse_name='rel_id',
+                                            string='One 2 Many Variable 1',
+                                            help="Help")
+    one_2_many_variable_2 = fields.One2many('res.users',
+                                            'rel_id',
+                                            "One 2 Many Variable 2",
+                                            help="Help")
+
+    many_2_many_variable_1 = fields.Many2many(comodel_name='res.users',
+                                              relation='table_name',
+                                              column1='col_name',
+                                              column2='other_col_name',
+                                              string='Many 2 Many Variable 1',
+                                              help="Help")
+    many_2_many_variable_2 = fields.Many2many('res.users',
+                                              'table_name',
+                                              'col_name',
+                                              'other_col_name',
+                                              "Many 2 Many Variable 2",
+                                              help="Help")
+
+    name_equal_to_string = fields.Float(
+        "Name equal to string",
+        help="Name Equal To String"
+    )
+
+    many_2_one = fields.Many2one(
+        'res.users',
+        "Many 2 One",
+        help="Many 2 one"
+    )
+
+    many_2_many = fields.Many2many(
+        'res.users',
+        'relation',
+        'fk_column_from',
+        'fk_column_to',
+        "Many 2 many",
+        help="Many 2 Many"
+    )
+
     def my_method1(self, variable1):
         #  Shouldn't show error of field-argument-translate
         self.my_method2(_('hello world'))
