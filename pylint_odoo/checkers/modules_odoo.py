@@ -481,12 +481,13 @@ class ModuleChecker(misc.WrapperModuleChecker):
             field_xml = field.attrib.get('name')
             if not field_xml:
                 continue
-            all_fields.setdefault(field_xml, []).append(field)
-        # Remove all keys which not duplicated
-        for key, items in all_fields.items():
-            if len(items) < 2:
-                all_fields.pop(key)
-        return all_fields
+            all_fields.setdefault(
+                (field_xml, field.getparent()), []).append(field)
+        # Remove all keys which not duplicated by excluding them from the
+        # returning dict
+        return dict(((field_xml_name, parent_node), nodes) for
+                    (field_xml_name, parent_node), nodes in
+                    all_fields.items() if len(nodes) >= 2)
 
     def _check_duplicate_xml_fields(self):
         """Check duplicate field in all record of xml files of a odoo module.
@@ -506,7 +507,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                     for name, fobjs in self._get_duplicate_xml_fields(
                             record.xpath(xpath)).items():
                         self.msg_args.append((
-                            "%s:%d" % (xml_file, fobjs[0].sourceline), name,
+                            "%s:%d" % (xml_file, fobjs[0].sourceline), name[0],
                             ', '.join([str(fobj.sourceline)
                                        for fobj in fobjs[1:]]),
                         ))
