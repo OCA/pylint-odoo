@@ -189,8 +189,10 @@ class WrapperModuleChecker(BaseChecker):
         """
         dirnames_to_skip = []
         if skip_examples:
-            dirnames_to_skip.extend(['example', 'examples', 'sample',
-                                     'samples', 'lib'])
+            dirnames_to_skip.extend([
+                'example', 'examples', 'sample', 'samples', 'lib', 'libs',
+                'doc', 'docs', 'template', 'templates',
+            ])
         if not fext.startswith('.'):
             fext = '.' + fext
         fext = fext.lower()
