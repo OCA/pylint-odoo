@@ -7,6 +7,7 @@ import subprocess
 from lxml import etree
 from pylint.checkers import BaseChecker
 from pylint.interfaces import IAstroidChecker
+from pylint.utils import _basename_in_blacklist_re
 from restructuredtext_lint import lint_file as rst_lint
 
 from . import settings
@@ -67,14 +68,26 @@ class WrapperModuleChecker(BaseChecker):
 
     def set_ext_files(self):
         """Create `self.ext_files` dictionary with {extension_file: [files]}
+            and exclude files using --ignore and --ignore-patterns parameters
         """
         self.ext_files = {}
         for root, _, filenames in os.walk(self.module_path, followlinks=True):
             for filename in filenames:
                 fext = os.path.splitext(filename)[1].lower()
-                fname_rel = os.path.relpath(
-                    os.path.join(root, filename), self.module_path)
-                self.ext_files.setdefault(fext, []).append(fname_rel)
+                fname = os.path.join(root, filename)
+                # If the file is within black_list_re is ignored
+                if _basename_in_blacklist_re(fname,
+                                             self.linter.config.black_list_re):
+                    continue
+                # If the file is within ignores is ignored
+                find = False
+                for ignore in self.linter.config.black_list:
+                    if ignore in fname:
+                        find = True
+                        break
+                if not find:
+                    fname_rel = os.path.relpath(fname, self.module_path)
+                    self.ext_files.setdefault(fext, []).append(fname_rel)
 
     def set_caches(self):
         # TODO: Validate if is a odoo module before and has checks enabled
