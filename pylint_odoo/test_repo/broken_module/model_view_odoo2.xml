@@ -25,6 +25,10 @@
                     <field name="partner_id"/>
                     <field name="user_id"/>
                 </xpath>
+                <xpath expr="//field[@name='description']" position="attributes">
+                    <attribute name="colors">red</attribute>
+                    <attribute name="colors" translation="off">red</attribute>
+                </xpath>
             </field>
         </record>
 
