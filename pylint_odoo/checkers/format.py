@@ -17,8 +17,12 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'W%d01' % settings.BASE_FORMAT_ID: (
-        'Incoherent interpreter comment and executable permission. '
-        'Interpreter: [%s] Exec perm: %s',
+        'You have a python file with execution permissions but you don\'t '
+        'have a interpreter magic comment. '
+        'If you really needs a execution permission then add a magic comment '
+        '( https://en.wikipedia.org/wiki/Shebang_(Unix) ). '
+        'If you don\'t needs a execution permission then remove it with: '
+        'chmod -x %s',
         'incoherent-interpreter-exec-perm',
         settings.DESC_DFLT
     ),
@@ -84,4 +88,5 @@ class FormatChecker(BaseTokenChecker):
         if bool(interpreter_content) != access_x:
             self.add_message(
                 'incoherent-interpreter-exec-perm',
-                line=line_num, args=(interpreter_content, access_x))
+                line=line_num, args=(
+                    os.path.basename(self.linter.current_file)))
