@@ -46,6 +46,18 @@ class TestModel(models.Model):
         copy=True,
     )
 
+    my_ok_field = fields.Float(
+        digits=(6, 6),  # OK: Valid field parameter
+        index=True,  # OK: Valid field parameter
+        help="My ok field",
+    )
+
+    my_ko_field = fields.Float(
+        digits_compute=lambda cr: (6, 6),  # Deprecated field parameter
+        select=True,  # Deprecated field parameter
+        help="My ko field",
+    )
+
     def my_method1(self, variable1):
         #  Shouldn't show error of field-argument-translate
         self.my_method2(_('hello world'))
