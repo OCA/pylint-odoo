@@ -56,6 +56,7 @@ import re
 import types
 
 import astroid
+from six import string_types
 from pylint.checkers import BaseChecker, utils
 from pylint.interfaces import IAstroidChecker
 
@@ -183,6 +184,11 @@ ODOO_MSGS = {
     'R%d10' % settings.BASE_NOMODULE_ID: (
         'Method defined with old api version 7',
         'old-api7-method-defined',
+        settings.DESC_DFLT
+    ),
+    'W%d11' % settings.BASE_NOMODULE_ID: (
+        '"eval" referenced detected.',
+        'eval-referenced',
         settings.DESC_DFLT
     ),
 }
@@ -317,8 +323,8 @@ class NoModuleChecker(BaseChecker):
                 if isinstance(argument, astroid.Keyword):
                     argument_aux = argument.value
                     if argument.arg in ['compute', 'search', 'inverse'] and \
-                            isinstance(argument.value, astroid.Const) and \
-                            argument_aux.value and \
+                            isinstance(argument_aux, astroid.Const) and \
+                            isinstance(argument_aux.value, string_types) and \
                             not argument_aux.value.startswith(
                                 '_' + argument.arg + '_'):
                         self.add_message('method-' + argument.arg,
@@ -481,6 +487,16 @@ class NoModuleChecker(BaseChecker):
             if node_left.name in self.config.attribute_deprecated:
                 self.add_message('attribute-deprecated',
                                  node=node_left, args=(node_left.name,))
+
+    @utils.check_messages('eval-referenced')
+    def visit_name(self, node):
+        """Detect when a "bad" built-in is referenced."""
+        node_infer = utils.safe_infer(node)
+        if not utils.is_builtin_object(node_infer):
+            # Skip not builtin objects
+            return
+        if node_infer.name == 'eval':
+            self.add_message('eval-referenced', node=node)
 
     def camelize(self, string):
         return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string)

@@ -117,6 +117,11 @@ ODOO_MSGS = {
         'missing-manifest-dependency',
         settings.DESC_DFLT
     ),
+    'W%d37' % settings.BASE_OMODULE_ID: (
+        '%s The xml attribute is missing the translation="off" tag %s',
+        'xml-attribute-translatable',
+        settings.DESC_DFLT
+    ),
 }
 
 
@@ -493,12 +498,13 @@ class ModuleChecker(misc.WrapperModuleChecker):
             field_xml = field.attrib.get('name')
             if not field_xml:
                 continue
-            all_fields.setdefault(field_xml, []).append(field)
-        # Remove all keys which not duplicated
-        for key, items in all_fields.items():
-            if len(items) < 2:
-                all_fields.pop(key)
-        return all_fields
+            all_fields.setdefault(
+                (field_xml, field.getparent()), []).append(field)
+        # Remove all keys which not duplicated by excluding them from the
+        # returning dict
+        return dict(((field_xml_name, parent_node), nodes) for
+                    (field_xml_name, parent_node), nodes in
+                    all_fields.items() if len(nodes) >= 2)
 
     def _check_duplicate_xml_fields(self):
         """Check duplicate field in all record of xml files of a odoo module.
@@ -518,7 +524,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                     for name, fobjs in self._get_duplicate_xml_fields(
                             record.xpath(xpath)).items():
                         self.msg_args.append((
-                            "%s:%d" % (xml_file, fobjs[0].sourceline), name,
+                            "%s:%d" % (xml_file, fobjs[0].sourceline), name[0],
                             ', '.join([str(fobj.sourceline)
                                        for fobj in fobjs[1:]]),
                         ))
@@ -714,6 +720,21 @@ class ModuleChecker(misc.WrapperModuleChecker):
         for no_referenced_file in (module_files - referenced_files):
             if not no_referenced_file.startswith('static/'):
                 self.msg_args.append((no_referenced_file,))
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_xml_attribute_translatable(self):
+        """The xml attribute is missing the translation="off" tag
+            Example  <attribute name="groups">sale.group</attribute>
+        """
+        self.msg_args = []
+        for xml_file in self.filter_files_ext('xml', relpath=True):
+            for record in self.get_xml_records(
+                    os.path.join(self.module_path, xml_file), None,
+                    '//attribute[not(@translation)]'):
+                self.msg_args.append(
+                    ("%s:%d" % (xml_file, record.sourceline), 'xml_id'))
         if self.msg_args:
             return False
         return True
