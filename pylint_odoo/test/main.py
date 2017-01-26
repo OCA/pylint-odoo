@@ -1,6 +1,9 @@
 
 import os
+import stat
 import sys
+from tempfile import gettempdir
+
 import unittest
 from contextlib import contextmanager
 from cProfile import Profile
@@ -26,7 +29,7 @@ EXPECTED_ERRORS = {
     'file-not-used': 6,
     'incoherent-interpreter-exec-perm': 3,
     'invalid-commit': 4,
-    'javascript-lint': 2,
+    'javascript-lint': 8,
     'license-allowed': 1,
     'manifest-author-string': 1,
     'manifest-deprecated-key': 1,
@@ -39,7 +42,7 @@ EXPECTED_ERRORS = {
     'method-search': 1,
     'missing-import-error': 3,
     'missing-manifest-dependency': 2,
-    'missing-newline-extrafiles': 3,
+    'missing-newline-extrafiles': 4,
     'missing-readme': 1,
     'missing-return': 1,
     'no-utf8-coding-comment': 3,
@@ -56,6 +59,7 @@ EXPECTED_ERRORS = {
     'eval-referenced': 5,
     'xml-syntax-error': 2,
     'attribute-string-redundant': 33,
+    'renamed-field-parameter': 2,
     'xml-attribute-translatable': 1,
 }
 
@@ -88,7 +92,7 @@ class MainTest(unittest.TestCase):
         self.profile = Profile()
         self.sys_path_origin = list(sys.path)
         self.maxDiff = None
-        self.expected_errors = EXPECTED_ERRORS
+        self.expected_errors = EXPECTED_ERRORS.copy()
 
     def tearDown(self):
         sys.path = list(self.sys_path_origin)
@@ -163,7 +167,7 @@ class MainTest(unittest.TestCase):
         self.assertEqual(real_errors.items(),
                          [('deprecated-openerp-xml-node', 4)])
 
-    def test_60_ignore_patternls(self):
+    def test_60_ignore_patterns(self):
         """Test --ignore-patterns parameter """
         extra_params = ['--ignore-patterns='
                         '.*\/test_module\/*\/.*xml$',
@@ -173,6 +177,44 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats['by_msg']
         self.assertEqual(real_errors.items(),
                          [('deprecated-openerp-xml-node', 3)])
+
+    def test_70_without_jslint_installed(self):
+        """Test without jslint installed"""
+        # if not self.jslint_bin_content:
+        #     return
+        # TODO: Use mock to create a monkey patch
+        which_original = misc.which
+
+        def my_which(bin_name, *args, **kwargs):
+            if bin_name == 'eslint':
+                return None
+            return which_original(bin_name)
+        misc.which = my_which
+        my_which("noeslint")
+        pylint_res = self.run_pylint(self.paths_modules)
+        misc.which = which_original
+        real_errors = pylint_res.linter.stats['by_msg']
+        self.expected_errors.pop('javascript-lint')
+        self.assertEqual(self.expected_errors, real_errors)
+
+    def test_80_with_jslint_error(self):
+        """Test with jslint error"""
+        # TODO: Use mock to create a monkey patch
+        which_original = misc.which
+
+        def my_which(bin_name, *args, **kwargs):
+            fname = os.path.join(gettempdir(), 'jslint.bad')
+            with open(fname, "w") as f_jslint:
+                f_jslint.write("#!/usr/bin/env node\n{}}")
+            os.chmod(fname, os.stat(fname).st_mode | stat.S_IEXEC)
+            return fname
+
+        misc.which = my_which
+        pylint_res = self.run_pylint(self.paths_modules)
+        misc.which = which_original
+        real_errors = pylint_res.linter.stats['by_msg']
+        self.expected_errors.pop('javascript-lint')
+        self.assertEqual(self.expected_errors, real_errors)
 
 
 if __name__ == '__main__':

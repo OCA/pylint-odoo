@@ -48,12 +48,16 @@ class TestModel(models.Model):
 
     my_ok_field = fields.Float(
         "My correctly named field",
+        digits=(6, 6),  # OK: Valid field parameter
+        index=True,  # OK: Valid field parameter
         help="My ok field",
     )
 
     my_ko_field = fields.Float(
-        string="My Ko Field",  # String parameter equal to name of variable
+        digits_compute=lambda cr: (6, 6),  # Deprecated field parameter
+        select=True,  # Deprecated field parameter
         help="My ko field",
+        string="My Ko Field",  # String parameter equal to name of variable
     )
 
     """The name of the variable is equal to the string parameter
