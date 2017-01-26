@@ -336,11 +336,13 @@ class NoModuleChecker(BaseChecker):
             for argument in args:
                 argument_aux = argument
                 # Check this 'name = fields.Char("name")'
+                field_name = (argument.parent.parent.targets[0].name
+                              .replace('_', ' '))
                 if (isinstance(argument, astroid.Const) and
                     (index ==
                      FIELDS_METHOD.get(argument.parent.func.attrname, 0)) and
-                    (argument.value.lower().replace(' ', '_') ==
-                     argument.parent.parent.targets[0].name)):
+                    (argument.value in
+                     [field_name.capitalize(), field_name.title()])):
                     self.add_message('attribute-string-redundant', node=node)
                 if isinstance(argument, astroid.Keyword):
                     argument_aux = argument.value
@@ -354,8 +356,8 @@ class NoModuleChecker(BaseChecker):
                     # Check if the param string is equal to the name
                     #   of variable
                     elif argument.arg == 'string' and \
-                        (argument.parent.parent.targets[0].name ==
-                         argument.value.value.lower().replace(' ', '_')):
+                        (argument.value.value in
+                         [field_name.capitalize(), field_name.title()]):
                         self.add_message(
                             'attribute-string-redundant', node=node)
                 if isinstance(argument_aux, astroid.CallFunc) and \

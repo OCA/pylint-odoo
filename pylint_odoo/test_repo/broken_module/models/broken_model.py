@@ -132,6 +132,11 @@ class TestModel(models.Model):
                                               "Many 2 Many Variable 2",
                                               help="Help")
 
+    field_case_sensitive = fields.Char(
+        'Field Case SENSITIVE',
+        help="Field case sensitive"
+    )
+
     name_equal_to_string = fields.Float(
         "Name equal to string",
         help="Name Equal To String"
