@@ -269,7 +269,7 @@ class WrapperModuleChecker(BaseChecker):
             return xmlsyntax_error_exception.message
         return doc
 
-    def get_xml_records(self, xml_file, model=None):
+    def get_xml_records(self, xml_file, model=None, more=None):
         """Get tag `record` of a openerp xml file.
         :param xml_file: Path of file xml
         :param model: String with record model to filter.
@@ -282,9 +282,13 @@ class WrapperModuleChecker(BaseChecker):
             model_filter = ''
         else:
             model_filter = "[@model='{model}']".format(model=model)
+        if more is None:
+            more_filter = ''
+        else:
+            more_filter = more
         doc = self.parse_xml(xml_file)
-        return doc.xpath("/openerp//record" + model_filter) + \
-            doc.xpath("/odoo//record" + model_filter) \
+        return doc.xpath("/openerp//record" + model_filter + more_filter) + \
+            doc.xpath("/odoo//record" + model_filter + more_filter) \
             if not isinstance(doc, basestring) else []
 
     def get_field_csv(self, csv_file, field='id'):
