@@ -117,6 +117,11 @@ ODOO_MSGS = {
         'missing-manifest-dependency',
         settings.DESC_DFLT
     ),
+    'W%d37' % settings.BASE_OMODULE_ID: (
+        '%s The xml attribute is missing the translation="off" tag %s',
+        'xml-attribute-translatable',
+        settings.DESC_DFLT
+    ),
 }
 
 
@@ -703,6 +708,21 @@ class ModuleChecker(misc.WrapperModuleChecker):
         for no_referenced_file in (module_files - referenced_files):
             if not no_referenced_file.startswith('static/'):
                 self.msg_args.append((no_referenced_file,))
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_xml_attribute_translatable(self):
+        """The xml attribute is missing the translation="off" tag
+            Example  <attribute name="groups">sale.group</attribute>
+        """
+        self.msg_args = []
+        for xml_file in self.filter_files_ext('xml', relpath=True):
+            for record in self.get_xml_records(
+                    os.path.join(self.module_path, xml_file), None,
+                    '//attribute[not(@translation)]'):
+                self.msg_args.append(
+                    ("%s:%d" % (xml_file, record.sourceline), 'xml_id'))
         if self.msg_args:
             return False
         return True
