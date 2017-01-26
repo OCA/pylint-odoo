@@ -148,6 +148,10 @@ DFLT_IMPORT_NAME_WHITELIST = [
     'unittest2', 'usb', 'vatnumber', 'vobject', 'werkzeug',
     'wsgiref', 'xlsxwriter', 'xlwt', 'yaml',
 ]
+DFTL_JSLINTRC = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+    'examples', '.jslintrc'
+)
 
 
 class ModuleChecker(misc.WrapperModuleChecker):
@@ -185,6 +189,14 @@ class ModuleChecker(misc.WrapperModuleChecker):
             'default': DFLT_IMPORT_NAME_WHITELIST,
             'help': 'List of known import dependencies of odoo,'
             ' separated by a comma.'
+        }),
+        ('jslintrc', {
+            'type': 'string',
+            'metavar': '<path to file>',
+            'default': os.environ.get('PYLINT_ODOO_JSLINTRC') or DFTL_JSLINTRC,
+            'help': ('A path to a file that contains a configuration file of '
+                     'javascript lint. You can use the environment variable '
+                     '"PYLINT_ODOO_JSLINTRC" too. Default: %s' % DFTL_JSLINTRC)
         }),
     )
 
@@ -617,7 +629,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
         self.msg_args = []
         for js_file_rel in self.filter_files_ext('js', relpath=True):
             js_file = os.path.join(self.module_path, js_file_rel)
-            errors = self.check_js_lint(js_file)
+            errors = self.check_js_lint(js_file, self.config.jslintrc)
             for error in errors:
                 self.msg_args.append((js_file_rel + error,))
         if self.msg_args:
