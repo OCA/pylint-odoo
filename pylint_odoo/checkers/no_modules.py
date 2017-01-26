@@ -186,12 +186,6 @@ ODOO_MSGS = {
         'old-api7-method-defined',
         settings.DESC_DFLT
     ),
-    'W%d12' % settings.BASE_NOMODULE_ID: (
-        'The attribute string is redundant. '
-        'String parameter equal to name of variable',
-        'attribute-string-redundant',
-        settings.DESC_DFLT
-    ),
     'W%d11' % settings.BASE_NOMODULE_ID: (
         'Field parameter "%s" is no longer supported. Use "%s" instead.',
         'renamed-field-parameter',
@@ -200,6 +194,12 @@ ODOO_MSGS = {
     'W%d12' % settings.BASE_NOMODULE_ID: (
         '"eval" referenced detected.',
         'eval-referenced',
+        settings.DESC_DFLT
+    ),
+    'W%d13' % settings.BASE_NOMODULE_ID: (
+        'The attribute string is redundant. '
+        'String parameter equal to name of variable',
+        'attribute-string-redundant',
         settings.DESC_DFLT
     ),
 }
