@@ -381,8 +381,14 @@ class NoModuleChecker(BaseChecker):
             for argument in args:
                 argument_aux = argument
                 # Check this 'name = fields.Char("name")'
-                field_name = (argument.parent.parent.targets[0].name
-                              .replace('_', ' '))
+                field_name = ''
+                if (argument.parent and argument.parent.parent and
+                        hasattr(argument.parent.parent, 'targets') and
+                        argument.parent.parent.targets and
+                        hasattr(argument.parent.parent.targets[0],
+                                'name')):
+                    field_name = (argument.parent.parent.targets[0].name
+                                  .replace('_', ' '))
                 if (isinstance(argument, astroid.Const) and
                     (index ==
                      FIELDS_METHOD.get(argument.parent.func.attrname, 0)) and
