@@ -379,8 +379,7 @@ class NoModuleChecker(BaseChecker):
             args = misc.join_node_args_kwargs(node)
             index = 0
             field_name = ''
-            if (isinstance(node, astroid.Call) and
-                    isinstance(node.parent, astroid.Assign) and
+            if (isinstance(node.parent, astroid.Assign) and
                     node.parent.targets and
                     isinstance(node.parent.targets[0], astroid.AssignName)):
                 field_name = (node.parent.targets[0].name
