@@ -378,16 +378,16 @@ class NoModuleChecker(BaseChecker):
         if node.as_string().lower().startswith('fields.'):
             args = misc.join_node_args_kwargs(node)
             index = 0
+            field_name = ''
+            if (isinstance(node, astroid.Call) and
+                    isinstance(node.parent, astroid.Assign) and
+                    node.parent.targets and
+                    isinstance(node.parent.targets[0], astroid.AssignName)):
+                field_name = (node.parent.targets[0].name
+                              .replace('_', ' '))
             for argument in args:
                 argument_aux = argument
                 # Check this 'name = fields.Char("name")'
-                field_name = ''
-                if ((isinstance(argument, astroid.Const) or
-                        isinstance(argument, astroid.Keyword)) and
-                        isinstance(argument.parent.parent, astroid.Assign) and
-                        argument.parent.parent.targets):
-                    field_name = (argument.parent.parent.targets[0].name
-                                  .replace('_', ' '))
                 if (isinstance(argument, astroid.Const) and
                     (index ==
                      FIELDS_METHOD.get(argument.parent.func.attrname, 0)) and
