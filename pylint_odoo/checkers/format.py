@@ -1,6 +1,7 @@
 
 import os
 import tokenize
+from sys import platform
 
 from pylint.checkers import BaseTokenChecker
 from pylint.interfaces import ITokenChecker
@@ -85,7 +86,8 @@ class FormatChecker(BaseTokenChecker):
         access_x = os.access(self.linter.current_file, os.X_OK)
         interpreter_content, line_num = tokens_identified.get(
             MAGIC_COMMENT_INTERPRETER, ['', 0])
-        if bool(interpreter_content) != access_x:
+        if (not platform.startswith('win') and
+                bool(interpreter_content) != access_x):
             self.add_message(
                 'incoherent-interpreter-exec-perm',
                 line=line_num, args=(
