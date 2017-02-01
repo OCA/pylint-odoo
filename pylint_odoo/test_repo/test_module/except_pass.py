@@ -6,14 +6,13 @@ class TestExceptPass(object):
     """Test Except Pass class """
 
     def test_method(self):
-        """Test method """
         try:
             raise Exception('Exception')
         except Exception:  # except-pass
             pass
 
     def test_2_method(self):
-        """Test 2 method """
+        """This pass is skip for body of except has more than one line """
         try:
             raise Exception('Exception')
         except Exception:
@@ -21,7 +20,7 @@ class TestExceptPass(object):
             print('Exception')
 
     def test_3_method(self):
-        """Test 3 method """
+        """This pass is skip for the exception is assigned"""
         try:
             raise Exception('Exception')
         except Exception as exception:
