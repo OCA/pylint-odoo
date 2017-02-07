@@ -51,9 +51,6 @@ class TestModel(models.Model):
 
     # This is a inherit overwrite field then don't should show errors related
     # with creation of fields.
-    field_state_overwrite = fields.Selection(
-        selection_add=[('new_item', 'New Item')])
-
     def method_date(self):
         date = fields.Date.to_string(
             fields.Datetime.context_timestamp(self,
