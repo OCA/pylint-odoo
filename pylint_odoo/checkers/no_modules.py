@@ -375,7 +375,9 @@ class NoModuleChecker(BaseChecker):
                           'renamed-field-parameter'
                           )
     def visit_call(self, node):
-        if node.as_string().lower().startswith('fields.'):
+        if 'fields' == self.get_func_lib(node.func) and \
+                isinstance(node.parent, astroid.Assign) and \
+                isinstance(node.parent.parent, astroid.ClassDef):
             args = misc.join_node_args_kwargs(node)
             index = 0
             field_name = ''
@@ -606,6 +608,12 @@ class NoModuleChecker(BaseChecker):
         func_name = isinstance(node, astroid.Name) and node.name or \
             isinstance(node, astroid.Getattr) and node.attrname or ''
         return func_name
+
+    def get_func_lib(self, node):
+        if isinstance(node, astroid.Getattr) and \
+                isinstance(node.expr, astroid.Name):
+            return node.expr.name
+        return ""
 
     @utils.check_messages('translation-required')
     def visit_raise(self, node):
