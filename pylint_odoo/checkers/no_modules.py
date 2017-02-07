@@ -375,9 +375,9 @@ class NoModuleChecker(BaseChecker):
                           'renamed-field-parameter'
                           )
     def visit_call(self, node):
-        if 'fields' == self.get_func_lib(node.func) and \
-                isinstance(node.parent, astroid.Assign) and \
-                isinstance(node.parent.parent, astroid.ClassDef):
+        if ('fields' == self.get_func_lib(node.func) and
+                isinstance(node.parent, astroid.Assign) and
+                isinstance(node.parent.parent, astroid.ClassDef)):
             args = misc.join_node_args_kwargs(node)
             index = 0
             field_name = ''
