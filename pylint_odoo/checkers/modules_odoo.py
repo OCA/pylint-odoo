@@ -117,6 +117,12 @@ ODOO_MSGS = {
         'missing-manifest-dependency',
         settings.DESC_DFLT
     ),
+    'W%d38' % settings.BASE_OMODULE_ID: (
+        'pass into block except. '
+        'If you really need to use the pass consider logging that exception',
+        'except-pass',
+        settings.DESC_DFLT
+    ),
     'W%d37' % settings.BASE_OMODULE_ID: (
         '%s The xml attribute is missing the translation="off" tag %s',
         'xml-attribute-translatable',
@@ -350,6 +356,15 @@ class ModuleChecker(misc.WrapperModuleChecker):
         for name, _ in node.names:
             if isinstance(node.scope(), astroid.Module):
                 self._check_imported_packages(node, name)
+
+    @utils.check_messages('except-pass')
+    def visit_tryexcept(self, node):
+        """Visit block try except"""
+        for handler in node.handlers:
+            if (not handler.name and
+                    len(handler.body) == 1 and
+                    isinstance(handler.body[0], astroid.node_classes.Pass)):
+                self.add_message('except-pass', node=handler)
 
     def _check_rst_syntax_error(self):
         """Check if rst file there is syntax error
