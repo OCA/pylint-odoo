@@ -745,6 +745,9 @@ class ModuleChecker(misc.WrapperModuleChecker):
         """The xml attribute is missing the translation="off" tag
             Example  <attribute name="groups">sale.group</attribute>
         """
+        if (self.linter._all_options['valid_odoo_versions'].config
+                .valid_odoo_versions != ['8.0']):
+            return True
         self.msg_args = []
         for xml_file in self.filter_files_ext('xml', relpath=True):
             for record in self.get_xml_records(
