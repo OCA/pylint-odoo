@@ -10,6 +10,7 @@ from openerp.osv import expression as expr2
 from openerp.osv import osv as osv2
 from openerp.osv import osv, expression  # noqa
 from openerp.osv import osv, expression as expr3  # noqa
+from openerp.osv.expression import is_operator  # noqa
 
 
 def dummy():
