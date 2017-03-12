@@ -239,41 +239,85 @@ class TestModel(models.Model):
         raise exceptions.Warning(_(
             'String with params format %(p1)s' % {'p1': 'v1'}))
 
-    def sql_method(self, ids, cr):
-        # This is the better way and should not be detected
-        self._cr.execute(
-            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
-        self.env.cr.execute(
-            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
-        cr.execute(
-            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
-        self.cr.execute(
-            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
-
     def old_api_method_alias(self, cursor, user, ids, context=None):  # old api
         pass
 
-    def sql_injection_method(self, cr, uid, ids, context=None):  # old api
-        # SQL injection, bad way
+    def sql_method(self, ids, cr):
+        # Use of query parameters: nothing wrong here
         self._cr.execute(
-            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
         self.env.cr.execute(
-            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
         cr.execute(
-            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
         self.cr.execute(
-            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
-        self.cr.execute(
-            'SELECT name FROM account WHERE id IN {}'.format(ids))
+            'SELECT name FROM account WHERE id IN %s', (tuple(ids),))
 
-    def sql_injection_method3(self, ids, cr2):
+    def sql_injection_ignored_cases(self, ids, cr2):
         # This cr.execute2 or cr2.execute should not be detected
         self._cr.execute2(
             'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
         cr2.execute(
             'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
 
-    def sql_injection_method5(self, ids):
+        # Ignore when the query is built using private attributes
+        self._cr.execute(
+            'DELETE FROM %s WHERE id IN %%s' % self._table, (tuple(ids),))
+
+    # old api
+    def sql_injection_modulo_operator(self, cr, uid, ids, context=None):
+        # Use of % operator: risky
+        self._cr.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+        self.env.cr.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+        cr.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+        self.cr.execute(
+            'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
+
+        operator = 'WHERE'
+        self._cr.execute(
+            'SELECT name FROM account %s id IN %%s' % operator, ids)
+
         var = 'SELECT name FROM account WHERE id IN %s'
         values = ([1, 2, 3, ], )
-        self._cr.execute(var % values)  # sql injection too
+        self._cr.execute(var % values)
+
+    def sql_injection_executemany(self, ids, cr, v1, v2):
+        # Check executemany() as well
+        self.cr.executemany(
+            'INSERT INTO account VALUES (%s, %s)' % (v1, v2))
+
+    def sql_injection_format(self, ids, cr):
+        # Use of .format(): risky
+        self.cr.execute(
+            'SELECT name FROM account WHERE id IN {}'.format(ids))
+
+    def sql_injection_plus_operator(self, ids, cr):
+        # Use of +: risky
+        self.cr.execute(
+            'SELECT name FROM account WHERE id IN ' + str(tuple(ids)))
+
+        operator = 'WHERE'
+        self._cr.execute(
+            'SELECT name FROM account ' + operator + ' id IN %s', ids)
+        self.cr.execute(
+            ('SELECT name FROM account ' + operator + ' id IN (1)'))
+        self.cr.execute(
+            'SELECT name FROM account ' +
+            operator +
+            ' id IN %s' % (tuple(ids),))
+        self.cr.execute(
+            ('SELECT name FROM account ' +
+             operator +
+             ' id IN %s') % (tuple(ids),))
+
+    def sql_injection_before(self, ids):
+        # query built before execute: risky as well
+
+        var = 'SELECT name FROM account WHERE id IN %s' % tuple(ids)
+        self._cr.execute(var)
+
+        var[1] = 'SELECT name FROM account WHERE id IN %s' % tuple(ids)
+        self._cr.execute(var[1])

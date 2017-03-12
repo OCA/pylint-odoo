@@ -51,7 +51,7 @@ EXPECTED_ERRORS = {
     'openerp-exception-warning': 3,
     'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
-    'sql-injection': 6,
+    'sql-injection': 15,
     'translation-field': 2,
     'translation-required': 4,
     'use-vim-comment': 1,
