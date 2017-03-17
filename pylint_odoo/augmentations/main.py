@@ -26,7 +26,8 @@ def is_valid_openerp_osv_deprecated(node):
     modname = getattr(node, 'modname', [])
     if len(submodules) == 1 and (
             submodules[0] == 'openerp.osv.expression' or
-            submodules[0] == 'expression' and 'openerp.osv' in modname):
+            submodules[0] == 'expression' and 'openerp.osv' in modname
+    ) or 'openerp.osv.expression' in modname:
         return True
     return False
 
