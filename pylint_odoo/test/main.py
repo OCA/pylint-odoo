@@ -61,7 +61,6 @@ EXPECTED_ERRORS = {
     'except-pass': 3,
     'attribute-string-redundant': 33,
     'renamed-field-parameter': 2,
-    'xml-attribute-translatable': 1,
 }
 
 
@@ -132,7 +131,8 @@ class MainTest(unittest.TestCase):
 
     def test_25_checks_without_coverage(self):
         """All odoolint errors vs found"""
-        pylint_res = self.run_pylint(self.paths_modules)
+        extra_params = ['--valid_odoo_versions=8.0']
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
         msgs_found = pylint_res.linter.stats['by_msg'].keys()
         plugin_msgs = misc.get_plugin_msgs(pylint_res)
         test_missed_msgs = sorted(list(set(plugin_msgs) - set(msgs_found)))
@@ -216,6 +216,16 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats['by_msg']
         self.expected_errors.pop('javascript-lint')
         self.assertEqual(self.expected_errors, real_errors)
+
+    def test_90_valid_odoo_versions(self):
+        """Test --valid_odoo_versions parameter when is '8.0'"""
+        extra_params = ['--valid_odoo_versions=8.0',
+                        '--disable=all',
+                        '--enable=xml-attribute-translatable']
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats['by_msg']
+        self.assertEqual(real_errors.items(),
+                         [('xml-attribute-translatable', 1)])
 
 
 if __name__ == '__main__':
