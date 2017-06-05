@@ -167,17 +167,17 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'C%d08' % settings.BASE_NOMODULE_ID: (
-        'Name of compute method should starts with "_compute_"',
+        'Name of compute method should start with "_compute_"',
         'method-compute',
         settings.DESC_DFLT
     ),
     'C%d09' % settings.BASE_NOMODULE_ID: (
-        'Name of search method should starts with "_search_"',
+        'Name of search method should start with "_search_"',
         'method-search',
         settings.DESC_DFLT
     ),
     'C%d10' % settings.BASE_NOMODULE_ID: (
-        'Name of inverse method should starts with "_inverse_"',
+        'Name of inverse method should start with "_inverse_"',
         'method-inverse',
         settings.DESC_DFLT
     ),
