@@ -666,7 +666,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
             doc = self.parse_xml(os.path.join(self.module_path, xml_file))
             odoo_nodes = doc.xpath("/odoo/data") \
                 if not isinstance(doc, basestring) else []
-            if odoo_nodes:
+            if len(odoo_nodes) == 1:
                 lineno = odoo_nodes[0].sourceline
                 self.msg_args.append(("%s:%s" % (xml_file, lineno)))
         if self.msg_args:

@@ -61,7 +61,7 @@ EXPECTED_ERRORS = {
     'except-pass': 3,
     'attribute-string-redundant': 33,
     'renamed-field-parameter': 2,
-    'deprecated-data-xml-node': 6,
+    'deprecated-data-xml-node': 5,
 }
 
 
