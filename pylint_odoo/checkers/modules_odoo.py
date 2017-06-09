@@ -128,6 +128,12 @@ ODOO_MSGS = {
         'xml-attribute-translatable',
         settings.DESC_DFLT
     ),
+    'W%d39' % settings.BASE_OMODULE_ID: (
+        '%s Use <odoo> instead of <odoo><data> or use <odoo noupdate="1">'
+        'instead of <odoo><data noupdate="1">',
+        'deprecated-data-xml-node',
+        settings.DESC_DFLT
+    )
 }
 
 
@@ -647,6 +653,22 @@ class ModuleChecker(misc.WrapperModuleChecker):
             errors = self.check_js_lint(js_file, self.config.jslintrc)
             for error in errors:
                 self.msg_args.append((js_file_rel + error,))
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_deprecated_data_xml_node(self):
+        """Check deprecated <data> xml node inside <odoo> xml node
+        :return: False if found <data> xml node inside <odoo> xml node"""
+        xml_files = self.filter_files_ext('xml')
+        self.msg_args = []
+        for xml_file in xml_files:
+            doc = self.parse_xml(os.path.join(self.module_path, xml_file))
+            odoo_nodes = doc.xpath("/odoo/data") \
+                if not isinstance(doc, basestring) else []
+            if len(odoo_nodes) == 1:
+                lineno = odoo_nodes[0].sourceline
+                self.msg_args.append(("%s:%s" % (xml_file, lineno)))
         if self.msg_args:
             return False
         return True
