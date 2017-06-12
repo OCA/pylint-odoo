@@ -62,6 +62,7 @@ from pylint.interfaces import IAstroidChecker
 
 from .. import settings
 from .. import misc
+from .modules_odoo import DFTL_MANIFEST_DATA_KEYS
 
 ODOO_MSGS = {
     # C->convention R->refactor W->warning E->error F->fatal
@@ -529,10 +530,8 @@ class NoModuleChecker(BaseChecker):
                                    self.config.manifest_version_format_parsed))
 
         # Check if resource exist
-        data_keys = ['data', 'demo', 'demo_xml', 'init_xml', 'test',
-                     'update_xml']
         dirname = os.path.dirname(self.linter.current_file)
-        for key in data_keys:
+        for key in DFTL_MANIFEST_DATA_KEYS:
             for resource in (manifest_dict.get(key) or []):
                 if os.path.isfile(os.path.join(dirname, resource)):
                     continue

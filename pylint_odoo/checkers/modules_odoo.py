@@ -164,6 +164,8 @@ DFTL_JSLINTRC = os.path.join(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
     'examples', '.jslintrc'
 )
+DFTL_MANIFEST_DATA_KEYS = ['data', 'demo', 'demo_xml', 'init_xml', 'test',
+                           'update_xml']
 
 
 class ModuleChecker(misc.WrapperModuleChecker):
@@ -735,9 +737,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
     def _get_manifest_referenced_files(self):
         referenced_files = {}
-        data_keys = ['data', 'demo', 'demo_xml', 'init_xml', 'test',
-                     'update_xml']
-        for data_type in data_keys:
+        for data_type in DFTL_MANIFEST_DATA_KEYS:
             for fname in self.manifest_dict.get(data_type) or []:
                 referenced_files[fname] = data_type
         return referenced_files
