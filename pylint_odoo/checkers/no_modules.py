@@ -203,7 +203,7 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'F%d01' % settings.BASE_NOMODULE_ID: (
-        "Resource '%s' not found into data '%s'",
+        'File "%s": "%s" not found.',
         'resource-not-exist',
         settings.DESC_DFLT
     )
@@ -533,13 +533,11 @@ class NoModuleChecker(BaseChecker):
                      'update_xml']
         dirname = os.path.dirname(self.linter.current_file)
         for key in data_keys:
-            if key not in manifest_dict:
-                continue
-            if manifest_dict[key]:
-                for resource in manifest_dict[key]:
-                    if not os.path.isfile(os.path.join(dirname, resource)):
-                        self.add_message('resource-not-exist', node=node,
-                                         args=(resource, key))
+            for resource in (manifest_dict.get(key) or []):
+                if os.path.isfile(os.path.join(dirname, resource)):
+                    continue
+                self.add_message('resource-not-exist', node=node,
+                                 args=(key, resource))
 
     @utils.check_messages('api-one-multi-together',
                           'copy-wo-api-one', 'api-one-deprecated',
