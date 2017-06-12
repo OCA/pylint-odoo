@@ -11,6 +11,9 @@ import openerp.addons.broken_module as broken_module2
 import openerp.addons.broken_module.broken_model as broken_model2
 
 
+other_field = fields.Char()
+
+
 def function_no_method():
     return broken_model1, broken_module1, broken_module2, broken_model2
 
@@ -45,6 +48,15 @@ class TestModel(models.Model):
         'Other Field2',
         copy=True,
     )
+
+    # This is a inherit overwrite field then don't should show errors related
+    # with creation of fields.
+    def method_date(self):
+        date = fields.Date.to_string(
+            fields.Datetime.context_timestamp(self,
+                                              timestamp=fields.Datetime.now())
+        )
+        return date
 
     my_ok_field = fields.Float(
         "My correctly named field",
