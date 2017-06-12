@@ -739,7 +739,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
                      'update_xml']
         for data_type in data_keys:
             for fname in self.manifest_dict.get(data_type) or []:
-                referenced_files[fname] = data_type
+                if os.path.isfile(os.path.join(self.module_path, fname)):
+                    referenced_files[fname] = data_type
         return referenced_files
 
     def _get_module_files(self):

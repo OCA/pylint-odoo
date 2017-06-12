@@ -202,6 +202,11 @@ ODOO_MSGS = {
         'attribute-string-redundant',
         settings.DESC_DFLT
     ),
+    'F%d01' % settings.BASE_NOMODULE_ID: (
+        "Resource '%s' not found into data '%s'",
+        'resource-not-exist',
+        settings.DESC_DFLT
+    )
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ['license']
@@ -475,7 +480,7 @@ class NoModuleChecker(BaseChecker):
     @utils.check_messages(
         'license-allowed', 'manifest-author-string', 'manifest-deprecated-key',
         'manifest-required-author', 'manifest-required-key',
-        'manifest-version-format')
+        'manifest-version-format', 'resource-not-exist')
     def visit_dict(self, node):
         if not os.path.basename(self.linter.current_file) in \
                 settings.MANIFEST_FILES \
@@ -522,6 +527,19 @@ class NoModuleChecker(BaseChecker):
             self.add_message('manifest-version-format', node=node,
                              args=(version_format,
                                    self.config.manifest_version_format_parsed))
+
+        # Check if resource exist
+        data_keys = ['data', 'demo', 'demo_xml', 'init_xml', 'test',
+                     'update_xml']
+        dirname = os.path.dirname(self.linter.current_file)
+        for key in data_keys:
+            if key not in manifest_dict:
+                continue
+            if manifest_dict[key]:
+                for resource in manifest_dict[key]:
+                    if not os.path.isfile(os.path.join(dirname, resource)):
+                        self.add_message('resource-not-exist', node=node,
+                                         args=(resource, key))
 
     @utils.check_messages('api-one-multi-together',
                           'copy-wo-api-one', 'api-one-deprecated',
