@@ -242,6 +242,5 @@
     "yield-star-spacing": "off",
     "yoda": "error"
   },
-  "parserOptions": {},
-  "ecmaFeatures": {}
+  "parserOptions": {}
 }
