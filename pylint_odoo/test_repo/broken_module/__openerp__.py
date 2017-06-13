@@ -12,7 +12,7 @@
         'file_no_exist.xml'
     ],
     'demo': ['demo/duplicated_id_demo.xml', 'file_no_exist.xml'],
-    'test': ['test.yml', 'file_no_exist.yml'],
+    'test': ['file_no_exist.yml'],
     'installable': True,
     'name': 'Duplicated value',
     'active': True,  # Deprecated active key

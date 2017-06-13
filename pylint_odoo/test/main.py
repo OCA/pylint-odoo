@@ -62,7 +62,7 @@ EXPECTED_ERRORS = {
     'attribute-string-redundant': 33,
     'renamed-field-parameter': 2,
     'deprecated-data-xml-node': 5,
-    'resource-not-exist': 4,
+    'resource-not-exist': 3,
 }
 
 
