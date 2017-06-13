@@ -296,6 +296,8 @@ class WrapperModuleChecker(BaseChecker):
         :return: Doc parsed (lxml.etree object)
             if there is syntax error return string error message
         """
+        if not os.path.isfile(xml_file):
+            return etree.Element("__empty__")
         try:
             doc = etree.parse(open(xml_file))
         except etree.XMLSyntaxError as xmlsyntax_error_exception:

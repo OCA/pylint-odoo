@@ -62,6 +62,7 @@ from pylint.interfaces import IAstroidChecker
 
 from .. import settings
 from .. import misc
+from .modules_odoo import DFTL_MANIFEST_DATA_KEYS
 
 ODOO_MSGS = {
     # C->convention R->refactor W->warning E->error F->fatal
@@ -202,6 +203,11 @@ ODOO_MSGS = {
         'attribute-string-redundant',
         settings.DESC_DFLT
     ),
+    'F%d01' % settings.BASE_NOMODULE_ID: (
+        'File "%s": "%s" not found.',
+        'resource-not-exist',
+        settings.DESC_DFLT
+    )
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ['license']
@@ -475,7 +481,7 @@ class NoModuleChecker(BaseChecker):
     @utils.check_messages(
         'license-allowed', 'manifest-author-string', 'manifest-deprecated-key',
         'manifest-required-author', 'manifest-required-key',
-        'manifest-version-format')
+        'manifest-version-format', 'resource-not-exist')
     def visit_dict(self, node):
         if not os.path.basename(self.linter.current_file) in \
                 settings.MANIFEST_FILES \
@@ -522,6 +528,15 @@ class NoModuleChecker(BaseChecker):
             self.add_message('manifest-version-format', node=node,
                              args=(version_format,
                                    self.config.manifest_version_format_parsed))
+
+        # Check if resource exist
+        dirname = os.path.dirname(self.linter.current_file)
+        for key in DFTL_MANIFEST_DATA_KEYS:
+            for resource in (manifest_dict.get(key) or []):
+                if os.path.isfile(os.path.join(dirname, resource)):
+                    continue
+                self.add_message('resource-not-exist', node=node,
+                                 args=(key, resource))
 
     @utils.check_messages('api-one-multi-together',
                           'copy-wo-api-one', 'api-one-deprecated',
