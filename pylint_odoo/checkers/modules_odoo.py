@@ -150,6 +150,12 @@ ODOO_MSGS = {
         'character-not-valid-in-resource-link',
         settings.DESC_DFLT
     ),
+    'W%d41' % settings.BASE_OMODULE_ID: (
+        '%s The attribute noupdate in <odoo noupdate="0">/<data noupdate="0"> '
+        'is unnecessary because the default value is zero',
+        'unnecessary-attribute-noupdate',
+        settings.DESC_DFLT
+    ),
 }
 
 
@@ -723,6 +729,25 @@ class ModuleChecker(misc.WrapperModuleChecker):
                                    if odoo_nodes else ([], []))
             if len(children) == 1 and len(data_node) == 1:
                 lineno = odoo_nodes[0].sourceline
+                self.msg_args.append(("%s:%s" % (xml_file, lineno)))
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_unnecessary_attribute_noupdate(self):
+        """Check unnecessary noupdate attribute
+        <odoo noupdate="0">/<data noupdate="0">
+        :return: False if found noupdate="0" in xml """
+        xml_files = self.filter_files_ext('xml')
+        self.msg_args = []
+        for xml_file in xml_files:
+            doc = self.parse_xml(os.path.join(self.module_path, xml_file))
+            nodes = []
+            for xpath in ("/odoo/data[@noupdate='0']", "/odoo[@noupdate='0']"):
+                nodes.extend(doc.xpath(xpath)
+                             if not isinstance(doc, basestring) else [])
+            for node in nodes:
+                lineno = node.sourceline
                 self.msg_args.append(("%s:%s" % (xml_file, lineno)))
         if self.msg_args:
             return False
