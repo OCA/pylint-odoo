@@ -62,7 +62,7 @@ EXPECTED_ERRORS = {
     'except-pass': 3,
     'attribute-string-redundant': 33,
     'renamed-field-parameter': 2,
-    'deprecated-data-xml-node': 5,
+    'deprecated-data-xml-node': 4,
     'xml-deprecated-tree-attribute': 3,
     'xml-deprecated-qweb-directive': 2,
     'resource-not-exist': 3,

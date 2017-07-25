@@ -2,4 +2,6 @@
 <odoo>
     <data noupdate="0">
     </data>
+    <data noupdate="1">
+    </data>
 </odoo>
