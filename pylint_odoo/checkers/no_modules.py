@@ -56,6 +56,7 @@ import re
 import types
 
 import astroid
+import rfc3986
 from six import string_types
 from pylint.checkers import BaseChecker, utils
 from pylint.interfaces import IAstroidChecker
@@ -201,6 +202,11 @@ ODOO_MSGS = {
         'The attribute string is redundant. '
         'String parameter equal to name of variable',
         'attribute-string-redundant',
+        settings.DESC_DFLT
+    ),
+    'W%d14' % settings.BASE_NOMODULE_ID: (
+        'Website "%s" in manifest key is not a valid URI',
+        'website-manifest-key-not-valid-uri',
         settings.DESC_DFLT
     ),
     'F%d01' % settings.BASE_NOMODULE_ID: (
@@ -481,7 +487,8 @@ class NoModuleChecker(BaseChecker):
     @utils.check_messages(
         'license-allowed', 'manifest-author-string', 'manifest-deprecated-key',
         'manifest-required-author', 'manifest-required-key',
-        'manifest-version-format', 'resource-not-exist')
+        'manifest-version-format', 'resource-not-exist',
+        'website-manifest-key-not-valid-uri')
     def visit_dict(self, node):
         if not os.path.basename(self.linter.current_file) in \
                 settings.MANIFEST_FILES \
@@ -537,6 +544,16 @@ class NoModuleChecker(BaseChecker):
                     continue
                 self.add_message('resource-not-exist', node=node,
                                  args=(key, resource))
+
+        # Check if the website is valid URI
+        website = manifest_dict.get('website', '')
+        uri = rfc3986.uri_reference(website)
+        if ((website and ',' not in website) and
+                (not uri.is_valid(require_scheme=True,
+                                  require_authority=True) or
+                 uri.scheme not in {"http", "https"})):
+            self.add_message('website-manifest-key-not-valid-uri',
+                             node=node, args=(website))
 
     @utils.check_messages('api-one-multi-together',
                           'copy-wo-api-one', 'api-one-deprecated',

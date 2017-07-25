@@ -5,6 +5,7 @@
     'author': 'Many People',  # Missing oca author
     'description': 'Should be a README.rst file',
     'version': '1.0',
+    'website': 'https://odoo-community.org',
     'depends': ['base'],
     'data': [
         'model_view.xml', 'model_view2.xml', 'model_view_odoo.xml',
