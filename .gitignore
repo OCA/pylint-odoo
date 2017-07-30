@@ -64,3 +64,8 @@ docs/_build/
 
 # Mac files
 .DS_Store
+
+# file generated when running tests
+.cprofile_*
+node_modules
+package-lock.json
