@@ -96,8 +96,8 @@ class WrapperModuleChecker(BaseChecker):
                     self.ext_files.setdefault(fext, []).append(fname_rel)
 
     def set_caches(self):
-        # TODO: Validate if is a odoo module before and has checks enabled
-        self.set_ext_files()
+        if self.odoo_node:
+            self.set_ext_files()
 
     def clear_caches(self):
         self.ext_files = None
