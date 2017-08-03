@@ -9,7 +9,7 @@
     'data': [
         'model_view.xml', 'model_view2.xml', 'model_view_odoo.xml',
         'model_view_odoo2.xml',
-        'file_no_exist.xml'
+        'file_no_exist.xml', 'report.xml'
     ],
     'demo': ['demo/duplicated_id_demo.xml', 'file_no_exist.xml'],
     'test': ['file_no_exist.yml'],
