@@ -742,6 +742,30 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 referenced_files[fname] = data_type
         return referenced_files
 
+    def _get_xml_referenced_files(self):
+        referenced_files = {}
+        for data_type in DFTL_MANIFEST_DATA_KEYS:
+            for fname in self.manifest_dict.get(data_type) or []:
+                if not fname.endswith('.xml'):
+                    continue
+                referenced_files.update(
+                    self._get_xml_referenced_files_report(fname, data_type)
+                )
+        return referenced_files
+
+    def _get_xml_referenced_files_report(self, fname, data_type):
+        return {
+            # those files are relative to the addon path
+            os.path.join(
+                *record.attrib[attribute].split(os.sep)[1:]
+            ): data_type
+            for attribute in ['xml', 'xsl']
+            for record in self.parse_xml(
+                os.path.join(self.module_path, fname)
+            )
+            .xpath('//report[@%s]' % attribute)
+        }
+
     def _get_module_files(self):
         module_files = []
         for type_file in self.config.extfiles_convert:
@@ -753,7 +777,9 @@ class ModuleChecker(misc.WrapperModuleChecker):
         """Check if a file is not used from manifest"""
         self.msg_args = []
         module_files = set(self._get_module_files())
-        referenced_files = set(self._get_manifest_referenced_files())
+        referenced_files = set(self._get_manifest_referenced_files()).union(
+            set(self._get_xml_referenced_files())
+        )
         for no_referenced_file in (module_files - referenced_files):
             if (not no_referenced_file.startswith('static/') and
                 not (no_referenced_file.startswith('test/') or
