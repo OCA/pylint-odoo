@@ -63,6 +63,7 @@ EXPECTED_ERRORS = {
     'renamed-field-parameter': 2,
     'deprecated-data-xml-node': 5,
     'resource-not-exist': 3,
+    'website-manifest-key-not-valid-uri': 1
 }
 
 
