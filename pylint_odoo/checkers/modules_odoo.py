@@ -139,6 +139,7 @@ ODOO_MSGS = {
 
 DFTL_README_TMPL_URL = 'https://github.com/OCA/maintainer-tools' + \
     '/blob/master/template/module/README.rst'
+DFTL_README_FILES = ['README.rst', 'README.md', 'README.txt']
 DFTL_MIN_PRIORITY = 99
 # Files supported from manifest to convert
 # Extracted from openerp/tools/convert.py:def convert_file
@@ -404,11 +405,14 @@ class ModuleChecker(misc.WrapperModuleChecker):
         return True
 
     def _check_missing_readme(self):
-        """Check if exists ./README.rst file
+        """Check if exists ./README.{rst,md,txt} file
         :return: If exists return True else False
         """
         self.msg_args = (self.config.readme_template_url,)
-        return os.path.isfile(os.path.join(self.module_path, 'README.rst'))
+        for readme in DFTL_README_FILES:
+            if os.path.isfile(os.path.join(self.module_path, readme)):
+                return True
+        return False
 
     def _check_xml_syntax_error(self):
         """Check if xml file there is syntax error
