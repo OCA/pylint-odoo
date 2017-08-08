@@ -3,6 +3,7 @@ import csv
 import os
 import re
 import subprocess
+import inspect
 
 from lxml import etree
 from pylint.checkers import BaseChecker
@@ -95,8 +96,8 @@ class WrapperModuleChecker(BaseChecker):
                     self.ext_files.setdefault(fext, []).append(fname_rel)
 
     def set_caches(self):
-        # TODO: Validate if is a odoo module before and has checks enabled
-        self.set_ext_files()
+        if self.odoo_node:
+            self.set_ext_files()
 
     def clear_caches(self):
         self.ext_files = None
@@ -209,7 +210,7 @@ class WrapperModuleChecker(BaseChecker):
         if not fext.startswith('.'):
             fext = '.' + fext
         fext = fext.lower()
-        fnames = self.ext_files.get(fext, [])
+        fnames = self._skip_files_ext(fext, self.ext_files.get(fext, []))
         for fname in list(fnames):
             dirnames = os.path.dirname(fname).split(os.sep)
             for dirname_to_skip in dirnames_to_skip:
@@ -221,6 +222,49 @@ class WrapperModuleChecker(BaseChecker):
             fnames = [  # pragma: no cover
                 os.path.join(self.module_path, fname)
                 for fname in fnames]
+        return fnames
+
+    def _skip_files_ext(self, fext, fnames):
+        """Detected inside the resource the skip message
+        Eg: '<!-- pylint-odoo:disable=deprecated-data-xml-node -->'
+        inside the xml resource"""
+        if fext != '.xml':
+            return fnames
+        info_called = [item[3] for item in inspect.stack() if
+                       'modules_odoo' in item[1]]
+        method_called = (info_called[0].replace(
+            '_check_', '').replace('_', '-') if info_called else False)
+        if method_called:
+            for fname in list(fnames):
+                full_name = os.path.join(self.module_path, fname)
+                if not os.path.isfile(full_name):
+                    continue
+
+                class PylintCommentTarget(object):
+                    def __init__(self):
+                        self.comments = []
+
+                    def comment(self, text):
+                        match = re.search(
+                            r'(pylint:disable=|pylint: disable=|'
+                            'pylint : disable=)', text)
+                        if match:
+                            text = match.re.split(text)[-1].replace(
+                                '_', '-').strip()
+                            self.comments.extend([item.strip() for item in
+                                                  text.split(',')])
+
+                    def close(self):
+                        return self.comments
+
+                parser = etree.XMLParser(target=PylintCommentTarget())
+                try:
+                    skips = etree.parse(open(full_name), parser)
+                except etree.XMLSyntaxError:
+                    skips = []
+                    pass
+                if method_called in skips and fname in fnames:
+                    fnames.remove(fname)
         return fnames
 
     def check_rst_syntax(self, fname):
@@ -313,6 +357,10 @@ class WrapperModuleChecker(BaseChecker):
         :return: List of lxml `record` nodes
             If there is syntax error return []
         """
+        xml_file = self._skip_files_ext('.xml', [xml_file])
+        if not xml_file:
+            return []
+        xml_file = xml_file[0]
         if model is None:
             model_filter = ''
         else:

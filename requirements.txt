@@ -7,3 +7,4 @@ Pygments==2.0.2
 restructuredtext_lint==0.12.2
 isort==4.2.5
 whichcraft
+rfc3986
