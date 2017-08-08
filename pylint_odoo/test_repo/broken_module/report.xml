@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <report
+        id="report_include"
+        model="test.model"
+        name="test.model"
+        string="Report"
+        xml="broken_module/report/test_report.xml"
+        />
+</odoo>
