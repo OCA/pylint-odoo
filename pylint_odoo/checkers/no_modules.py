@@ -247,7 +247,7 @@ DFTL_ODOO_EXCEPTIONS = [
     'ValidationError', 'Warning',
 ]
 DFTL_NO_MISSING_RETURN = [
-    '__init__', 'setUp', 'tearDown',
+    '__init__', 'setUp', 'setUpClass', 'tearDown',
 ]
 FIELDS_METHOD = {
     'Many2many': 4,
