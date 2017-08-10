@@ -229,7 +229,7 @@ DFTL_ATTRIBUTE_DEPRECATED = [
 ]
 DFTL_METHOD_REQUIRED_SUPER = [
     'create', 'write', 'read', 'unlink', 'copy',
-    'setUp', 'tearDown', 'default_get',
+    'setUp', 'setUpClass', 'tearDown', 'default_get',
 ]
 DFTL_VALID_ODOO_VERSIONS = [
     '4.2', '5.0', '6.0', '6.1', '7.0', '8.0', '9.0', '10.0'
@@ -247,7 +247,7 @@ DFTL_ODOO_EXCEPTIONS = [
     'ValidationError', 'Warning',
 ]
 DFTL_NO_MISSING_RETURN = [
-    '__init__', 'setUp', 'tearDown',
+    '__init__', 'setUp', 'setUpClass', 'tearDown',
 ]
 FIELDS_METHOD = {
     'Many2many': 4,
