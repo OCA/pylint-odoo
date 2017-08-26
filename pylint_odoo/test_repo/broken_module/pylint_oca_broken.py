@@ -25,6 +25,12 @@ class UseUnusedImport(object):
         # Missing return()
         super(UseUnusedImport, self).inherited_method()
 
+    def inherited_method2(self):
+        # Missing return(), however this is a generator.
+        for i in super(UseUnusedImport, self).inherited_method2():
+            yield i
+        yield 1
+
     def write(self):
         return super(UseUnusedImport, self).write()
 
