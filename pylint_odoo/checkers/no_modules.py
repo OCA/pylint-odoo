@@ -615,7 +615,8 @@ class NoModuleChecker(BaseChecker):
             there_is_return = True
             break
         if there_is_super and not there_is_return and \
-           node.name not in self.config.no_missing_return:
+                not node.is_generator() and \
+                node.name not in self.config.no_missing_return:
             self.add_message('missing-return', node=node, args=(node.name))
 
     @utils.check_messages('openerp-exception-warning')
