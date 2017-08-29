@@ -208,6 +208,12 @@ ODOO_MSGS = {
         'website-manifest-key-not-valid-uri',
         settings.DESC_DFLT
     ),
+    'W%d15' % settings.BASE_NOMODULE_ID: (
+        'Use self.update instead of self.write for computed methods in order '
+        'to avoid permission errors',
+        'computed-method-should-not-use-write',
+        settings.DESC_DFLT
+    ),
     'F%d01' % settings.BASE_NOMODULE_ID: (
         'File "%s": "%s" not found.',
         'resource-not-exist',
@@ -396,7 +402,8 @@ class NoModuleChecker(BaseChecker):
                           'method-compute', 'method-search', 'method-inverse',
                           'sql-injection',
                           'attribute-string-redundant',
-                          'renamed-field-parameter'
+                          'renamed-field-parameter',
+                          'computed-method-should-not-use-write'
                           )
     def visit_call(self, node):
         if ('fields' == self.get_func_lib(node.func) and
@@ -559,6 +566,7 @@ class NoModuleChecker(BaseChecker):
                           'copy-wo-api-one', 'api-one-deprecated',
                           'method-required-super', 'old-api7-method-defined',
                           'missing-return',
+                          'computed-method-should-not-use-write'
                           )
     def visit_functiondef(self, node):
         """Check that `api.one` and `api.multi` decorators not exists together
@@ -567,6 +575,28 @@ class NoModuleChecker(BaseChecker):
         """
         if not node.is_method():
             return
+
+        if node.name.startswith('_compute_'):
+            # Detect self.write()
+            exprs = [ex for ex in node.nodes_of_class(astroid.Expr)
+                     if (isinstance(ex.value, astroid.Call) and
+                         ex.value.func.attrname == 'write' and
+                         ex.value.func.expr.name == 'self')]
+            for expr in exprs:
+                self.add_message('computed-method-should-not-use-write',
+                                 node=expr)
+            # Detect :  for item in self:
+            #               item.write()
+            fors = [{'target': item.target.name,
+                     'exprs': item.nodes_of_class(astroid.Expr)}
+                    for item in node.body if isinstance(item, astroid.For)]
+            for expr in fors:
+                for ex in expr['exprs']:
+                    if (isinstance(ex.value, astroid.Call) and
+                            ex.value.func.attrname == 'write' and
+                            ex.value.func.expr.name == expr['target']):
+                        self.add_message(
+                            'computed-method-should-not-use-write', node=ex)
 
         decor_names = self.get_decorators_names(node.decorators)
         decor_lastnames = [

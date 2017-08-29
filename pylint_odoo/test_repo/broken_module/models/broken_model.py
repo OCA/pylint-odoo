@@ -173,6 +173,11 @@ class TestModel(models.Model):
         help="Many 2 Many"
     )
 
+    def _compute_name(self):
+        self.write({'name': "Name computed"})
+        for item in self:
+            item.write({'name': "Name computed"})
+
     def my_method1(self, variable1):
         #  Shouldn't show error of field-argument-translate
         self.my_method2(_('hello world'))
