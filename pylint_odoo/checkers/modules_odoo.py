@@ -128,6 +128,11 @@ ODOO_MSGS = {
         'xml-attribute-translatable',
         settings.DESC_DFLT
     ),
+    'W%d42' % settings.BASE_OMODULE_ID: (
+        '%s Deprecated <tree> xml attribute "%s"',
+        'xml-deprecated-tree-attribute',
+        settings.DESC_DFLT
+    ),
     'W%d39' % settings.BASE_OMODULE_ID: (
         '%s Use <odoo> instead of <odoo><data> or use <odoo noupdate="1">'
         'instead of <odoo><data noupdate="1">',
@@ -165,6 +170,7 @@ DFTL_JSLINTRC = os.path.join(
     os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
     'examples', '.jslintrc'
 )
+DFLT_DEPRECATED_TREE_ATTRS = ['colors', 'fonts', 'string']
 DFTL_MANIFEST_DATA_KEYS = ['data', 'demo', 'demo_xml', 'init_xml', 'test',
                            'update_xml']
 
@@ -212,6 +218,15 @@ class ModuleChecker(misc.WrapperModuleChecker):
             'help': ('A path to a file that contains a configuration file of '
                      'javascript lint. You can use the environment variable '
                      '"PYLINT_ODOO_JSLINTRC" too. Default: %s' % DFTL_JSLINTRC)
+        }),
+        ('deprecated_tree_attributes', {
+            'type': 'multiple_choice',
+            'metavar': '<attributes>',
+            'default': DFLT_DEPRECATED_TREE_ATTRS,
+            'choices': DFLT_DEPRECATED_TREE_ATTRS,
+            'help': 'List of deprecated list view attributes,'
+            ' separated by a comma. Valid values: %s' % ', '.join(
+                DFLT_DEPRECATED_TREE_ATTRS)
         }),
     )
 
@@ -807,6 +822,52 @@ class ModuleChecker(misc.WrapperModuleChecker):
                     '//attribute[not(@translation)]'):
                 self.msg_args.append(
                     ("%s:%d" % (xml_file, record.sourceline), 'xml_id'))
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_xml_deprecated_tree_attribute(self):
+        """The tree-view declaration is using a deprecated attribute.
+            Example <tree string="Partners"></tree>
+        """
+        checks = [
+            {
+                'attr': 'colors',
+                'skip_versions': {'4.2', '5.0', '6.0', '6.1', '7.0', '8.0'},
+                'xpath': './/tree[@colors]',
+            },
+            {
+                'attr': 'fonts',
+                'skip_versions': {'4.2', '5.0', '6.0', '6.1', '7.0', '8.0'},
+                'xpath': './/tree[@fonts]',
+            },
+            {
+                'attr': 'string',
+                'skip_versions': {'4.2', '5.0', '6.0', '6.1', '7.0'},
+                'xpath': './/tree[@string]',
+            },
+        ]
+        valid_versions = set(
+            self.linter._all_options['valid_odoo_versions'].config
+            .valid_odoo_versions)
+
+        def check_is_applicable(check):
+            return (check['attr'] in self.config.deprecated_tree_attributes and
+                    bool(valid_versions - check['skip_versions']))
+
+        applicable_checks = filter(check_is_applicable, checks)
+
+        self.msg_args = []
+        for xml_file in self.filter_files_ext('xml', relpath=True):
+            for record in self.get_xml_records(
+                    os.path.join(self.module_path, xml_file),
+                    model='ir.ui.view'):
+
+                for check in applicable_checks:
+                    if record.xpath(check['xpath']):
+                        self.msg_args.append((
+                            '%s:%d' % (xml_file, record.sourceline),
+                            check['attr']))
         if self.msg_args:
             return False
         return True
