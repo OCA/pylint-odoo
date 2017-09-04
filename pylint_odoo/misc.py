@@ -231,7 +231,8 @@ class WrapperModuleChecker(BaseChecker):
         if fext != '.xml':
             return fnames
         info_called = [item[3] for item in inspect.stack() if
-                       'modules_odoo' in item[1]]
+                       'modules_odoo' in item[1] and
+                       item[3].startswith('_check_')]
         method_called = (info_called[0].replace(
             '_check_', '').replace('_', '-') if info_called else False)
         if method_called:
