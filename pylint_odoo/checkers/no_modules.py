@@ -657,7 +657,8 @@ class NoModuleChecker(BaseChecker):
     def formatversion(self, string):
         self.config.manifest_version_format_parsed = \
             self.config.manifest_version_format % dict(
-                valid_odoo_versions='|'.join(self.config.valid_odoo_versions))
+                valid_odoo_versions='|'.join(
+                    map(re.escape, self.config.valid_odoo_versions)))
         return re.match(self.config.manifest_version_format_parsed, string)
 
     def get_decorators_names(self, decorators):
