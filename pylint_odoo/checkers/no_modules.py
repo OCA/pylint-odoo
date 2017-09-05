@@ -364,6 +364,8 @@ class NoModuleChecker(BaseChecker):
         }),
     )
 
+    _name_computed_methods = []
+
     def open(self):
         super(NoModuleChecker, self).open()
         self.config.deprecated_field_parameters = \
@@ -429,6 +431,9 @@ class NoModuleChecker(BaseChecker):
                 if isinstance(argument, astroid.Keyword):
                     argument_aux = argument.value
                     deprecated = self.config.deprecated_field_parameters
+                    if argument.arg == 'compute' and argument.value.value:
+                        self._name_computed_methods.append(
+                            argument.value.value)
                     if argument.arg in ['compute', 'search', 'inverse'] and \
                             isinstance(argument_aux, astroid.Const) and \
                             isinstance(argument_aux.value, string_types) and \
@@ -454,6 +459,33 @@ class NoModuleChecker(BaseChecker):
                         argument_aux.func.name == '_':
                     self.add_message('translation-field', node=argument_aux)
                 index += 1
+        # Detect self.write() inside the method computed
+        if (isinstance(node, astroid.CallFunc) and
+                isinstance(node.func, astroid.Getattr) and
+                node.func.attrname == 'write'):
+            def _parent(node):
+                funct = [ex for ex in
+                         node.nodes_of_class(astroid.FunctionDef)]
+                if node.parent and not funct:
+                    return _parent(node.parent)
+                return funct[0] if len(funct) else None
+            funct = _parent(node)
+            if (funct and funct.name and
+                    isinstance(node.func.expr, astroid.Name)):
+                if (funct.name in self._name_computed_methods and
+                        node.func.expr.name == 'self'):
+                    self.add_message('computed-method-should-not-use-write',
+                                     node=node.parent)
+                # Detect :  for item in self:
+                #               item.write()
+                # Inside the computer method
+                exprs = [item for item in funct.nodes_of_class(astroid.For)
+                         if (item.iter.name == 'self' and
+                             node.func.expr.name == item.target.name)]
+                for exp in exprs:
+                    self.add_message(
+                        'computed-method-should-not-use-write',
+                        node=node.parent)
         # Check cr.commit()
         if isinstance(node, astroid.CallFunc) and \
                 isinstance(node.func, astroid.Getattr) and \
@@ -566,7 +598,6 @@ class NoModuleChecker(BaseChecker):
                           'copy-wo-api-one', 'api-one-deprecated',
                           'method-required-super', 'old-api7-method-defined',
                           'missing-return',
-                          'computed-method-should-not-use-write'
                           )
     def visit_functiondef(self, node):
         """Check that `api.one` and `api.multi` decorators not exists together
@@ -575,28 +606,6 @@ class NoModuleChecker(BaseChecker):
         """
         if not node.is_method():
             return
-
-        if node.name.startswith('_compute_'):
-            # Detect self.write()
-            exprs = [ex for ex in node.nodes_of_class(astroid.Expr)
-                     if (isinstance(ex.value, astroid.Call) and
-                         ex.value.func.attrname == 'write' and
-                         ex.value.func.expr.name == 'self')]
-            for expr in exprs:
-                self.add_message('computed-method-should-not-use-write',
-                                 node=expr)
-            # Detect :  for item in self:
-            #               item.write()
-            fors = [{'target': item.target.name,
-                     'exprs': item.nodes_of_class(astroid.Expr)}
-                    for item in node.body if isinstance(item, astroid.For)]
-            for expr in fors:
-                for ex in expr['exprs']:
-                    if (isinstance(ex.value, astroid.Call) and
-                            ex.value.func.attrname == 'write' and
-                            ex.value.func.expr.name == expr['target']):
-                        self.add_message(
-                            'computed-method-should-not-use-write', node=ex)
 
         decor_names = self.get_decorators_names(node.decorators)
         decor_lastnames = [

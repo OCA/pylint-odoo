@@ -176,7 +176,21 @@ class TestModel(models.Model):
     def _compute_name(self):
         self.write({'name': "Name computed"})
         for item in self:
+            if item:
+                item.write({'name': "Name computed"})
+
+    def my_method_compute(self):
+        items = []
+        self.write({'name': "Name computed"})
+        for item in items:
             item.write({'name': "Name computed"})
+
+    def other_method_compute(self):
+        items = []
+        self.write({'name': "Name computed"})
+        for item in items:
+            if item:
+                item.write({'name': "Name computed"})
 
     def my_method1(self, variable1):
         #  Shouldn't show error of field-argument-translate
