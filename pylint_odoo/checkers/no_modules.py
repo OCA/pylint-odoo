@@ -234,7 +234,7 @@ DFTL_METHOD_REQUIRED_SUPER = [
 DFTL_VALID_ODOO_VERSIONS = [
     '4.2', '5.0', '6.0', '6.1', '7.0', '8.0', '9.0', '10.0'
 ]
-DFTL_MANIFEST_VERSION_FORMAT = r"(%(valid_odoo_versions)s)\.\d+\.\d+\.\d+$"
+DFTL_MANIFEST_VERSION_FORMAT = r"({valid_odoo_versions})\.\d+\.\d+\.\d+$"
 DFTL_CURSOR_EXPR = [
     'self.env.cr', 'self._cr',  # new api
     'self.cr',  # controllers and test
@@ -328,7 +328,7 @@ class NoModuleChecker(BaseChecker):
             'metavar': '<string>',
             'default': DFTL_MANIFEST_VERSION_FORMAT,
             'help': 'Regex to check version format in manifest file. '
-            'Use "%(valid_odoo_versions)s" to check the parameter of '
+            'Use "{valid_odoo_versions}" to check the parameter of '
             '"valid_odoo_versions"'
         }),
         ('cursor_expr', {
@@ -655,10 +655,10 @@ class NoModuleChecker(BaseChecker):
         return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string)
 
     def formatversion(self, string):
-        self.config.manifest_version_format_parsed = \
-            self.config.manifest_version_format % dict(
+        self.config.manifest_version_format_parsed = (
+            self.config.manifest_version_format.format(
                 valid_odoo_versions='|'.join(
-                    map(re.escape, self.config.valid_odoo_versions)))
+                    map(re.escape, self.config.valid_odoo_versions))))
         return re.match(self.config.manifest_version_format_parsed, string)
 
     def get_decorators_names(self, decorators):
