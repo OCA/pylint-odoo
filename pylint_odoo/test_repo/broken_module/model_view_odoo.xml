@@ -6,7 +6,7 @@
             <field name="name">view.model.form</field>
             <field name="model">test.model</field>
             <field name="arch" type="xml">
-                <tree string="Test model">
+                <tree>
                     <field name="name"/>
                 </tree>
             </field>
@@ -17,10 +17,43 @@
             <field name="name">view.model.form</field>
             <field name="model">test.model</field>
             <field name="arch" type="xml">
-                <tree string="Test model">
+                <tree>
                     <field name="name"/>
                 </tree>
 			</field>
+        </record>
+
+        <!--deprecated tree string attribute-->
+        <record id="view_test_model_tree1" model="ir.ui.view">
+            <field name="name">test.model.tree</field>
+            <field name="model">test.model</field>
+            <field name="arch" type="xml">
+                <tree string="Test model">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--deprecated tree colors attribute-->
+        <record id="view_test_model_tree2" model="ir.ui.view">
+            <field name="name">test.model.tree</field>
+            <field name="model">test.model</field>
+            <field name="arch" type="xml">
+                <tree colors="blue:name='test'">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--deprecated tree fonts attribute-->
+        <record id="view_test_model_tree3" model="ir.ui.view">
+            <field name="name">test.model.tree</field>
+            <field name="model">test.model</field>
+            <field name="arch" type="xml">
+                <tree fonts="bold:name='test'">
+                    <field name="name"/>
+                </tree>
+            </field>
         </record>
 
         <!--ir.filters without explicit user_id-->

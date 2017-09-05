@@ -16,7 +16,7 @@
             <field name="name">view.model.form2</field>
             <field name="model">test.model</field>
             <field name="arch" type="xml">
-                <tree string="Test model 2">
+                <tree>
                     <field name="name"/>
                 </tree>
             </field>
