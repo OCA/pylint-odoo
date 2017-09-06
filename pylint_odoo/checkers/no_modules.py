@@ -655,10 +655,11 @@ class NoModuleChecker(BaseChecker):
         return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string)
 
     def formatversion(self, string):
+        valid_odoo_versions = '|'.join(
+            map(re.escape, self.config.valid_odoo_versions))
         self.config.manifest_version_format_parsed = (
             self.config.manifest_version_format.format(
-                valid_odoo_versions='|'.join(
-                    map(re.escape, self.config.valid_odoo_versions))))
+                valid_odoo_versions=valid_odoo_versions))
         return re.match(self.config.manifest_version_format_parsed, string)
 
     def get_decorators_names(self, decorators):
