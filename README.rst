@@ -139,6 +139,31 @@ If you have external files you can add them in ``examples`` folder to skip.
 
 For rst-syntax-error skip unknown directives
 
+Skip one xml check
+--------------
+
+If you need to skip one check in one xml file you can use the follow way
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<!-- pylint:disable=name-of-check-to-skip -->
+<odoo>
+    ...
+</odoo>
+```
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<!-- pylint:disable=name-of-check-to-skip, second-name-check-to-skip -->
+<odoo>
+    ...
+</odoo>
+```
+
+This skip only work with the name of the check, not work with the name of check
+
+The position of the comment it is not relative to the line that throw the check
+
 
 .. |Build Status| image:: https://travis-ci.org/OCA/pylint-odoo.svg?branch=master
    :target: https://travis-ci.org/OCA/pylint-odoo
