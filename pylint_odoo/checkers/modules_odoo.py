@@ -685,9 +685,12 @@ class ModuleChecker(misc.WrapperModuleChecker):
         self.msg_args = []
         for xml_file in xml_files:
             doc = self.parse_xml(os.path.join(self.module_path, xml_file))
-            odoo_nodes = doc.xpath("/odoo/data") \
+            odoo_nodes = doc.xpath("/odoo") \
                 if not isinstance(doc, basestring) else []
-            if len(odoo_nodes) == 1:
+            children, data_node = ((odoo_nodes[0].getchildren(),
+                                    odoo_nodes[0].findall('data'))
+                                   if odoo_nodes else ([], []))
+            if len(children) == 1 and len(data_node) == 1:
                 lineno = odoo_nodes[0].sourceline
                 self.msg_args.append(("%s:%s" % (xml_file, lineno)))
         if self.msg_args:
