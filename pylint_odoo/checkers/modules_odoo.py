@@ -134,6 +134,11 @@ ODOO_MSGS = {
         'xml-deprecated-tree-attribute',
         settings.DESC_DFLT
     ),
+    'W%d43' % settings.BASE_OMODULE_ID: (
+        '%s Deprecated QWeb directive "%s". Use "t-options" instead',
+        'xml-deprecated-qweb-directive',
+        settings.DESC_DFLT
+    ),
     'W%d39' % settings.BASE_OMODULE_ID: (
         '%s Use <odoo> instead of <odoo><data> or use <odoo noupdate="1">'
         'instead of <odoo><data noupdate="1">',
@@ -875,3 +880,36 @@ class ModuleChecker(misc.WrapperModuleChecker):
         if self.msg_args:
             return False
         return True
+
+    def _check_xml_deprecated_qweb_directive(self):
+        """Check for use of deprecated QWeb directives t-*-options.
+        :return: False if deprecated directives are found, in which case
+                 self.msg_args will contain the error messages.
+        """
+        if ('10.0' not in self.linter._all_options[
+                'valid_odoo_versions'].config.valid_odoo_versions):
+            return True
+
+        deprecated_directives = {
+            't-esc-options',
+            't-field-options',
+            't-raw-options',
+        }
+        directive_attrs = '|'.join('@%s' % d for d in deprecated_directives)
+        xpath = '|'.join(
+            '/%s//template//*[%s]' % (tag, directive_attrs)
+            for tag in ('odoo', 'openerp')
+        )
+
+        self.msg_args = []
+        for xml_file in self.filter_files_ext('xml', relpath=False):
+            doc = self.parse_xml(xml_file)
+            if isinstance(doc, basestring):
+                continue
+            for node in doc.xpath(xpath):
+                # Find which directive was used exactly.
+                directive = next(
+                    iter(set(node.attrib) & deprecated_directives))
+                self.msg_args.append((
+                    '%s:%d' % (xml_file, node.sourceline), directive))
+        return not bool(self.msg_args)
