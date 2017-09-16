@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Deprecated QWeb directive "t-esc-options". -->
+    <template id="test_template_1" name="Test Template 1">
+        <div>
+            <span t-esc="price" t-esc-options='{"widget": "monetary"}'/>
+        </div>
+    </template>
+
+    <!-- Deprecated QWeb directive "t-field-options". -->
+    <template id="test_template_2" name="Test Template 2">
+        <div>
+            <span t-field="line.image" t-field-options='{"widget": "image"}'/>
+        </div>
+    </template>
+
+</odoo>
