@@ -26,7 +26,7 @@ def messages2md():
     all_msgs = get_all_messages()
     md_msgs = 'Code | Description | short name\n--- | --- | ---'
     for msg_code, (title, name_key, description) in \
-            sorted(all_msgs.iteritems()):
+            sorted(all_msgs.items()):
         md_msgs += "\n{0} | {1} | {2}".format(msg_code, title, name_key)
     md_msgs += '\n'
     return md_msgs
@@ -48,7 +48,7 @@ def messages2rst():
     lines = []
     max_col_sizes = [len(item) for item in title_list]
     for msg_code, (title, name_key, description) in \
-            sorted(all_msgs.iteritems()):
+            sorted(all_msgs.items()):
         line = [item.replace('`', '``')
                 for item in [msg_code, title, name_key]]
         for index in range(len(max_col_sizes)):

@@ -21,6 +21,7 @@ class TestExceptPass(object):
 
     def test_3_method(self):
         """This pass is skip for the exception is assigned"""
+        exception = False
         try:
             raise Exception('Exception')
         except Exception as exception:
@@ -29,14 +30,16 @@ class TestExceptPass(object):
             pass
 
     def test_4_method(self):
+        userError = False
         try:
             raise Exception('Exception')
-        except Exception, userError:
+        except Exception as userError:
             pass
         if userError:
             pass
 
     def test_5_method(self):
+        exception = False
         try:
             raise Exception('Exception')
         except (Exception, IndexError) as exception:
@@ -51,9 +54,10 @@ class TestExceptPass(object):
             pass
 
     def test_7_method(self):
+        exception = False
         try:
             raise Exception('Exception')
-        except (Exception, IndexError, NameError), exception:
+        except (Exception, IndexError, NameError) as exception:
             pass
         except Exception:  # except-pass
             pass

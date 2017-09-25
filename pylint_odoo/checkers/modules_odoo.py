@@ -7,6 +7,7 @@ import re
 import astroid
 import isort
 from pylint.checkers import utils
+from six import string_types
 
 from .. import misc, settings
 
@@ -437,7 +438,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
         self.msg_args = []
         for xml_file in self.filter_files_ext('xml', relpath=True):
             result = self.parse_xml(os.path.join(self.module_path, xml_file))
-            if isinstance(result, basestring):
+            if isinstance(result, string_types):
                 self.msg_args.append((
                     xml_file, result.strip('\n').replace('\n', '|')))
         if self.msg_args:
@@ -460,10 +461,11 @@ class ModuleChecker(misc.WrapperModuleChecker):
             )
             all_records.setdefault(record_id, []).append(record)
         # Remove all keys which not duplicated
+        records = {}
         for key, items in all_records.items():
-            if len(items) < 2:
-                all_records.pop(key)
-        return all_records
+            if not len(items) < 2:
+                records[key] = items
+        return records
 
     def _check_duplicate_xml_record_id(self):
         """Check duplicated XML-IDs inside of the files of
@@ -686,7 +688,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
         for xml_file in xml_files:
             doc = self.parse_xml(os.path.join(self.module_path, xml_file))
             odoo_nodes = doc.xpath("/odoo") \
-                if not isinstance(doc, basestring) else []
+                if not isinstance(doc, string_types) else []
             children, data_node = ((odoo_nodes[0].getchildren(),
                                     odoo_nodes[0].findall('data'))
                                    if odoo_nodes else ([], []))
@@ -707,7 +709,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
         for xml_file in xml_files:
             doc = self.parse_xml(os.path.join(self.module_path, xml_file))
             openerp_nodes = doc.xpath("/openerp") \
-                if not isinstance(doc, basestring) else []
+                if not isinstance(doc, string_types) else []
             if openerp_nodes:
                 lineno = openerp_nodes[0].sourceline
                 self.msg_args.append(("%s:%s" % (xml_file, lineno)))
@@ -727,6 +729,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 countline = 0
                 with open(ext_file, 'rb') as fp:
                     for line in fp:
+                        line = line.decode()
                         countline += 1
                         line_space_trip = line.lstrip(' ')
                         if line_space_trip != line_space_trip.lstrip('\t'):
@@ -750,6 +753,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                     if os.stat(ext_file).st_size > 1:
                         fp.seek(-2, os.SEEK_END)
                         last_line = fp.readline()
+                        last_line = last_line.decode()
                         if not (last_line.endswith('\n') or
                                 last_line.endswith('\r')):
                             self.msg_args.append((ext_file_rel,))
@@ -854,11 +858,9 @@ class ModuleChecker(misc.WrapperModuleChecker):
             self.linter._all_options['valid_odoo_versions'].config
             .valid_odoo_versions)
 
-        def check_is_applicable(check):
-            return (check['attr'] in self.config.deprecated_tree_attributes and
-                    bool(valid_versions - check['skip_versions']))
-
-        applicable_checks = filter(check_is_applicable, checks)
+        applicable_checks = [check for check in checks if (
+            check['attr'] in self.config.deprecated_tree_attributes and
+            bool(valid_versions - check['skip_versions']))]
 
         self.msg_args = []
         for xml_file in self.filter_files_ext('xml', relpath=True):
