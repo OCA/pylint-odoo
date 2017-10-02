@@ -729,10 +729,9 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 countline = 0
                 with open(ext_file, 'rb') as fp:
                     for line in fp:
-                        line = line.decode()
                         countline += 1
-                        line_space_trip = line.lstrip(' ')
-                        if line_space_trip != line_space_trip.lstrip('\t'):
+                        line_space_trip = line.lstrip(b' ')
+                        if line_space_trip != line_space_trip.lstrip(b'\t'):
                             self.msg_args.append(
                                 ("%s:%d" % (ext_file_rel, countline)))
         if self.msg_args:
@@ -749,13 +748,13 @@ class ModuleChecker(misc.WrapperModuleChecker):
             for ext_file_rel in self.filter_files_ext(type_file, relpath=True):
                 ext_file = os.path.join(self.module_path, ext_file_rel)
                 last_line = ''
+                # NOTE: SEEK_END just is supported with 'rb' mode for py3
                 with open(ext_file, 'rb') as fp:
                     if os.stat(ext_file).st_size > 1:
                         fp.seek(-2, os.SEEK_END)
                         last_line = fp.readline()
-                        last_line = last_line.decode()
-                        if not (last_line.endswith('\n') or
-                                last_line.endswith('\r')):
+                        if not (last_line.endswith(b'\n') or
+                                last_line.endswith(b'\r')):
                             self.msg_args.append((ext_file_rel,))
         if self.msg_args:
             return False

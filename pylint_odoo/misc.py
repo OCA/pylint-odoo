@@ -261,7 +261,7 @@ class WrapperModuleChecker(BaseChecker):
 
                 parser = etree.XMLParser(target=PylintCommentTarget())
                 try:
-                    with open(full_name, 'r') as xml_file:
+                    with open(full_name, 'rb') as xml_file:
                         skips = etree.parse(xml_file, parser)
                 except etree.XMLSyntaxError:
                     skips = []
@@ -287,8 +287,8 @@ class WrapperModuleChecker(BaseChecker):
                                            stdout=subprocess.PIPE,
                                            stderr=subprocess.PIPE)
                 output, err = process.communicate()
-                output = output.decode()
-                err = err.decode()
+                output = output.decode('UTF-8')
+                err = err.decode('UTF-8')
                 npm_bin_path = output.strip('\n ')
                 if os.path.isdir(npm_bin_path) and not err:
                     npm_bin_paths.append(npm_bin_path)
@@ -312,8 +312,8 @@ class WrapperModuleChecker(BaseChecker):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
         output, err = process.communicate()
-        output = output.decode()
-        err = err.decode()
+        output = output.decode('UTF-8')
+        err = err.decode('UTF-8')
         if process.returncode != 0 and err:
             return []
         # Strip multi-line output https://github.com/eslint/eslint/issues/6810
@@ -350,7 +350,7 @@ class WrapperModuleChecker(BaseChecker):
         if not os.path.isfile(xml_file):
             return etree.Element("__empty__")
         try:
-            with open(xml_file) as f:
+            with open(xml_file, "rb") as f:
                 doc = etree.parse(f)
         except etree.XMLSyntaxError as xmlsyntax_error_exception:
             return str(xmlsyntax_error_exception)
