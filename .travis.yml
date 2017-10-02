@@ -11,9 +11,6 @@ addons:
     packages:
       - python-lxml  # because pip installation is slow 
 
-virtualenv:
-  system_site_packages: true
-
 matrix:
   include:
     - python: 2.7
@@ -22,6 +19,12 @@ matrix:
     - python: 2.7
       env:
         TOXENV=py27-pylint20
+    - python: 3.4
+      env:
+        TOXENV=py34-pylint14
+    - python: 3.4
+      env:
+        TOXENV=py34-pylint20
 
 install:
     - nvm install 6  # Update nodejs version to 6.latest, required by eslint
@@ -34,7 +37,6 @@ install:
     - ${TRAVIS_BUILD_DIR}/install.sh
 
     # Install testing dependencies
-    - pip install --upgrade pyopenssl ndg-httpsclient pyasn1
     - pip install coveralls flake8
 
     # Install tox

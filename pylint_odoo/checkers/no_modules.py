@@ -53,7 +53,6 @@ for more info visit pylint doc
 import ast
 import os
 import re
-import types
 
 import astroid
 import rfc3986
@@ -498,7 +497,7 @@ class NoModuleChecker(BaseChecker):
 
         # Check author is a string
         author = manifest_dict.get('author', '')
-        if not isinstance(author, types.StringTypes):
+        if not isinstance(author, string_types):
             self.add_message('manifest-author-string', node=node)
         else:
             # Check author required

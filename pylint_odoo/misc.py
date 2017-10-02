@@ -10,6 +10,7 @@ from pylint.checkers import BaseChecker
 from pylint.interfaces import IAstroidChecker
 from pylint.utils import _basename_in_blacklist_re
 from restructuredtext_lint import lint_file as rst_lint
+from six import string_types
 
 from . import settings
 
@@ -145,7 +146,7 @@ class WrapperModuleChecker(BaseChecker):
         self.module = os.path.basename(self.module_path)
         self.set_caches()
         for msg_code, (title, name_key, description) in \
-                sorted(self.msgs.iteritems()):
+                sorted(self.msgs.items()):
             self.msg_code = msg_code
             self.msg_name_key = name_key
             self.msg_args = None
@@ -172,7 +173,7 @@ class WrapperModuleChecker(BaseChecker):
                         node.lineno = node_lineno_original
 
     def set_extra_file(self, node, msg_args, msg_code):
-        if isinstance(msg_args, basestring):
+        if isinstance(msg_args, string_types):
             msg_args = (msg_args,)
         first_arg = msg_args and msg_args[0] or ""
         fregex_str = \
@@ -260,7 +261,8 @@ class WrapperModuleChecker(BaseChecker):
 
                 parser = etree.XMLParser(target=PylintCommentTarget())
                 try:
-                    skips = etree.parse(open(full_name), parser)
+                    with open(full_name, 'r') as xml_file:
+                        skips = etree.parse(xml_file, parser)
                 except etree.XMLSyntaxError:
                     skips = []
                     pass
@@ -285,6 +287,8 @@ class WrapperModuleChecker(BaseChecker):
                                            stdout=subprocess.PIPE,
                                            stderr=subprocess.PIPE)
                 output, err = process.communicate()
+                output = output.decode()
+                err = err.decode()
                 npm_bin_path = output.strip('\n ')
                 if os.path.isdir(npm_bin_path) and not err:
                     npm_bin_paths.append(npm_bin_path)
@@ -308,6 +312,8 @@ class WrapperModuleChecker(BaseChecker):
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
         output, err = process.communicate()
+        output = output.decode()
+        err = err.decode()
         if process.returncode != 0 and err:
             return []
         # Strip multi-line output https://github.com/eslint/eslint/issues/6810
@@ -344,9 +350,10 @@ class WrapperModuleChecker(BaseChecker):
         if not os.path.isfile(xml_file):
             return etree.Element("__empty__")
         try:
-            doc = etree.parse(open(xml_file))
+            with open(xml_file) as f:
+                doc = etree.parse(f)
         except etree.XMLSyntaxError as xmlsyntax_error_exception:
-            return xmlsyntax_error_exception.message
+            return str(xmlsyntax_error_exception)
         return doc
 
     def get_xml_records(self, xml_file, model=None, more=None):
@@ -373,7 +380,7 @@ class WrapperModuleChecker(BaseChecker):
         doc = self.parse_xml(xml_file)
         return doc.xpath("/openerp//record" + model_filter + more_filter) + \
             doc.xpath("/odoo//record" + model_filter + more_filter) \
-            if not isinstance(doc, basestring) else []
+            if not isinstance(doc, string_types) else []
 
     def get_field_csv(self, csv_file, field='id'):
         """Get xml ids from csv file
@@ -381,7 +388,7 @@ class WrapperModuleChecker(BaseChecker):
         :param field: Field to search
         :return: List of string with field rows
         """
-        with open(csv_file, 'rb') as csvfile:
+        with open(csv_file, 'r') as csvfile:
             lines = csv.DictReader(csvfile)
             return [line[field] for line in lines if field in line]
 

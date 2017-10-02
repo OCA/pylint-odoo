@@ -3,6 +3,7 @@ import os
 import stat
 import sys
 from tempfile import gettempdir
+import six
 
 import unittest
 from contextlib import contextmanager
@@ -86,7 +87,7 @@ class MainTest(unittest.TestCase):
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
             'test_repo')
         self.paths_modules = []
-        root, dirs, _ = os.walk(path_modules).next()
+        root, dirs, _ = six.next(os.walk(path_modules))
         for path in dirs:
             self.paths_modules.append(os.path.join(root, path))
         self.default_extra_params = [
@@ -160,7 +161,8 @@ class MainTest(unittest.TestCase):
                         '--deprecated-modules=openerp.osv']
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats['by_msg']
-        self.assertEqual(real_errors.items(), [('deprecated-module', 4)])
+        self.assertListEqual(list(real_errors.items()),
+                             list([('deprecated-module', 4)]))
 
     def test_50_ignore(self):
         """Test --ignore parameter """
@@ -169,8 +171,8 @@ class MainTest(unittest.TestCase):
                         '--enable=deprecated-openerp-xml-node']
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats['by_msg']
-        self.assertEqual(real_errors.items(),
-                         [('deprecated-openerp-xml-node', 4)])
+        self.assertListEqual(list(real_errors.items()),
+                             list([('deprecated-openerp-xml-node', 4)]))
 
     def test_60_ignore_patterns(self):
         """Test --ignore-patterns parameter """
@@ -180,8 +182,8 @@ class MainTest(unittest.TestCase):
                         '--enable=deprecated-openerp-xml-node']
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats['by_msg']
-        self.assertEqual(real_errors.items(),
-                         [('deprecated-openerp-xml-node', 3)])
+        self.assertListEqual(list(real_errors.items()),
+                             list([('deprecated-openerp-xml-node', 3)]))
 
     def test_70_without_jslint_installed(self):
         """Test without jslint installed"""
@@ -228,8 +230,8 @@ class MainTest(unittest.TestCase):
                         '--enable=xml-attribute-translatable']
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats['by_msg']
-        self.assertEqual(real_errors.items(),
-                         [('xml-attribute-translatable', 1)])
+        self.assertListEqual(list(real_errors.items()),
+                             list([('xml-attribute-translatable', 1)]))
 
 
 if __name__ == '__main__':

@@ -1,8 +1,9 @@
 # coding: utf-8
+
+from __future__ import absolute_import
 import expression
 import expression as expr4
 import manifest_lib
-import absolute_import
 import openerp.osv
 import openerp.osv.expression
 
