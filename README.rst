@@ -126,6 +126,10 @@ Or
 
 ``# pip install --upgrade --pre pylint-odoo``
 
+Or
+
+If using ArchLinux, AUR package python-pylint-odoo
+
 Usage
 -----
 
