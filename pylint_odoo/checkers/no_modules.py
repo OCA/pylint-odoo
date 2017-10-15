@@ -231,7 +231,7 @@ DFTL_METHOD_REQUIRED_SUPER = [
     'setUp', 'setUpClass', 'tearDown', 'default_get',
 ]
 DFTL_VALID_ODOO_VERSIONS = [
-    '4.2', '5.0', '6.0', '6.1', '7.0', '8.0', '9.0', '10.0'
+    '4.2', '5.0', '6.0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0',
 ]
 DFTL_MANIFEST_VERSION_FORMAT = r"({valid_odoo_versions})\.\d+\.\d+\.\d+$"
 DFTL_CURSOR_EXPR = [
