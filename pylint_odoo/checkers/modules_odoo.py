@@ -905,7 +905,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
         self.msg_args = []
         for xml_file in self.filter_files_ext('xml', relpath=False):
             doc = self.parse_xml(xml_file)
-            if isinstance(doc, basestring):
+            if isinstance(doc, string_types):
                 continue
             for node in doc.xpath(xpath):
                 # Find which directive was used exactly.
