@@ -886,8 +886,9 @@ class ModuleChecker(misc.WrapperModuleChecker):
         :return: False if deprecated directives are found, in which case
                  self.msg_args will contain the error messages.
         """
-        if ('10.0' not in self.linter._all_options[
-                'valid_odoo_versions'].config.valid_odoo_versions):
+        valid_versions = set(self.linter._all_options[
+            'valid_odoo_versions'].config.valid_odoo_versions)
+        if not valid_versions & {'10.0', '11.0'}:
             return True
 
         deprecated_directives = {
