@@ -66,7 +66,8 @@ EXPECTED_ERRORS = {
     'xml-deprecated-tree-attribute': 3,
     'xml-deprecated-qweb-directive': 2,
     'resource-not-exist': 3,
-    'website-manifest-key-not-valid-uri': 1
+    'website-manifest-key-not-valid-uri': 1,
+    'character-not-valid-in-resource-link': 2
 }
 
 

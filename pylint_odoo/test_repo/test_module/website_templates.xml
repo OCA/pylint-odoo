@@ -15,4 +15,18 @@
         </div>
     </template>
 
+    <template id="assets_backend" name="test_module_widget" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <!-- wrong but is working in odoo web debug mode -->
+            <link rel="stylesheet" href="/test_module_widget/static/widget.css?v=1"/>
+
+            <script type="text/javascript" src="/test_module_affiliation_widget/static/widget.js?v=1"/>
+
+            <!-- correct but is working working odoo web debug mode also -->
+            <link rel="stylesheet" href="/test_module_widget/static/widget.css"/>
+
+            <script type="text/javascript" src="/test_module_affiliation_widget/static/widget.js"/>
+        </xpath>
+    </template>
+
 </odoo>
