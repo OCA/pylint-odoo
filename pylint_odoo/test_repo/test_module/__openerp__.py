@@ -11,6 +11,7 @@
         'security/ir.model.access.csv',
         'res_users.xml',
         'model_view.xml',
+        'website_templates.xml',
     ],
     'external_dependencies': {
         'bin': [

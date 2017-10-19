@@ -64,6 +64,7 @@ EXPECTED_ERRORS = {
     'renamed-field-parameter': 2,
     'deprecated-data-xml-node': 5,
     'xml-deprecated-tree-attribute': 3,
+    'xml-deprecated-qweb-directive': 2,
     'resource-not-exist': 3,
     'website-manifest-key-not-valid-uri': 1
 }
@@ -136,11 +137,16 @@ class MainTest(unittest.TestCase):
 
     def test_25_checks_without_coverage(self):
         """All odoolint errors vs found"""
+        # Some messages can be excluded as they are only applied on certain
+        # Odoo versions (not necessarily 8.0).
+        excluded_msgs = {
+            'xml-deprecated-qweb-directive',
+        }
         extra_params = ['--valid_odoo_versions=8.0']
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         msgs_found = pylint_res.linter.stats['by_msg'].keys()
-        plugin_msgs = misc.get_plugin_msgs(pylint_res)
-        test_missed_msgs = sorted(list(set(plugin_msgs) - set(msgs_found)))
+        plugin_msgs = set(misc.get_plugin_msgs(pylint_res)) - excluded_msgs
+        test_missed_msgs = sorted(list(plugin_msgs - set(msgs_found)))
         self.assertFalse(
             test_missed_msgs,
             "Checks without test case: {test_missed_msgs}".format(
