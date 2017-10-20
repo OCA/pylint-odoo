@@ -551,7 +551,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 for node in nodes:
                     resource = node.get(attr, '')
                     ext = os.path.splitext(os.path.basename(resource))[1]
-                    if (os.path.isabs(resource) and not
+                    if (resource.startswith('/') and not
                             re.search('^[.][a-zA-Z]+$', ext)):
                         self.msg_args.append(("%s:%s" % (xml_file,
                                                          node.sourceline)))
