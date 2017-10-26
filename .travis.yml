@@ -37,7 +37,7 @@ install:
     - ${TRAVIS_BUILD_DIR}/install.sh
 
     # Install testing dependencies
-    - pip install coveralls flake8
+    - pip install coveralls flake8==3.4.1
 
     # Install tox
     - pip install tox
