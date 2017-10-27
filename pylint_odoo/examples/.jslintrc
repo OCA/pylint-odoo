@@ -147,7 +147,7 @@
     "brace-style": "error",
     "callback-return": "error",
     "camelcase": "off",
-    "comma-dangle": "error",
+    "comma-dangle": "off",
     "comma-spacing": "off",
     "comma-style": "error",
     "complexity": [
@@ -208,7 +208,7 @@
     "prefer-arrow-callback": "off",
     "prefer-const": "error",
     "prefer-reflect": "off",
-    "prefer-rest-params": "error",
+    "prefer-rest-params": "off",
     "prefer-spread": "off",
     "prefer-template": "off",
     "quote-props": "off",
