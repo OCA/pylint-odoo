@@ -238,10 +238,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
     class_inherit_names = []
 
-    @utils.check_messages(*(ODOO_MSGS.keys()))
-    def visit_module(self, node):
-        self.wrapper_visit_module(node)
-
     @utils.check_messages('consider-merging-classes-inherited')
     def visit_assign(self, node):
         if not self.odoo_node:

@@ -6,8 +6,8 @@ import subprocess
 import inspect
 
 from lxml import etree
-from pylint.checkers import BaseChecker
-from pylint.interfaces import IAstroidChecker
+from pylint.checkers import BaseChecker, BaseTokenChecker
+from pylint.interfaces import IAstroidChecker, ITokenChecker
 from pylint.utils import _basename_in_blacklist_re
 from restructuredtext_lint import lint_file as rst_lint
 from six import string_types
@@ -44,34 +44,26 @@ def join_node_args_kwargs(node):
     return args
 
 
-# TODO: Change all methods here
+class PylintOdooChecker(BaseChecker):
 
-class WrapperModuleChecker(BaseChecker):
-
+    # Auto call to `process_tokens` method
     __implements__ = IAstroidChecker
 
-    node = None
-    module_path = None
-    msg_args = None
-    msg_code = None
-    msg_name_key = None
     odoo_node = None
     odoo_module_name = None
     manifest_file = None
-    module = None
     manifest_dict = None
-    is_main_odoo_module = None
 
-    def get_manifest_file(self, node_file):
-        """Get manifest file path
-        :param node_file: String with full path of a python module file.
-        :return: Full path of manifest file if exists else return None"""
-        if os.path.basename(node_file) == '__init__.py':
-            for manifest_basename in settings.MANIFEST_FILES:
-                manifest_file = os.path.join(
-                    os.path.dirname(node_file), manifest_basename)
-                if os.path.isfile(manifest_file):
-                    return manifest_file
+    def set_caches(self):
+        if self.odoo_node:
+            self.set_ext_files()
+
+    def clear_caches(self):
+        self.ext_files = None
+
+    def leave_module(self, node):
+        """Clear caches"""
+        self.clear_caches()
 
     def set_ext_files(self):
         """Create `self.ext_files` dictionary with {extension_file: [files]}
@@ -96,19 +88,16 @@ class WrapperModuleChecker(BaseChecker):
                     fname_rel = os.path.relpath(fname, self.module_path)
                     self.ext_files.setdefault(fext, []).append(fname_rel)
 
-    def set_caches(self):
-        if self.odoo_node:
-            self.set_ext_files()
-
-    def clear_caches(self):
-        self.ext_files = None
-
-    def leave_module(self, node):
-        """Clear caches"""
-        self.clear_caches()
-
-    def open(self):
-        self.odoo_node = None
+    def get_manifest_file(self, node_file):
+        """Get manifest file path
+        :param node_file: String with full path of a python module file.
+        :return: Full path of manifest file if exists else return None"""
+        if os.path.basename(node_file) == '__init__.py':
+            for manifest_basename in settings.MANIFEST_FILES:
+                manifest_file = os.path.join(
+                    os.path.dirname(node_file), manifest_basename)
+                if os.path.isfile(manifest_file):
+                    return manifest_file
 
     def wrapper_visit_module(self, node):
         """Call methods named with name-key from self.msgs
@@ -171,6 +160,44 @@ class WrapperModuleChecker(BaseChecker):
                                          args=msg_args_extra)
                         node.file = node_file_original
                         node.lineno = node_lineno_original
+
+    def visit_module(self, node):
+        self.wrapper_visit_module(node)
+
+    def add_message(self, *args, **kwargs):
+        version = (self.manifest_dict.get('version')
+                   if isinstance(self.manifest_dict, dict) else '')
+        match = re.match(r"(?P<version>\d+.\d+)\.\d+\.\d+\.\d+$", version)
+        _args = [arg for arg in args]
+        if match and len(args) >= 1 and hasattr(self, 'msgs_odoo_version'):
+            _args = [arg for arg in args]
+            versions = self.msgs_odoo_version.get(_args[0], [])
+            if (versions and not any([ver for ver in versions
+                                      if ver in match.group('version')])):
+                return
+        return super(PylintOdooChecker, self).add_message(*args, **kwargs)
+
+
+class PylintOdooTokenChecker(BaseTokenChecker, PylintOdooChecker):
+
+    # Auto call to `process_tokens` method
+    __implements__ = (ITokenChecker, IAstroidChecker)
+
+
+# TODO: Change all methods here
+
+class WrapperModuleChecker(PylintOdooChecker):
+
+    node = None
+    module_path = None
+    msg_args = None
+    msg_code = None
+    msg_name_key = None
+    module = None
+    is_main_odoo_module = None
+
+    def open(self):
+        self.odoo_node = None
 
     def set_extra_file(self, node, msg_args, msg_code):
         if isinstance(msg_args, string_types):

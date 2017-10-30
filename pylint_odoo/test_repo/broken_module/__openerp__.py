@@ -4,7 +4,7 @@
     # missing license
     'author': 'Many People',  # Missing oca author
     'description': 'Should be a README.rst file',
-    'version': '8_0.1.0.0',
+    'version': '8.0.1.0.0',
     'website': 'https://odoo-community.org',
     'depends': ['base'],
     'data': [

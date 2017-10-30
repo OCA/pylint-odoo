@@ -57,7 +57,7 @@ import re
 import astroid
 import rfc3986
 from six import string_types
-from pylint.checkers import BaseChecker, utils
+from pylint.checkers import utils
 from pylint.interfaces import IAstroidChecker
 
 from .. import settings
@@ -262,7 +262,7 @@ DFTL_DEPRECATED_FIELD_PARAMETERS = [
 ]
 
 
-class NoModuleChecker(BaseChecker):
+class NoModuleChecker(misc.PylintOdooChecker):
 
     __implements__ = IAstroidChecker
 
