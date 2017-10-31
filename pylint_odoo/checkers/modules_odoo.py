@@ -144,7 +144,12 @@ ODOO_MSGS = {
         'instead of <odoo><data noupdate="1">',
         'deprecated-data-xml-node',
         settings.DESC_DFLT
-    )
+    ),
+    'W%d44' % settings.BASE_OMODULE_ID: (
+        '%s The resource in in src/href contains a not valid chararter',
+        'character-not-valid-in-resource-link',
+        settings.DESC_DFLT
+    ),
 }
 
 
@@ -531,6 +536,25 @@ class ModuleChecker(misc.WrapperModuleChecker):
                     xml_file, self.module):
                 self.msg_args.append(
                     ("%s:%d" % (xml_file_rel, lineno), xml_id))
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_character_not_valid_in_resource_link(self):
+        """The resource in in src/href contains a not valid chararter"""
+        self.msg_args = []
+        for xml_file in self.filter_files_ext('xml'):
+            doc = self.parse_xml(os.path.join(self.module_path, xml_file))
+            for name, attr in (('link', 'href'), ('script', 'src')):
+                nodes = (doc.xpath('.//%s[@%s]' % (name, attr))
+                         if not isinstance(doc, string_types) else [])
+                for node in nodes:
+                    resource = node.get(attr, '')
+                    ext = os.path.splitext(os.path.basename(resource))[1]
+                    if (resource.startswith('/') and not
+                            re.search('^[.][a-zA-Z]+$', ext)):
+                        self.msg_args.append(("%s:%s" % (xml_file,
+                                                         node.sourceline)))
         if self.msg_args:
             return False
         return True
