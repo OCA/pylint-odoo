@@ -68,7 +68,7 @@ EXPECTED_ERRORS = {
     'resource-not-exist': 3,
     'website-manifest-key-not-valid-uri': 1,
     'character-not-valid-in-resource-link': 2,
-    'computed-method-should-not-use-write': 3
+    'computed-method-should-not-use-write': 3,
 }
 
 
