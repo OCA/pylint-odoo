@@ -364,7 +364,9 @@ class NoModuleChecker(BaseChecker):
         }),
     )
 
-    _name_computed_methods = []
+    def __init__(self, *args):
+        self._name_computed_methods = []
+        BaseChecker.__init__(self, *args)
 
     def open(self):
         super(NoModuleChecker, self).open()
