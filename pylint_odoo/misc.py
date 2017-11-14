@@ -19,6 +19,10 @@ try:
 except ImportError:
     from whichcraft import which
 
+DFTL_VALID_ODOO_VERSIONS = [
+    '4.2', '5.0', '6.0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0',
+]
+
 
 def get_plugin_msgs(pylint_run_res):
     """Get all message of this pylint plugin.
@@ -168,14 +172,32 @@ class PylintOdooChecker(BaseChecker):
         version = (self.manifest_dict.get('version')
                    if isinstance(self.manifest_dict, dict) else '')
         match = re.match(r"(?P<version>\d+.\d+)\.\d+\.\d+\.\d+$", version)
-        _args = [arg for arg in args]
-        if match and len(args) >= 1 and hasattr(self, 'msgs_odoo_version'):
-            _args = [arg for arg in args]
-            versions = self.msgs_odoo_version.get(_args[0], [])
-            if (versions and not any([ver for ver in versions
-                                      if ver in match.group('version')])):
+        name_check = [arg for arg in args]
+        if match and len(name_check) >= 1:
+            if not self._is_version_supported(match.group('version'),
+                                              name_check[0]):
                 return
         return super(PylintOdooChecker, self).add_message(*args, **kwargs)
+
+    def _is_version_supported(self, version, name_check):
+
+        def version_to_tuple(version):
+            if '.' not in version and version.count('.') != 1:
+                return version
+            version = version.split('.')
+            return tuple([int(version[0]), int(version[1])])
+
+        if not hasattr(self, 'odoo_check_versions'):
+            return True
+        odoo_check_versions = self.odoo_check_versions.get(name_check, {})
+        if not odoo_check_versions:
+            return True
+        version = version_to_tuple(version)
+        min_odoo_version = odoo_check_versions.get(
+            'min_odoo_version', version_to_tuple(DFTL_VALID_ODOO_VERSIONS[0]))
+        max_odoo_version = odoo_check_versions.get(
+            'max_odoo_version', version_to_tuple(DFTL_VALID_ODOO_VERSIONS[-1]))
+        return (version >= min_odoo_version and version <= max_odoo_version)
 
 
 class PylintOdooTokenChecker(BaseTokenChecker, PylintOdooChecker):

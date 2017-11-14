@@ -37,13 +37,6 @@ ODOO_MSGS = {
     ),
 }
 
-
-ODOO_MSGS_VERSIONS = {
-    'no-utf8-coding-comment': ['4.2', '5.0', '6.0', '6.1', '7.0', '8.0', '9.0',
-                               '10.0'],
-    'unnecessary-utf8-coding-comment': ['11.0'],
-}
-
 MAGIC_COMMENT_CODING = 1
 MAGIC_COMMENT_ENCODING = 2
 MAGIC_COMMENT_INTERPRETER = 3
@@ -55,7 +48,16 @@ class FormatChecker(PylintOdooTokenChecker):
 
     name = settings.CFG_SECTION
     msgs = ODOO_MSGS
-    msgs_odoo_version = ODOO_MSGS_VERSIONS
+    odoo_check_versions = {
+        'no-utf8-coding-comment': {
+            'min_odoo_version': (4, 2),
+            'max_odoo_version': (10, 0),
+        },
+        'unnecessary-utf8-coding-comment': {
+            'min_odoo_version': (11, 0),
+            'max_odoo_version': (11, 0),
+        },
+    }
 
     def get_magic_comment_type(self, comment, line_num):
         if line_num >= 1 and line_num <= 2:
