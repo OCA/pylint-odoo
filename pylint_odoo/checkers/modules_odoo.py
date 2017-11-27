@@ -569,7 +569,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
         all_fields = {}
         for field in fields:
             field_xml = field.attrib.get('name')
-            if not field_xml:
+            if (not field_xml or (field.getparent()
+                                  and field.getparent().tag == 'search')):
                 continue
             all_fields.setdefault(
                 (field_xml, field.getparent()), []).append(field)
