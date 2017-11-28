@@ -369,6 +369,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
         ext_deps = self.manifest_dict.get('external_dependencies') or {}
         py_ext_deps = ext_deps.get('python') or []
+        if isinstance(node, astroid.ImportFrom) and (node.level or 0) >= 1:
+            return
         if module_name not in py_ext_deps and \
                 module_name.split('.')[0] not in py_ext_deps:
             self.add_message('missing-manifest-dependency', node=node,
