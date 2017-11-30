@@ -70,17 +70,6 @@ class PylintOdooChecker(BaseChecker):
                 if os.path.isfile(manifest_file):
                     return manifest_file
 
-    def set_caches(self):
-        if self.odoo_node:
-            self.set_ext_files()
-
-    def clear_caches(self):
-        self.ext_files = None
-
-    def leave_module(self, node):
-        """Clear caches"""
-        self.clear_caches()
-
     def set_ext_files(self):
         """Create `self.ext_files` dictionary with {extension_file: [files]}
             and exclude files using --ignore and --ignore-patterns parameters
@@ -103,6 +92,17 @@ class PylintOdooChecker(BaseChecker):
                 if not find:
                     fname_rel = os.path.relpath(fname, self.module_path)
                     self.ext_files.setdefault(fext, []).append(fname_rel)
+
+    def set_caches(self):
+        if self.odoo_node:
+            self.set_ext_files()
+
+    def clear_caches(self):
+        self.ext_files = None
+
+    def leave_module(self, node):
+        """Clear caches"""
+        self.clear_caches()
 
     def wrapper_visit_module(self, node):
         """Call methods named with name-key from self.msgs
