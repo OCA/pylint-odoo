@@ -5,6 +5,7 @@ import re
 import subprocess
 import inspect
 
+from distutils.version import LooseVersion
 from lxml import etree
 from pylint.checkers import BaseChecker, BaseTokenChecker
 from pylint.interfaces import IAstroidChecker, ITokenChecker
@@ -20,7 +21,7 @@ except ImportError:
     from whichcraft import which
 
 DFTL_VALID_ODOO_VERSIONS = [
-    '4.2', '5.0', '6.0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0',
+    '4.2', '5.0', '6.0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0',
 ]
 
 
@@ -58,6 +59,17 @@ class PylintOdooChecker(BaseChecker):
     manifest_file = None
     manifest_dict = None
 
+    def get_manifest_file(self, node_file):
+        """Get manifest file path
+        :param node_file: String with full path of a python module file.
+        :return: Full path of manifest file if exists else return None"""
+        if os.path.basename(node_file) == '__init__.py':
+            for manifest_basename in settings.MANIFEST_FILES:
+                manifest_file = os.path.join(
+                    os.path.dirname(node_file), manifest_basename)
+                if os.path.isfile(manifest_file):
+                    return manifest_file
+
     def set_caches(self):
         if self.odoo_node:
             self.set_ext_files()
@@ -91,17 +103,6 @@ class PylintOdooChecker(BaseChecker):
                 if not find:
                     fname_rel = os.path.relpath(fname, self.module_path)
                     self.ext_files.setdefault(fext, []).append(fname_rel)
-
-    def get_manifest_file(self, node_file):
-        """Get manifest file path
-        :param node_file: String with full path of a python module file.
-        :return: Full path of manifest file if exists else return None"""
-        if os.path.basename(node_file) == '__init__.py':
-            for manifest_basename in settings.MANIFEST_FILES:
-                manifest_file = os.path.join(
-                    os.path.dirname(node_file), manifest_basename)
-                if os.path.isfile(manifest_file):
-                    return manifest_file
 
     def wrapper_visit_module(self, node):
         """Call methods named with name-key from self.msgs
@@ -138,8 +139,8 @@ class PylintOdooChecker(BaseChecker):
         self.module_path = os.path.dirname(node.file)
         self.module = os.path.basename(self.module_path)
         self.set_caches()
-        for msg_code, (title, name_key, description) in \
-                sorted(self.msgs.items()):
+        for msg_code, config in sorted(self.msgs.items()):
+            name_key = config[1]
             self.msg_code = msg_code
             self.msg_name_key = name_key
             self.msg_args = None
@@ -180,23 +181,16 @@ class PylintOdooChecker(BaseChecker):
         return super(PylintOdooChecker, self).add_message(*args, **kwargs)
 
     def _is_version_supported(self, version, name_check):
-
-        def version_to_tuple(version):
-            if '.' not in version and version.count('.') != 1:
-                return version
-            version = version.split('.')
-            return tuple([int(version[0]), int(version[1])])
-
         if not hasattr(self, 'odoo_check_versions'):
             return True
         odoo_check_versions = self.odoo_check_versions.get(name_check, {})
         if not odoo_check_versions:
             return True
-        version = version_to_tuple(version)
-        min_odoo_version = odoo_check_versions.get(
-            'min_odoo_version', version_to_tuple(DFTL_VALID_ODOO_VERSIONS[0]))
-        max_odoo_version = odoo_check_versions.get(
-            'max_odoo_version', version_to_tuple(DFTL_VALID_ODOO_VERSIONS[-1]))
+        version = LooseVersion(version)
+        min_odoo_version = LooseVersion(odoo_check_versions.get(
+            'min_odoo_version', DFTL_VALID_ODOO_VERSIONS[0]))
+        max_odoo_version = LooseVersion(odoo_check_versions.get(
+            'max_odoo_version', DFTL_VALID_ODOO_VERSIONS[-1]))
         return (version >= min_odoo_version and version <= max_odoo_version)
 
 

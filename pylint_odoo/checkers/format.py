@@ -50,12 +50,11 @@ class FormatChecker(PylintOdooTokenChecker):
     msgs = ODOO_MSGS
     odoo_check_versions = {
         'no-utf8-coding-comment': {
-            'min_odoo_version': (4, 2),
-            'max_odoo_version': (10, 0),
+            'min_odoo_version': '4.2',
+            'max_odoo_version': '10.0',
         },
         'unnecessary-utf8-coding-comment': {
-            'min_odoo_version': (11, 0),
-            'max_odoo_version': (11, 0),
+            'min_odoo_version': '11.0',
         },
     }
 
