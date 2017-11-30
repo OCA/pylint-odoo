@@ -191,7 +191,7 @@ class PylintOdooChecker(BaseChecker):
             'min_odoo_version', DFTL_VALID_ODOO_VERSIONS[0]))
         max_odoo_version = LooseVersion(odoo_check_versions.get(
             'max_odoo_version', DFTL_VALID_ODOO_VERSIONS[-1]))
-        return (version >= min_odoo_version and version <= max_odoo_version)
+        return (min_odoo_version <= version <= max_odoo_version)
 
 
 class PylintOdooTokenChecker(BaseTokenChecker, PylintOdooChecker):
