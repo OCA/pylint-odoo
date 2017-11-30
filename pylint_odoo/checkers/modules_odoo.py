@@ -568,14 +568,25 @@ class ModuleChecker(misc.WrapperModuleChecker):
         """
         all_fields = {}
         for field in fields:
-            field_xml = field.attrib.get('name')
-            if (not field_xml or (field.getparent() and
-                                  field.getparent().tag == 'search')):
+            name = field.attrib.get('name')
+            context = field.attrib.get('context')
+            filter_domain = field.attrib.get('filter_domain')
+            sourceline = field.sourceline
+            if not name:
                 continue
-            all_fields.setdefault(
-                (field_xml, field.getparent()), []).append(field)
+            for in_field in fields:
+                if ((not in_field.attrib.get('name') or
+                     sourceline == in_field.sourceline)
+                    or
+                    (not
+                     (name == in_field.attrib.get('name') and
+                      context == in_field.attrib.get('context') and
+                      filter_domain == in_field.attrib.get('filter_domain')))):
+                    continue
+                all_fields.setdefault(
+                    (field.attrib.get('name'),
+                     field.getparent()), []).append(field)
         # Remove all keys which not duplicated by excluding them from the
-        # returning dict
         return dict(((field_xml_name, parent_node), nodes) for
                     (field_xml_name, parent_node), nodes in
                     all_fields.items() if len(nodes) >= 2)

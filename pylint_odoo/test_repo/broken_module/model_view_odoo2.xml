@@ -37,8 +37,9 @@
             <field name="model">ir.config_parameter</field>
             <field name="arch" type="xml">
                 <search string="System Properties">
-                    <field name="key_config" context="{'one': 'data'}"/>
-                    <field name="key_config" context="{'two': 'data'}"/>
+                    <field name="key_config" context="{'one': 'data'}" filter_domain="[('field', '=' 'one')]"/>
+                    <field name="key_config" context="{'two': 'data'}" filter_domain="[('field', '=' 'two')]"/>
+                    <field name="key_config" context="{'two': 'data'}" filter_domain="[('field', '=' 'two')]"/>
                 </search>
             </field>
         </record>
