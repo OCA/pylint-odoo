@@ -187,9 +187,8 @@ class PylintOdooChecker(BaseChecker):
         match = re.match(
             DFTL_MANIFEST_VERSION_FORMAT.format(
                 valid_odoo_versions=short_version), version.vstring)
-        if match:
-            if not self._is_version_supported(short_version, msg_id):
-                return
+        if match and not self._is_version_supported(short_version, msg_id):
+            return
         return super(PylintOdooChecker, self).add_message(
             msg_id, line, node, args, confidence)
 
