@@ -176,7 +176,7 @@ class PylintOdooChecker(BaseChecker):
         valid_odoo_versions = self.linter._all_options[
             'valid_odoo_versions'].config.valid_odoo_versions
         if not version:
-            if len(valid_odoo_versions) > 1:
+            if len(valid_odoo_versions) != 1:
                 return super(PylintOdooChecker, self).add_message(*args,
                                                                   **kwargs)
             version = valid_odoo_versions[0]
