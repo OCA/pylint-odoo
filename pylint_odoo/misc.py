@@ -25,6 +25,7 @@ DFTL_VALID_ODOO_VERSIONS = [
 ]
 DFTL_MANIFEST_VERSION_FORMAT = r"({valid_odoo_versions})\.\d+\.\d+\.\d+$"
 
+
 def get_plugin_msgs(pylint_run_res):
     """Get all message of this pylint plugin.
     :param pylint_run_res: Object returned by pylint.run method.
