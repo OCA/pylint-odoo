@@ -141,8 +141,8 @@ class PylintOdooChecker(BaseChecker):
         self.module_path = os.path.dirname(node.file)
         self.module = os.path.basename(self.module_path)
         self.set_caches()
-        for msg_code, config in sorted(self.msgs.items()):
-            name_key = config[1]
+        for msg_code, (title, name_key, description) in \
+                sorted(self.msgs.items()):
             self.msg_code = msg_code
             self.msg_name_key = name_key
             self.msg_args = None
@@ -183,8 +183,6 @@ class PylintOdooChecker(BaseChecker):
         if not match:
             valid_odoo_versions = self.linter._all_options[
                 'valid_odoo_versions'].config.valid_odoo_versions
-            version = LooseVersion(valid_odoo_versions[0] if
-                                   len(valid_odoo_versions) == 1 else '0')
         if not self._is_version_supported(short_version, msg_id):
             return
         return super(PylintOdooChecker, self).add_message(
