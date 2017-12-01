@@ -8,6 +8,7 @@ import inspect
 from distutils.version import LooseVersion
 from lxml import etree
 from pylint.checkers import BaseChecker, BaseTokenChecker
+from pylint.interfaces import UNDEFINED
 from pylint.interfaces import IAstroidChecker, ITokenChecker
 from pylint.utils import _basename_in_blacklist_re
 from restructuredtext_lint import lint_file as rst_lint
@@ -170,7 +171,8 @@ class PylintOdooChecker(BaseChecker):
     def visit_module(self, node):
         self.wrapper_visit_module(node)
 
-    def add_message(self, *args, **kwargs):
+    def add_message(self, msg_id, line=None, node=None, args=None,
+                    confidence=UNDEFINED):
         valid_odoo_versions = self.linter._all_options[
             'valid_odoo_versions'].config.valid_odoo_versions
         version = (self.manifest_dict.get('version')
@@ -178,18 +180,18 @@ class PylintOdooChecker(BaseChecker):
                    (valid_odoo_versions[0] if
                     len(valid_odoo_versions) == 1 else ''))
         if not version:
-            return super(PylintOdooChecker, self).add_message(*args, **kwargs)
+            return super(PylintOdooChecker, self).add_message(
+                msg_id, line, node, args, confidence)
         version = LooseVersion(version)
         short_version = '.'.join(map(str, version.version[:2]))
         match = re.match(
             DFTL_MANIFEST_VERSION_FORMAT.format(
                 valid_odoo_versions=short_version), version.vstring)
-        name_check = [arg for arg in args]
-        if match and len(name_check) >= 1:
-            if not self._is_version_supported(short_version,
-                                              name_check[0]):
+        if match:
+            if not self._is_version_supported(short_version, msg_id):
                 return
-        return super(PylintOdooChecker, self).add_message(*args, **kwargs)
+        return super(PylintOdooChecker, self).add_message(
+            msg_id, line, node, args, confidence)
 
     def _is_version_supported(self, version, name_check):
         if not hasattr(self, 'odoo_check_versions'):
