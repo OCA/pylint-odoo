@@ -172,8 +172,13 @@ class PylintOdooChecker(BaseChecker):
     def add_message(self, *args, **kwargs):
         version = (self.manifest_dict.get('version')
                    if isinstance(self.manifest_dict, dict) else '')
+        valid_odoo_versions = self.linter._all_options[
+            'valid_odoo_versions'].config.valid_odoo_versions
         if not version:
-            return super(PylintOdooChecker, self).add_message(*args, **kwargs)
+            if len(valid_odoo_versions) > 1:
+                return super(PylintOdooChecker, self).add_message(*args,
+                                                                  **kwargs)
+            version = valid_odoo_versions[0]
         version = LooseVersion(version)
         short_version = '.'.join(map(str, version.version[:2]))
         match = re.match(
