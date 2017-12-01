@@ -92,9 +92,7 @@ class FormatChecker(PylintOdooTokenChecker):
         if not tokens_identified.get(MAGIC_COMMENT_CODING_UTF8) and \
            not os.path.basename(self.linter.current_file) == '__init__.py':
             self.add_message('no-utf8-coding-comment', line=1)
-        if (tokens_identified.get(MAGIC_COMMENT_CODING_UTF8) and
-                not os.path.basename(
-                    self.linter.current_file) == '__init__.py'):
+        if (tokens_identified.get(MAGIC_COMMENT_CODING_UTF8)):
             self.add_message('unnecessary-utf8-coding-comment', line=1)
         access_x = os.access(self.linter.current_file, os.X_OK)
         interpreter_content, line_num = tokens_identified.get(

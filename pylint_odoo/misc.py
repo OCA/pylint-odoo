@@ -183,6 +183,9 @@ class PylintOdooChecker(BaseChecker):
         if not match:
             valid_odoo_versions = self.linter._all_options[
                 'valid_odoo_versions'].config.valid_odoo_versions
+            version = LooseVersion(valid_odoo_versions[0] if
+                                   len(valid_odoo_versions) == 1 else '0')
+            short_version = '.'.join(map(str, version.version[:2]))
         if not self._is_version_supported(short_version, msg_id):
             return
         return super(PylintOdooChecker, self).add_message(
