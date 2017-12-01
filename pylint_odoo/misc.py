@@ -23,7 +23,7 @@ except ImportError:
 DFTL_VALID_ODOO_VERSIONS = [
     '4.2', '5.0', '6.0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0',
 ]
-
+DFTL_MANIFEST_VERSION_FORMAT = r"({valid_odoo_versions})\.\d+\.\d+\.\d+$"
 
 def get_plugin_msgs(pylint_run_res):
     """Get all message of this pylint plugin.
@@ -172,10 +172,16 @@ class PylintOdooChecker(BaseChecker):
     def add_message(self, *args, **kwargs):
         version = (self.manifest_dict.get('version')
                    if isinstance(self.manifest_dict, dict) else '')
-        match = re.match(r"(?P<version>\d+.\d+)\.\d+\.\d+\.\d+$", version)
+        if not version:
+            return super(PylintOdooChecker, self).add_message(*args, **kwargs)
+        version = LooseVersion(version)
+        short_version = '.'.join(map(str, version.version[:2]))
+        match = re.match(
+            DFTL_MANIFEST_VERSION_FORMAT.format(
+                valid_odoo_versions=short_version), version.vstring)
         name_check = [arg for arg in args]
         if match and len(name_check) >= 1:
-            if not self._is_version_supported(match.group('version'),
+            if not self._is_version_supported(short_version,
                                               name_check[0]):
                 return
         return super(PylintOdooChecker, self).add_message(*args, **kwargs)

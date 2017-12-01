@@ -231,7 +231,6 @@ DFTL_METHOD_REQUIRED_SUPER = [
     'create', 'write', 'read', 'unlink', 'copy',
     'setUp', 'setUpClass', 'tearDown', 'default_get',
 ]
-DFTL_MANIFEST_VERSION_FORMAT = r"({valid_odoo_versions})\.\d+\.\d+\.\d+$"
 DFTL_CURSOR_EXPR = [
     'self.env.cr', 'self._cr',  # new api
     'self.cr',  # controllers and test
@@ -323,7 +322,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
         ('manifest_version_format', {
             'type': 'string',
             'metavar': '<string>',
-            'default': DFTL_MANIFEST_VERSION_FORMAT,
+            'default': misc.DFTL_MANIFEST_VERSION_FORMAT,
             'help': 'Regex to check version format in manifest file. '
             'Use "{valid_odoo_versions}" to check the parameter of '
             '"valid_odoo_versions"'
