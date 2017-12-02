@@ -3,10 +3,8 @@ import os
 import tokenize
 from sys import platform
 
-from pylint.checkers import BaseTokenChecker
-from pylint.interfaces import ITokenChecker
-
 from .. import settings
+from ..misc import PylintOdooTokenChecker
 
 ODOO_MSGS = {
     # C->convention R->refactor W->warning E->error F->fatal
@@ -15,6 +13,11 @@ ODOO_MSGS = {
         'No UTF-8 coding comment found: '
         'Use `# coding: utf-8` or `# -*- coding: utf-8 -*-`',
         'no-utf8-coding-comment',
+        settings.DESC_DFLT
+    ),
+    'C%d02' % settings.BASE_FORMAT_ID: (
+        'UTF-8 coding is not necessary',
+        'unnecessary-utf8-coding-comment',
         settings.DESC_DFLT
     ),
     'W%d01' % settings.BASE_FORMAT_ID: (
@@ -41,13 +44,19 @@ MAGIC_COMMENT_CODING_UTF8 = 4
 NO_IDENTIFIED = -1
 
 
-class FormatChecker(BaseTokenChecker):
-
-    # Auto call to `process_tokens` method
-    __implements__ = (ITokenChecker)
+class FormatChecker(PylintOdooTokenChecker):
 
     name = settings.CFG_SECTION
     msgs = ODOO_MSGS
+    odoo_check_versions = {
+        'no-utf8-coding-comment': {
+            'min_odoo_version': '4.2',
+            'max_odoo_version': '10.0',
+        },
+        'unnecessary-utf8-coding-comment': {
+            'min_odoo_version': '11.0',
+        },
+    }
 
     def get_magic_comment_type(self, comment, line_num):
         if line_num >= 1 and line_num <= 2:
@@ -83,6 +92,8 @@ class FormatChecker(BaseTokenChecker):
         if not tokens_identified.get(MAGIC_COMMENT_CODING_UTF8) and \
            not os.path.basename(self.linter.current_file) == '__init__.py':
             self.add_message('no-utf8-coding-comment', line=1)
+        if (tokens_identified.get(MAGIC_COMMENT_CODING_UTF8)):
+            self.add_message('unnecessary-utf8-coding-comment', line=1)
         access_x = os.access(self.linter.current_file, os.X_OK)
         interpreter_content, line_num = tokens_identified.get(
             MAGIC_COMMENT_INTERPRETER, ['', 0])

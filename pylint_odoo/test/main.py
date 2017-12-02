@@ -47,6 +47,7 @@ EXPECTED_ERRORS = {
     'missing-readme': 1,
     'missing-return': 1,
     'no-utf8-coding-comment': 3,
+    'unnecessary-utf8-coding-comment': 18,
     'odoo-addons-relative-import': 4,
     'old-api7-method-defined': 2,
     'openerp-exception-warning': 3,
@@ -239,6 +240,18 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats['by_msg']
         self.assertListEqual(list(real_errors.items()),
                              list([('xml-attribute-translatable', 1)]))
+
+    def test_100_read_version_from_manifest(self):
+        """Test the functionality to get the version from the file manifest
+        to avoid the parameter --valid_odoo_versions"""
+        modules = [mod for mod in self.paths_modules if
+                   'eleven_module' in mod or 'twelve_module' in mod]
+        extra_params = ['--disable=all', '--enable=no-utf8-coding-comment,'
+                        'unnecessary-utf8-coding-comment']
+        pylint_res = self.run_pylint(modules, extra_params)
+        real_errors = pylint_res.linter.stats['by_msg']
+        self.assertListEqual(list(real_errors.items()),
+                             list([('unnecessary-utf8-coding-comment', 2)]))
 
 
 if __name__ == '__main__':

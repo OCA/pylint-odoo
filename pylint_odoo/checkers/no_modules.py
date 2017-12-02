@@ -57,7 +57,7 @@ import re
 import astroid
 import rfc3986
 from six import string_types
-from pylint.checkers import BaseChecker, utils
+from pylint.checkers import utils
 from pylint.interfaces import IAstroidChecker
 
 from .. import settings
@@ -231,10 +231,6 @@ DFTL_METHOD_REQUIRED_SUPER = [
     'create', 'write', 'read', 'unlink', 'copy',
     'setUp', 'setUpClass', 'tearDown', 'default_get',
 ]
-DFTL_VALID_ODOO_VERSIONS = [
-    '4.2', '5.0', '6.0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0',
-]
-DFTL_MANIFEST_VERSION_FORMAT = r"({valid_odoo_versions})\.\d+\.\d+\.\d+$"
 DFTL_CURSOR_EXPR = [
     'self.env.cr', 'self._cr',  # new api
     'self.cr',  # controllers and test
@@ -262,7 +258,7 @@ DFTL_DEPRECATED_FIELD_PARAMETERS = [
 ]
 
 
-class NoModuleChecker(BaseChecker):
+class NoModuleChecker(misc.PylintOdooChecker):
 
     __implements__ = IAstroidChecker
 
@@ -326,7 +322,7 @@ class NoModuleChecker(BaseChecker):
         ('manifest_version_format', {
             'type': 'string',
             'metavar': '<string>',
-            'default': DFTL_MANIFEST_VERSION_FORMAT,
+            'default': misc.DFTL_MANIFEST_VERSION_FORMAT,
             'help': 'Regex to check version format in manifest file. '
             'Use "{valid_odoo_versions}" to check the parameter of '
             '"valid_odoo_versions"'
@@ -346,7 +342,7 @@ class NoModuleChecker(BaseChecker):
         ('valid_odoo_versions', {
             'type': 'csv',
             'metavar': '<comma separated values>',
-            'default': DFTL_VALID_ODOO_VERSIONS,
+            'default': misc.DFTL_VALID_ODOO_VERSIONS,
             'help': 'List of valid odoo versions separated by a comma.'
         }),
         ('no_missing_return', {
@@ -653,14 +649,6 @@ class NoModuleChecker(BaseChecker):
 
     def camelize(self, string):
         return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string)
-
-    def formatversion(self, string):
-        valid_odoo_versions = '|'.join(
-            map(re.escape, self.config.valid_odoo_versions))
-        self.config.manifest_version_format_parsed = (
-            self.config.manifest_version_format.format(
-                valid_odoo_versions=valid_odoo_versions))
-        return re.match(self.config.manifest_version_format_parsed, string)
 
     def get_decorators_names(self, decorators):
         nodes = []
