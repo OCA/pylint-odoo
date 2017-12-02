@@ -61,6 +61,16 @@ class PylintOdooChecker(BaseChecker):
     manifest_file = None
     manifest_dict = None
 
+    def formatversion(self, string):
+        valid_odoo_versions = self.linter._all_options[
+            'valid_odoo_versions'].config.valid_odoo_versions
+        valid_odoo_versions = '|'.join(
+            map(re.escape, DFTL_VALID_ODOO_VERSIONS))
+        self.config.manifest_version_format_parsed = (
+            DFTL_MANIFEST_VERSION_FORMAT.format(
+                valid_odoo_versions=valid_odoo_versions))
+        return re.match(self.config.manifest_version_format_parsed, string)
+
     def get_manifest_file(self, node_file):
         """Get manifest file path
         :param node_file: String with full path of a python module file.
@@ -176,16 +186,14 @@ class PylintOdooChecker(BaseChecker):
         version = (self.manifest_dict.get('version')
                    if isinstance(self.manifest_dict, dict) else '0')
         version = LooseVersion(version)
-        short_version = '.'.join(map(str, version.version[:2]))
-        match = re.match(
-            DFTL_MANIFEST_VERSION_FORMAT.format(
-                valid_odoo_versions=short_version), version.vstring)
+        match = self.formatversion(version.vstring)
         if not match:
             valid_odoo_versions = self.linter._all_options[
                 'valid_odoo_versions'].config.valid_odoo_versions
             version = LooseVersion(valid_odoo_versions[0] if
                                    len(valid_odoo_versions) == 1 else '0')
-            short_version = '.'.join(map(str, version.version[:2]))
+            match = self.formatversion(version.vstring)
+        short_version = match.group(1) if match else '0'
         if not self._is_version_supported(short_version, msg_id):
             return
         return super(PylintOdooChecker, self).add_message(
