@@ -173,7 +173,7 @@ class PylintOdooChecker(BaseChecker):
                         node_lineno_original = node.lineno
                         msg_args_extra = self.set_extra_file(node, msg_args,
                                                              msg_code)
-                        self.add_message(msg_code, line=node.lineno, node=node,
+                        self.add_message(name_key, line=node.lineno, node=node,
                                          args=msg_args_extra)
                         node.file = node_file_original
                         node.lineno = node_lineno_original
