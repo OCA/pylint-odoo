@@ -191,6 +191,9 @@ class TestModel(models.Model):
         for item in items:
             if item:
                 item.write({'name': "Name computed"})
+        for arg in self.my_method1():
+            item.write({'name': "Name computed"})
+
 
     def my_method1(self, variable1):
         #  Shouldn't show error of field-argument-translate

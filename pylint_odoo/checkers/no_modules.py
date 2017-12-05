@@ -482,7 +482,9 @@ class NoModuleChecker(BaseChecker):
                 #               item.write()
                 # Inside the computer method
                 exprs = [item for item in funct.nodes_of_class(astroid.For)
-                         if (item.iter.name == 'self' and
+                         if (isinstance(item.iter,
+                                        astroid.node_classes.Name) and
+                             item.iter.name == 'self' and
                              node.func.expr.name == item.target.name)]
                 for exp in exprs:
                     self.add_message(
