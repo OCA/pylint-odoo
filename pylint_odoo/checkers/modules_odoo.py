@@ -574,7 +574,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
             if not name:
                 continue
             all_fields.setdefault(
-                (name, context, filter_domain, field.getparent()), []).append(field)
+                (name, context, filter_domain, field.getparent()),
+                []).append(field)
         # Remove all keys which not duplicated by excluding them from the
         return dict(((name, context, filter_domain, parent_node), nodes) for
                     (name, context, filter_domain, parent_node), nodes in
