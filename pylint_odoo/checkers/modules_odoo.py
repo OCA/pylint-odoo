@@ -568,14 +568,13 @@ class ModuleChecker(misc.WrapperModuleChecker):
         """
         all_fields = {}
         for field in fields:
-            name = field.attrib.get('name')
-            context = field.attrib.get('context')
-            filter_domain = field.attrib.get('filter_domain')
-            if not name:
+            field_xml = field.attrib.get('name')
+            if not field_xml:
                 continue
             all_fields.setdefault(
-                (name, context, filter_domain, field.getparent()),
-                []).append(field)
+                (field_xml, field.attrib.get('context'),
+                 field.attrib.get('filter_domain'),
+                 field.getparent()), []).append(field)
         # Remove all keys which not duplicated by excluding them from the
         return dict(((name, context, filter_domain, parent_node), nodes) for
                     (name, context, filter_domain, parent_node), nodes in
