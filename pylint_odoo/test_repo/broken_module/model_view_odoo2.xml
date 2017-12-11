@@ -32,6 +32,18 @@
             </field>
         </record>
 
+        <!-- duplicate record field "name" inside the search -->
+        <record model="ir.ui.view" id="view_ir_config_search">
+            <field name="model">ir.config_parameter</field>
+            <field name="arch" type="xml">
+                <search string="System Properties">
+                    <field name="key_config" context="{'one': 'data'}" filter_domain="[('field', '=' 'one')]"/>
+                    <field name="key_config" context="{'two': 'data'}" filter_domain="[('field', '=' 'two')]"/>
+                    <field name="key_config" context="{'two': 'data'}" filter_domain="[('field', '=' 'two')]"/>
+                </search>
+            </field>
+        </record>
+
          <!-- inherit view without duplicated is not checked -->
         <record id="view_model_form4" model="ir.ui.view">
             <field name="name">view.model.form</field>
