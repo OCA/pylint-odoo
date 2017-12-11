@@ -576,8 +576,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 continue
             for in_field in fields:
                 if ((not in_field.attrib.get('name') or
-                     sourceline == in_field.sourceline)
-                    or
+                     sourceline == in_field.sourceline) or
                     (not
                      (name == in_field.attrib.get('name') and
                       context == in_field.attrib.get('context') and
