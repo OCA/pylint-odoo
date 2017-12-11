@@ -571,23 +571,13 @@ class ModuleChecker(misc.WrapperModuleChecker):
             name = field.attrib.get('name')
             context = field.attrib.get('context')
             filter_domain = field.attrib.get('filter_domain')
-            sourceline = field.sourceline
             if not name:
                 continue
-            for in_field in fields:
-                if ((not in_field.attrib.get('name') or
-                     sourceline == in_field.sourceline) or
-                    (not
-                     (name == in_field.attrib.get('name') and
-                      context == in_field.attrib.get('context') and
-                      filter_domain == in_field.attrib.get('filter_domain')))):
-                    continue
-                all_fields.setdefault(
-                    (field.attrib.get('name'),
-                     field.getparent()), []).append(field)
+            all_fields.setdefault(
+                (name, context, filter_domain, field.getparent()), []).append(field)
         # Remove all keys which not duplicated by excluding them from the
-        return dict(((field_xml_name, parent_node), nodes) for
-                    (field_xml_name, parent_node), nodes in
+        return dict(((name, context, filter_domain, parent_node), nodes) for
+                    (name, context, filter_domain, parent_node), nodes in
                     all_fields.items() if len(nodes) >= 2)
 
     def _check_duplicate_xml_fields(self):
