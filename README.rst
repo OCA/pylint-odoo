@@ -149,6 +149,27 @@ If you have external files you can add them in ``examples`` folder to skip.
 
 For rst-syntax-error skip unknown directives
 
+Skip one check based on the Odoo version
+----------------------------------------
+
+If you need to restrict a check to specific version(s) of Odoo, use the new variable ``odoo_check_versions``
+
+For example, if you have one new check `your-new-check` and you need to run it only
+if the Odoo version is between 9.0 and 11.0, inside the class you should declare the following :
+
+.. code-block:: python
+
+    ...
+    class FormatChecker(PylintOdooTokenChecker):
+    ...
+        odoo_check_versions = {
+            'your-new-check': {
+                'min_odoo_version': '9.0',
+                'max_odoo_version': '10.0',
+            }
+        }
+    ...
+
 Skip one xml check
 ------------------
 
