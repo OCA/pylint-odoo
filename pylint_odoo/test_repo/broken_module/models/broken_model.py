@@ -21,6 +21,8 @@ def function_no_method():
 class TestModel(models.Model):
     _name = 'test.model'
 
+    _inherit = ['mail.thread']
+
     _columns = {}  # deprecated columns
     _defaults = {}  # deprecated defaults
     length = fields.Integer()  # Deprecated length by js errors
@@ -176,6 +178,29 @@ class TestModel(models.Model):
     def my_method1(self, variable1):
         #  Shouldn't show error of field-argument-translate
         self.my_method2(_('hello world'))
+
+        # Message post without translation function
+        self.message_post(subject='Subject not translatable',
+                          body='Body not translatable %s' % variable1)
+        self.message_post(subject='Subject not translatable %(variable)s' %
+                          {'variable': variable1},
+                          body='Body not translatable {}'.format(variable1),
+                          message_type='notification')
+        self.message_post('Body not translatable',
+                          'Subject not translatable {a}'.format(a=variable1))
+        self.message_post('Body not translatable %s' % variable1,
+                          'Subject not translatable %(variable)s' %
+                          {'variable': variable1})
+        self.message_post('Body not translatable',
+                          subject='Subject not translatable')
+
+        # Message post with translation function
+        self.message_post(subject=_('Subject not translatable'),
+                          body=_('Body not translatable'))
+        self.message_post(_('Body not translatable'),
+                          _('Subject not translatable'))
+        self.message_post(_('Body not translatable'),
+                          subject=_('Subject not translatable'))
 
     def my_method2(self, variable2):
         return variable2
