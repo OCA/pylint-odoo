@@ -243,6 +243,12 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
     class_inherit_names = []
 
+    odoo_check_versions = {
+        'xml-deprecated-qweb-directive': {
+            'min_odoo_version': '10.0',
+        }
+    }
+
     @utils.check_messages('consider-merging-classes-inherited')
     def visit_assign(self, node):
         if not self.odoo_node:
@@ -909,11 +915,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
         :return: False if deprecated directives are found, in which case
                  self.msg_args will contain the error messages.
         """
-        valid_versions = set(self.linter._all_options[
-            'valid_odoo_versions'].config.valid_odoo_versions)
-        if not valid_versions & {'10.0', '11.0'}:
-            return True
-
         deprecated_directives = {
             't-esc-options',
             't-field-options',
