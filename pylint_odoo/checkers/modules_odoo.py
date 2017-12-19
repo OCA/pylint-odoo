@@ -104,13 +104,6 @@ ODOO_MSGS = {
         'file-not-used',
         settings.DESC_DFLT
     ),
-    'W%d35' % settings.BASE_OMODULE_ID: (
-        'External dependency "%s" without ImportError. More info: '
-        'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
-        '#external-dependencies',
-        'missing-import-error',
-        settings.DESC_DFLT
-    ),
     'W%d36' % settings.BASE_OMODULE_ID: (
         'Missing external dependency "%s" from manifest. More info: '
         'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
