@@ -246,6 +246,9 @@ class ModuleChecker(misc.WrapperModuleChecker):
     odoo_check_versions = {
         'xml-deprecated-qweb-directive': {
             'min_odoo_version': '10.0',
+        },
+        'deprecated-openerp-xml-node': {
+            'min_odoo_version': '9.0'
         }
     }
 
