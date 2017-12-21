@@ -354,6 +354,12 @@ class NoModuleChecker(misc.PylintOdooChecker):
         }),
     )
 
+    odoo_check_versions = {
+        'openerp-exception-warning': {
+            'min_odoo_version': '9.0'
+        }
+    }
+
     def open(self):
         super(NoModuleChecker, self).open()
         self.config.deprecated_field_parameters = \
