@@ -141,7 +141,7 @@ class MainTest(unittest.TestCase):
         """All odoolint errors vs found"""
         # Some messages can be excluded as they are only applied on certain
         # Odoo versions (not necessarily 8.0).
-        extra_params = ['--valid_odoo_versions=8.0']
+        extra_params = []
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         msgs_found = pylint_res.linter.stats['by_msg'].keys()
         plugin_msgs = set(misc.get_plugin_msgs(pylint_res))
