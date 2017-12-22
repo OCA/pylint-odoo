@@ -249,6 +249,9 @@ class ModuleChecker(misc.WrapperModuleChecker):
         },
         'deprecated-openerp-xml-node': {
             'min_odoo_version': '9.0'
+        },
+        'deprecated-data-xml-node': {
+            'min_odoo_version': '9.0'
         }
     }
 
