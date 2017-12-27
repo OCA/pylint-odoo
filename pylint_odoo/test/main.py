@@ -144,7 +144,7 @@ class MainTest(unittest.TestCase):
         excluded_msgs = {
             'xml-attribute-translatable',
         }
-        extra_params = []
+        extra_params = ['--valid_odoo_versions=8.0']
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         msgs_found = pylint_res.linter.stats['by_msg'].keys()
         plugin_msgs = set(misc.get_plugin_msgs(pylint_res)) - excluded_msgs
