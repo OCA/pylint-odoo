@@ -143,6 +143,8 @@ class MainTest(unittest.TestCase):
         # Odoo versions (not necessarily 8.0).
         excluded_msgs = {
             'xml-attribute-translatable',
+            'deprecated-data-xml-node',
+            'openerp-exception-warning',
         }
         extra_params = ['--valid_odoo_versions=8.0']
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
