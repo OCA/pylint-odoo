@@ -163,7 +163,7 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'C%d07' % settings.BASE_NOMODULE_ID: (
-        'String parameter of raise "%s" requires translation. Use _(%s)',
+        'String parameter on "%s" requires translation. Use %s_(%s)',
         'translation-required',
         settings.DESC_DFLT
     ),
@@ -392,7 +392,8 @@ class NoModuleChecker(misc.PylintOdooChecker):
                           'method-compute', 'method-search', 'method-inverse',
                           'sql-injection',
                           'attribute-string-redundant',
-                          'renamed-field-parameter'
+                          'renamed-field-parameter',
+                          'translation-required',
                           )
     def visit_call(self, node):
         if ('fields' == self.get_func_lib(node.func) and
@@ -449,6 +450,40 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 node.func.attrname == 'commit' and \
                 self.get_cursor_name(node.func) in self.config.cursor_expr:
             self.add_message('invalid-commit', node=node)
+
+        # Call the message_post()
+        if (isinstance(node, astroid.CallFunc) and
+                isinstance(node.func, astroid.Getattr) and
+                node.func.attrname == 'message_post'):
+            for arg in node.args[:2]:
+                as_string = ''
+                if (isinstance(arg, astroid.Const) or
+                        isinstance(arg, astroid.BinOp)):
+                    as_string = arg.as_string()
+                if (isinstance(arg, astroid.Call) and
+                        isinstance(arg.func, astroid.Attribute) and
+                        arg.func.attrname == 'format'):
+                    as_string = arg.func.as_string()
+                if as_string:
+                    self.add_message('translation-required', node=node,
+                                     args=('message_post', '', as_string))
+            for keyword in node.keywords or []:
+                if keyword.arg not in ('subject', 'body'):
+                    continue
+                as_string = ''
+                if ((isinstance(keyword.value, astroid.Const) and
+                     isinstance(keyword.value.value, str)) or
+                        (isinstance(keyword.value, astroid.BinOp))):
+                    as_string = keyword.value.as_string()
+                if (isinstance(keyword.value, astroid.Call) and
+                        isinstance(keyword.value.func, astroid.Attribute) and
+                        keyword.value.func.attrname == 'format'):
+                    as_string = keyword.value.func.as_string()
+                if as_string:
+                    self.add_message('translation-required', node=node,
+                                     args=('message_post',
+                                           '%s=' % keyword.arg,
+                                           as_string))
 
         # SQL Injection
         if isinstance(node, astroid.CallFunc) and node.args and \
@@ -701,7 +736,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 func_name in self.config.odoo_exceptions:
             self.add_message(
                 'translation-required', node=node,
-                args=(func_name, argument.as_string()))
+                args=(func_name, '', argument.as_string()))
 
     def get_cursor_name(self, node):
         expr_list = []
