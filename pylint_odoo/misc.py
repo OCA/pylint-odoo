@@ -375,7 +375,7 @@ class WrapperModuleChecker(PylintOdooChecker):
         output = output.decode('UTF-8')
         err = err.decode('UTF-8')
         if process.returncode != 0 and err:
-            return []
+            output = err.replace('\n', '\\n')
         # Strip multi-line output https://github.com/eslint/eslint/issues/6810
         for old in re.findall(r"`(.*)` instead.", output, re.DOTALL):
             new = old.split('\n')[0][:20] + '...'
