@@ -160,7 +160,7 @@
     "constructor-super": "error",
     "curly": "error",
     "default-case": "off",
-    "dot-location": "error",
+    "dot-location": ["error", "property"],
     "dot-notation": "error",
     "eol-last": "error",
     "eqeqeq": "error",
