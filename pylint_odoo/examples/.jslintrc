@@ -3,6 +3,7 @@
     "$": false,
     "_": false,
     "jQuery": false,
+    "moment": false,
     "odoo": false,
     "openerp": false,
     "self": false
