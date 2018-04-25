@@ -853,7 +853,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
         for xml_file in self.filter_files_ext('xml', relpath=True):
             for record in self.get_xml_records(
                     os.path.join(self.module_path, xml_file), None,
-                    '//attribute[not(@translation)]'):
+                    '//attribute[not(@name="string") and not(@translation)]'):
                 self.msg_args.append(
                     ("%s:%d" % (xml_file, record.sourceline), 'xml_id'))
         if self.msg_args:
