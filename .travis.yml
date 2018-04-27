@@ -19,9 +19,9 @@ matrix:
     - python: 2.7
       env:
         TOXENV=py27-pylint20
-    - python: 3.4
+    - python: 3.5
       env:
-        TOXENV=py34-pylint14
+        TOXENV=py35-pylint14
     - python: 3.5
       env:
         TOXENV=py35-pylint20
