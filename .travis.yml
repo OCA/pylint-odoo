@@ -42,8 +42,12 @@ install:
     # Install tox
     - pip install tox
 
+    # Install rst check
+    - pip install restructuredtext_lint pygments
+
 script:
     - flake8 --ignore=F601 --exclude=__init__.py .
+    - restructuredtext-lint ${TRAVIS_BUILD_DIR}/README.rst
     - tox -e $TOXENV,profile-stats
 
 after_success:
