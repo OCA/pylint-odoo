@@ -46,7 +46,7 @@ install:
     - pip install restructuredtext_lint pygments
 
 script:
-    - flake8 --ignore=F601 --exclude=__init__.py .
+    - flake8 --ignore=F601,W503,W504 --exclude=__init__.py .
     - restructuredtext-lint ${TRAVIS_BUILD_DIR}/README.rst
     - tox -e $TOXENV,profile-stats
 
