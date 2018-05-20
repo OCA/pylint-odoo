@@ -51,6 +51,7 @@ for more info visit pylint doc
 """
 
 import ast
+import itertools
 import os
 import re
 
@@ -455,35 +456,44 @@ class NoModuleChecker(misc.PylintOdooChecker):
         if (isinstance(node, astroid.CallFunc) and
                 isinstance(node.func, astroid.Getattr) and
                 node.func.attrname == 'message_post'):
-            for arg in node.args[:2]:
-                as_string = ''
-                if (isinstance(arg, astroid.Const) or
-                        isinstance(arg, astroid.BinOp)):
-                    as_string = arg.as_string()
-                if (isinstance(arg, astroid.Call) and
-                        isinstance(arg.func, astroid.Attribute) and
-                        arg.func.attrname == 'format'):
-                    as_string = arg.func.as_string()
-                if as_string:
-                    self.add_message('translation-required', node=node,
-                                     args=('message_post', '', as_string))
-            for keyword in node.keywords or []:
-                if keyword.arg not in ('subject', 'body'):
+            for arg in itertools.chain(node.args, node.keywords or []):
+                if isinstance(arg, astroid.Keyword):
+                    keyword = arg.arg
+                    value = arg.value
+                else:
+                    keyword = ''
+                    value = arg
+                if keyword and keyword not in ('subject', 'body'):
                     continue
                 as_string = ''
-                if ((isinstance(keyword.value, astroid.Const) and
-                     isinstance(keyword.value.value, str)) or
-                        (isinstance(keyword.value, astroid.BinOp))):
-                    as_string = keyword.value.as_string()
-                if (isinstance(keyword.value, astroid.Call) and
-                        isinstance(keyword.value.func, astroid.Attribute) and
-                        keyword.value.func.attrname == 'format'):
-                    as_string = keyword.value.func.as_string()
+                # case: message_post(body='String')
+                if isinstance(value, astroid.Const):
+                    as_string = value.as_string()
+                # case: message_post(body='String %s' % (...))
+                elif (isinstance(value, astroid.BinOp)
+                        and value.op == '%'
+                        and isinstance(value.left, astroid.Const)
+                        # The right part is translatable only if it's a
+                        # function or a list of functions
+                        and not (
+                            isinstance(value.right, (
+                                astroid.Call, astroid.Tuple, astroid.List))
+                            and all([
+                                isinstance(child, astroid.Call)
+                                for child in getattr(value.right, 'elts', [])
+                            ]))):
+                    as_string = value.left.as_string()
+                # case: message_post(body='String {...}'.format(...))
+                elif (isinstance(value, astroid.Call)
+                        and isinstance(value.func, astroid.Attribute)
+                        and isinstance(value.func.expr, astroid.Const)
+                        and value.func.attrname == 'format'):
+                    as_string = value.func.expr.as_string()
                 if as_string:
-                    self.add_message('translation-required', node=node,
-                                     args=('message_post',
-                                           '%s=' % keyword.arg,
-                                           as_string))
+                    keyword = keyword and '%s=' % keyword
+                    self.add_message(
+                        'translation-required', node=node,
+                        args=('message_post', keyword, as_string))
 
         # SQL Injection
         if isinstance(node, astroid.CallFunc) and node.args and \

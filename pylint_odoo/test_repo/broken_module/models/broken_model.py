@@ -193,14 +193,39 @@ class TestModel(models.Model):
                           {'variable': variable1})
         self.message_post('Body not translatable',
                           subject='Subject not translatable')
+        self.message_post(body='<h1>%s</h1><p>%s</p>' % (
+            _('Paragraph translatable'), 'Paragraph not translatable'))
 
         # Message post with translation function
-        self.message_post(subject=_('Subject not translatable'),
-                          body=_('Body not translatable'))
-        self.message_post(_('Body not translatable'),
-                          _('Subject not translatable'))
-        self.message_post(_('Body not translatable'),
-                          subject=_('Subject not translatable'))
+        self.message_post(subject=_('Subject translatable'),
+                          body=_('Body translatable'))
+        self.message_post(_('Body translatable'),
+                          _('Subject translatable'))
+        self.message_post(_('Body translatable'),
+                          subject=_('Subject translatable'))
+        self.message_post(_('A CDR has been recovered for %s') % (variable1,))
+        self.message_post(_('A CDR has been recovered for %s') % variable1)
+        self.message_post(_('Var {a}').format(a=variable1))
+        self.message_post(_('Var %(variable)s') % {'variable': variable1})
+        self.message_post(subject=_('Subject translatable'),
+                          body=_('Body translatable %s') % variable1)
+        self.message_post(subject=_('Subject translatable %(variable)s') %
+                          {'variable': variable1},
+                          message_type='notification')
+        self.message_post(_('Body translatable'),
+                          _('Subject translatable {a}').format(a=variable1))
+        self.message_post(_('Body translatable %s') % variable1,
+                          _('Subject translatable %(variable)s') %
+                          {'variable': variable1})
+        self.message_post('<p>%s</p>' % _('Body translatable'))
+        self.message_post(body='<p>%s</p>' % _('Body translatable'))
+
+        # There is no way to know if the variable is translated, then ignoring
+        self.message_post(variable1)
+        self.message_post(body=variable1 + variable1)
+        self.message_post(body=(variable1 + variable1))
+        self.message_post(body=variable1 % variable1)
+        self.message_post(body=(variable1 % variable1))
 
     def my_method2(self, variable2):
         return variable2
