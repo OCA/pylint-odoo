@@ -209,6 +209,11 @@ ODOO_MSGS = {
         'website-manifest-key-not-valid-uri',
         settings.DESC_DFLT
     ),
+    'W%d15' % settings.BASE_NOMODULE_ID: (
+        'Translatable term in "%s" contains variables. Use %s instead',
+        'translation-contains-variable',
+        settings.DESC_DFLT
+    ),
     'F%d01' % settings.BASE_NOMODULE_ID: (
         'File "%s": "%s" not found.',
         'resource-not-exist',
@@ -395,6 +400,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                           'attribute-string-redundant',
                           'renamed-field-parameter',
                           'translation-required',
+                          'translation-contains-variable',
                           )
     def visit_call(self, node):
         if ('fields' == self.get_func_lib(node.func) and
@@ -494,6 +500,34 @@ class NoModuleChecker(misc.PylintOdooChecker):
                     self.add_message(
                         'translation-required', node=node,
                         args=('message_post', keyword, as_string))
+
+        # Call _(...) with variables into the term to be translated
+        if (isinstance(node.func, astroid.Name)
+                and node.func.name == '_'
+                and node.args):
+            wrong = ''
+            arg = node.args[0]
+            # case: _('...' % (variables))
+            if isinstance(arg, astroid.BinOp) and arg.op == '%':
+                wrong = '%s %% %s' % (
+                    arg.left.as_string(), arg.right.as_string())
+                right = '_(%s) %% %s' % (
+                    arg.left.as_string(), arg.right.as_string())
+            # Case: _('...'.format(variables))
+            elif (isinstance(arg, astroid.Call)
+                    and isinstance(arg.func, astroid.Attribute)
+                    and isinstance(arg.func.expr, astroid.Const)
+                    and arg.func.attrname == 'format'):
+                wrong = arg.as_string()
+                params_as_string = ', '.join([
+                    x.as_string()
+                    for x in itertools.chain(arg.args, arg.keywords or [])])
+                right = '_(%s).format(%s)' % (
+                    arg.func.expr.as_string(), params_as_string)
+            if wrong:
+                self.add_message(
+                    'translation-contains-variable', node=node,
+                    args=(wrong, right))
 
         # SQL Injection
         if isinstance(node, astroid.CallFunc) and node.args and \
