@@ -227,6 +227,22 @@ class TestModel(models.Model):
         self.message_post(body=variable1 % variable1)
         self.message_post(body=(variable1 % variable1))
 
+        # translation function with variables in the term
+        variable2 = variable1
+        self.message_post(_('Variable not translatable: %s' % variable1))
+        self.message_post(_('Variables not translatable: %s, %s' % (
+            variable1, variable2)))
+        self.message_post(body=_('Variable not translatable: %s' % variable1))
+        self.message_post(body=_('Variables not translatable: %s' % (
+            variable1, variable2)))
+        error_msg = _('Variable not translatable: %s' % variable1)
+        error_msg = _('Variables not translatable: %s, %s' % (
+            variable1, variable2))
+        error_msg = _('Variable not translatable: {}'.format(variable1))
+        error_msg = _('Variables not translatable: {}, {variable2}'.format(
+            variable1, variable2=variable2))
+        return error_msg
+
     def my_method2(self, variable2):
         return variable2
 
