@@ -25,6 +25,13 @@ matrix:
     - python: 3.5
       env:
         TOXENV=py35-pylint20
+    - python: 3.7-dev
+      env:
+        TOXENV=py37-pylint14
+    - python: 3.7-dev
+      env:
+        TOXENV=py37-pylint20
+
 
 install:
     - nvm install 6  # Update nodejs version to 6.latest, required by eslint
