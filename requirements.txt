@@ -8,3 +8,4 @@ restructuredtext_lint==1.1
 isort==4.3.4
 whichcraft
 rfc3986
+six
