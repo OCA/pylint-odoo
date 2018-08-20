@@ -355,13 +355,14 @@ class ModuleChecker(misc.WrapperModuleChecker):
             return
         relpath = os.path.relpath(
             node.parent.file, os.path.dirname(self.manifest_file))
-        if os.path.dirname(relpath) != 'tests':
-            # missing-import-error rule doesn't apply to the test files
+        if os.path.dirname(relpath) == 'tests':
+            # import errors rules don't apply to the test files
             # since these files are loaded only when running tests
             # and in such a case your
             # module and their external dependencies are installed.
-            self.add_message('missing-import-error', node=node,
-                             args=(module_name,))
+            return
+        self.add_message('missing-import-error', node=node,
+                         args=(module_name,))
 
         ext_deps = self.manifest_dict.get('external_dependencies') or {}
         py_ext_deps = ext_deps.get('python') or []
