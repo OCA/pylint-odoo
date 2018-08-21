@@ -143,6 +143,7 @@ class MainTest(unittest.TestCase):
         # Some messages can be excluded as they are only applied on certain
         # Odoo versions (not necessarily 8.0).
         excluded_msgs = {
+            'unnecessary-utf8-coding-comment',
             'xml-deprecated-qweb-directive',
         }
         extra_params = ['--valid_odoo_versions=8.0']
@@ -233,14 +234,29 @@ class MainTest(unittest.TestCase):
         self.assertEqual(self.expected_errors, real_errors)
 
     def test_90_valid_odoo_versions(self):
-        """Test --valid_odoo_versions parameter when is '8.0'"""
-        extra_params = ['--valid_odoo_versions=8.0',
-                        '--disable=all',
-                        '--enable=xml-attribute-translatable']
+        """Test --valid_odoo_versions parameter when it's '8.0' & '11.0'"""
+        # First, run Pylint for version 8.0
+        extra_params = [
+            '--valid_odoo_versions=8.0',
+            '--disable=all',
+            '--enable=xml-attribute-translatable,manifest-version-format',
+        ]
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats['by_msg']
-        self.assertListEqual(list(real_errors.items()),
-                             list([('xml-attribute-translatable', 1)]))
+        expected_errors = {
+            'manifest-version-format': 6,
+            'xml-attribute-translatable': 1,
+        }
+        self.assertDictEqual(real_errors, expected_errors)
+
+        # Now for version 11.0
+        extra_params[0] = '--valid_odoo_versions=11.0'
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats['by_msg']
+        expected_errors = {
+            'manifest-version-format': 5,
+        }
+        self.assertDictEqual(real_errors, expected_errors)
 
     def test_100_read_version_from_manifest(self):
         """Test the functionality to get the version from the file manifest

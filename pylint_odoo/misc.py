@@ -65,7 +65,7 @@ class PylintOdooChecker(BaseChecker):
         valid_odoo_versions = self.linter._all_options[
             'valid_odoo_versions'].config.valid_odoo_versions
         valid_odoo_versions = '|'.join(
-            map(re.escape, DFTL_VALID_ODOO_VERSIONS))
+            map(re.escape, valid_odoo_versions))
         self.config.manifest_version_format_parsed = (
             DFTL_MANIFEST_VERSION_FORMAT.format(
                 valid_odoo_versions=valid_odoo_versions))
