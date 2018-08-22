@@ -131,7 +131,7 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'C%d01' % settings.BASE_NOMODULE_ID: (
-        'Missing author required "%s" in manifest file',
+        'One of the following authors must be present in manifest: %s',
         'manifest-required-author',
         settings.DESC_DFLT
     ),
@@ -222,7 +222,7 @@ ODOO_MSGS = {
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ['license']
-DFTL_MANIFEST_REQUIRED_AUTHOR = 'Odoo Community Association (OCA)'
+DFTL_MANIFEST_REQUIRED_AUTHORS = ['Odoo Community Association (OCA)']
 DFTL_MANIFEST_DEPRECATED_KEYS = ['description']
 DFTL_LICENSE_ALLOWED = [
     'AGPL-3', 'GPL-2', 'GPL-2 or any later version',
@@ -271,11 +271,11 @@ class NoModuleChecker(misc.PylintOdooChecker):
     name = settings.CFG_SECTION
     msgs = ODOO_MSGS
     options = (
-        ('manifest_required_author', {
-            'type': 'string',
-            'metavar': '<string>',
-            'default': DFTL_MANIFEST_REQUIRED_AUTHOR,
-            'help': 'Name of author required in manifest file.'
+        ('manifest_required_authors', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFTL_MANIFEST_REQUIRED_AUTHORS,
+            'help': 'Author names, at least one is required in manifest file.'
         }),
         ('manifest_required_keys', {
             'type': 'csv',
@@ -577,11 +577,16 @@ class NoModuleChecker(misc.PylintOdooChecker):
             self.add_message('manifest-author-string', node=node)
         else:
             # Check author required
-            authors = map(lambda author: author.strip(), author.split(','))
-            required_author = self.config.manifest_required_author
-            if required_author not in authors:
+            authors = set([auth.strip() for auth in author.split(',')])
+            required_authors = set(self.config.manifest_required_authors)
+            if not (authors & required_authors):
+                # None of the required authors is present in the manifest
+                # Authors will be printed as 'author1', 'author2', ...
+                authors_str = ", ".join([
+                    "'%s'" % auth for auth in required_authors
+                ])
                 self.add_message('manifest-required-author', node=node,
-                                 args=(required_author,))
+                                 args=(authors_str,))
 
         # Check keys required
         required_keys = self.config.manifest_required_keys

@@ -2,7 +2,7 @@
 {
     'name': 'Broken module for tests',
     # missing license
-    'author': 'Many People',  # Missing oca author
+    'author': 'Vauxoo, Many People',  # Missing oca author
     'description': 'Should be a README.rst file',
     'version': '8_0.1.0.0',
     'website': 'https://odoo-community.org',

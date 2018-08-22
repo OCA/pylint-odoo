@@ -270,6 +270,30 @@ class MainTest(unittest.TestCase):
         self.assertListEqual(list(real_errors.items()),
                              list([('unnecessary-utf8-coding-comment', 2)]))
 
+    def test_110_manifest_required_authors(self):
+        """ Test --manifest_required_authors using a different author and
+            multiple authors separated by commas
+        """
+        # First, run Pylint using a different author
+        extra_params = [
+            '--manifest_required_authors=Vauxoo',
+            '--disable=all',
+            '--enable=manifest-required-author',
+        ]
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats['by_msg']
+        expected_errors = {
+            'manifest-required-author': 4,
+        }
+        self.assertDictEqual(real_errors, expected_errors)
+
+        # Then, run it using multiple authors
+        extra_params[0] = '--manifest_required_authors=Vauxoo,Other'
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats['by_msg']
+        expected_errors['manifest-required-author'] = 3
+        self.assertDictEqual(real_errors, expected_errors)
+
 
 if __name__ == '__main__':
     unittest.main()
