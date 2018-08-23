@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Even though this file isn't referenced from the manifest, this shouldn't fail,
+        because it's into the "migrations" folder
+    -->
+</odoo>
