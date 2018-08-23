@@ -829,19 +829,17 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
     def _check_file_not_used(self):
         """Check if a file is not used from manifest"""
-        self.msg_args = []
         module_files = set(self._get_module_files())
         referenced_files = set(self._get_manifest_referenced_files()).union(
             set(self._get_xml_referenced_files())
         )
-        for no_referenced_file in (module_files - referenced_files):
-            if (not no_referenced_file.startswith('static/') and
-                not (no_referenced_file.startswith('test/') or
-                     no_referenced_file.startswith('tests/'))):
-                self.msg_args.append((no_referenced_file,))
-        if self.msg_args:
-            return False
-        return True
+        excluded_dirs = ['static', 'test', 'tests', 'migrations']
+        no_referenced_files = [
+            f for f in (module_files - referenced_files)
+            if f.split(os.path.sep)[0] not in excluded_dirs
+        ]
+        self.msg_args = no_referenced_files
+        return not no_referenced_files
 
     def _check_xml_attribute_translatable(self):
         """The xml attribute is missing the translation="off" tag
