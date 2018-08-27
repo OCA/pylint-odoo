@@ -30,7 +30,7 @@ EXPECTED_ERRORS = {
     'file-not-used': 6,
     'incoherent-interpreter-exec-perm': 3,
     'invalid-commit': 4,
-    'javascript-lint': 22,
+    'javascript-lint': 25,
     'license-allowed': 1,
     'manifest-author-string': 1,
     'manifest-deprecated-key': 1,
