@@ -183,7 +183,7 @@ class PylintOdooChecker(BaseChecker):
 
     def add_message(self, msg_id, line=None, node=None, args=None,
                     confidence=UNDEFINED):
-        version = (self.manifest_dict.get('version')
+        version = (self.manifest_dict.get('version') or ''
                    if isinstance(self.manifest_dict, dict) else '')
         match = self.formatversion(version)
         short_version = match.group(1) if match else ''
