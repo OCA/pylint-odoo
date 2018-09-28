@@ -87,7 +87,7 @@ class MainTest(unittest.TestCase):
         self.default_options = [
             '--load-plugins=pylint_odoo', '--reports=no', '--msg-template='
             '"{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}"',
-            '--output-format=colorized', '--rcfile=%s' % dummy_cfg,
+            '--output-format=colorized', '--rcfile=%s' % os.devnull,
         ]
         path_modules = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
