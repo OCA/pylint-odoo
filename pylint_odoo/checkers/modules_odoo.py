@@ -833,7 +833,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
         referenced_files = set(self._get_manifest_referenced_files()).union(
             set(self._get_xml_referenced_files())
         )
-        excluded_dirs = ['static', 'test', 'tests', 'migrations']
+        excluded_dirs = ['static', 'test', 'tests', 'migrations', 'import']
         no_referenced_files = [
             f for f in (module_files - referenced_files)
             if f.split(os.path.sep)[0] not in excluded_dirs
