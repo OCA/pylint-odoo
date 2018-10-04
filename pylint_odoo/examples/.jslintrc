@@ -2,6 +2,7 @@
   "globals": {
     "$": false,
     "_": false,
+    "fuzzy": false,
     "jQuery": false,
     "moment": false,
     "odoo": false,
