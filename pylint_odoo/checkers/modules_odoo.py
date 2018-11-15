@@ -241,6 +241,12 @@ class ModuleChecker(misc.WrapperModuleChecker):
         }),
     )
 
+    odoo_check_versions = {
+        'missing-import-error': {
+            'max_odoo_version': '11.0',
+        },
+    }
+
     class_inherit_names = []
 
     @utils.check_messages('consider-merging-classes-inherited')

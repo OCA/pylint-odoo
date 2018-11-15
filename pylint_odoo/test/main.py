@@ -294,6 +294,23 @@ class MainTest(unittest.TestCase):
         expected_errors['manifest-required-author'] = 3
         self.assertDictEqual(real_errors, expected_errors)
 
+    def test_120_import_error_skip(self):
+        """Missing import error skipped for >=12.0"""
+        extra_params = [
+            '--valid_odoo_versions=11.0',
+            '--disable=all',
+            '--enable=missing-import-error',
+        ]
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors_110 = pylint_res.linter.stats['by_msg']
+        self.assertEqual(self.expected_errors.get('missing-import-error'),
+                         real_errors_110.get('missing-import-error'))
+
+        extra_params[0] = '--valid_odoo_versions=12.0'
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors_120 = pylint_res.linter.stats['by_msg']
+        self.assertFalse(real_errors_120)
+
 
 if __name__ == '__main__':
     unittest.main()
