@@ -53,7 +53,7 @@ EXPECTED_ERRORS = {
     'openerp-exception-warning': 3,
     'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
-    'sql-injection': 15,
+    'sql-injection': 18,
     'translation-field': 2,
     'translation-required': 15,
     'translation-contains-variable': 10,
