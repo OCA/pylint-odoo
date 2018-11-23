@@ -24,6 +24,7 @@ EXPECTED_ERRORS = {
     'dangerous-filter-wo-user': 1,
     'dangerous-view-replace-wo-priority': 5,
     'deprecated-openerp-xml-node': 5,
+    'development-status-allowed': 1,
     'duplicate-id-csv': 2,
     'duplicate-xml-fields': 9,
     'duplicate-xml-record-id': 2,
