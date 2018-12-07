@@ -106,14 +106,16 @@ ODOO_MSGS = {
     ),
     'W%d35' % settings.BASE_OMODULE_ID: (
         'External dependency "%s" without ImportError. More info: '
-        'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
+        'https://github.com/OCA/odoo-community.org/blob/master/website/'
+        'Contribution/CONTRIBUTING.rst'
         '#external-dependencies',
         'missing-import-error',
         settings.DESC_DFLT
     ),
     'W%d36' % settings.BASE_OMODULE_ID: (
         'Missing external dependency "%s" from manifest. More info: '
-        'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
+        'https://github.com/OCA/odoo-community.org/blob/master/website/'
+        'Contribution/CONTRIBUTING.rst'
         '#external-dependencies',
         'missing-manifest-dependency',
         settings.DESC_DFLT

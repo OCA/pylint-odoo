@@ -117,7 +117,8 @@ ODOO_MSGS = {
     ),
     'E%d02' % settings.BASE_NOMODULE_ID: (
         'Use of cr.commit() directly - More info '
-        'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
+        'https://github.com/OCA/odoo-community.org/blob/master/website/'
+        'Contribution/CONTRIBUTING.rst'
         '#never-commit-the-transaction',
         'invalid-commit',
         settings.DESC_DFLT
@@ -125,7 +126,8 @@ ODOO_MSGS = {
     'E%d03' % settings.BASE_NOMODULE_ID: (
         'SQL injection risk. '
         'Use parameters if you can. - More info '
-        'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
+        'https://github.com/OCA/odoo-community.org/blob/master/website/'
+        'Contribution/CONTRIBUTING.rst'
         '#no-sql-injection',
         'sql-injection',
         settings.DESC_DFLT

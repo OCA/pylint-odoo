@@ -21,6 +21,7 @@ MANIFEST_FILES = [
 
 # Message description default
 DESC_DFLT = 'You can review guidelines here: ' + \
-    'https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md'
+    'https://github.com/OCA/odoo-community.org/blob/master/website/' + \
+    'Contribution/CONTRIBUTING.rst'
 
 CFG_SECTION = 'odoolint'
