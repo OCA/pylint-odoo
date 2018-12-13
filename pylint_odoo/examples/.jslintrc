@@ -231,15 +231,6 @@
     "quote-props": "off",
     "quotes": "off",
     "radix": "error",
-    "require-jsdoc": ["warn", {
-      "require": {
-        "FunctionDeclaration": true,
-        "MethodDefinition": true,
-        "ClassDeclaration": true,
-        "ArrowFunctionExpression": true,
-        "FunctionExpression": true
-      }
-    }],
     "require-yield": "error",
     "rest-spread-spacing": "off",
     "semi": [
