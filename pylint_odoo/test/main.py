@@ -294,6 +294,17 @@ class MainTest(unittest.TestCase):
         expected_errors['manifest-required-author'] = 3
         self.assertDictEqual(real_errors, expected_errors)
 
+        # Testing deprecated attribute
+        extra_params[0] = ('--manifest_required_author='
+                           'Odoo Community Association (OCA)')
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats['by_msg']
+        expected_errors_deprecated = {
+            'manifest-required-author': (
+                EXPECTED_ERRORS['manifest-required-author']),
+        }
+        self.assertDictEqual(real_errors, expected_errors_deprecated)
+
     def test_120_import_error_skip(self):
         """Missing import error skipped for >=12.0"""
         extra_params = [
