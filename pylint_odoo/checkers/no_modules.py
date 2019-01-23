@@ -279,6 +279,14 @@ class NoModuleChecker(misc.PylintOdooChecker):
             'default': DFTL_MANIFEST_REQUIRED_AUTHORS,
             'help': 'Author names, at least one is required in manifest file.'
         }),
+        ('manifest_required_author', {
+            'type': 'string',
+            'metavar': '<string>',
+            'default': '',
+            'help': ('Name of author required in manifest file. '
+                     'This parameter is deprecated use '
+                     '"manifest_required_authors" instead.')
+        }),
         ('manifest_required_keys', {
             'type': 'csv',
             'metavar': '<comma separated values>',
@@ -580,7 +588,12 @@ class NoModuleChecker(misc.PylintOdooChecker):
         else:
             # Check author required
             authors = set([auth.strip() for auth in author.split(',')])
-            required_authors = set(self.config.manifest_required_authors)
+
+            if self.config.manifest_required_author:
+                # Support compatibility for deprecated attribute
+                required_authors = set((self.config.manifest_required_author,))
+            else:
+                required_authors = set(self.config.manifest_required_authors)
             if not (authors & required_authors):
                 # None of the required authors is present in the manifest
                 # Authors will be printed as 'author1', 'author2', ...
