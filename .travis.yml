@@ -41,13 +41,10 @@ install:
     - ${TRAVIS_BUILD_DIR}/install.sh
 
     # Install testing dependencies
-    - pip install coveralls flake8==3.4.1
+    - pip install -r requirements_test.txt
 
-    # Install tox
-    - pip install tox
-
-    # Install rst check
-    - pip install restructuredtext_lint pygments
+    # Install dependencies
+    - pip install -r requirements.txt
 
 script:
     - flake8 --ignore=F601,W503,W504 --exclude=__init__.py .
