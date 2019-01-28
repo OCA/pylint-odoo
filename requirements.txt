@@ -1,5 +1,7 @@
-astroid==1.6.3
-pylint==1.8.4
+astroid==1.6.3 ; python_version <= '2.7'
+pylint==1.8.4 ; python_version <= '2.7'
+astroid==2.1.0 ; python_version > '2.7'
+pylint==2.2.2 ; python_version > '2.7'
 pylint-plugin-utils==0.2.4
 docutils==0.14
 lxml>=2.3.2

@@ -16,9 +16,6 @@ matrix:
     - python: 2.7
       env:
         TOXENV=py27-pylint14
-    - python: 2.7
-      env:
-        TOXENV=py27-pylint20
     - python: 3.5
       env:
         TOXENV=py35-pylint14
@@ -55,7 +52,7 @@ install:
 script:
     - flake8 --ignore=F601,W503,W504 --exclude=__init__.py .
     - restructuredtext-lint ${TRAVIS_BUILD_DIR}/README.rst
-    - tox -e $TOXENV,profile-stats
+    - tox -e $TOXENV
 
 after_success:
     - coveralls
