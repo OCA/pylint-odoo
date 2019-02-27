@@ -183,7 +183,7 @@ class PylintOdooChecker(BaseChecker):
 
     def add_message(self, msg_id, line=None, node=None, args=None,
                     confidence=UNDEFINED):
-        version = (self.manifest_dict.get('version')
+        version = (self.manifest_dict.get('version') or ''
                    if isinstance(self.manifest_dict, dict) else '')
         match = self.formatversion(version)
         short_version = match.group(1) if match else ''
@@ -240,8 +240,15 @@ class WrapperModuleChecker(PylintOdooChecker):
             r"(?P<file>^[\w|\-|\.|/ \\]+):?(?P<lineno>\d+)?:?(?P<colno>\d+)?"
         fregex = re.compile(fregex_str)
         fmatch = fregex.match(first_arg)
-        msg = self.linter.msgs_store.check_message_id(msg_code).msg.\
-            strip('"\' ')
+        # pylint 2.0 renamed check_message_id to get_message_definition in:
+        # https://github.com/PyCQA/pylint/commit/5ccbf9eaa54c0c302c9180bdfb745566c16e416d  # noqa
+        msgs_store = self.linter.msgs_store
+        if hasattr(msgs_store, 'check_message_id'):
+            get_message_definition = msgs_store.check_message_id
+        else:
+            get_message_definition = msgs_store.get_message_definition
+
+        msg = get_message_definition(msg_code).msg.strip('"\' ')
         if not fmatch or not msg.startswith(r"%s"):
             return msg_args
         module_path = os.path.dirname(self.odoo_node.file)

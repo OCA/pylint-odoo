@@ -83,10 +83,12 @@ def profiling(profile):
 
 class MainTest(unittest.TestCase):
     def setUp(self):
+        dummy_cfg = os.path.join(gettempdir(), 'nousedft.cfg')
+        open(dummy_cfg, "w").write("")
         self.default_options = [
             '--load-plugins=pylint_odoo', '--reports=no', '--msg-template='
             '"{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}"',
-            '--output-format=colorized',
+            '--output-format=colorized', '--rcfile=%s' % os.devnull,
         ]
         path_modules = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
@@ -122,7 +124,10 @@ class MainTest(unittest.TestCase):
         sys.path.extend(paths)
         cmd = self.default_options + extra_params + paths
         with profiling(self.profile):
-            res = Run(cmd, exit=False)
+            try:
+                res = Run(cmd, do_exit=False)  # pylint2
+            except TypeError:
+                res = Run(cmd, exit=False)  # pylint1
         return res
 
     def test_10_path_dont_exist(self):

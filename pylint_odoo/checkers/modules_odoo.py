@@ -259,7 +259,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 'consider-merging-classes-inherited', node.lineno):
             return
         node_left = node.targets[0]
-        if not isinstance(node_left, astroid.node_classes.AssName) or \
+        if not isinstance(node_left, astroid.node_classes.AssignName) or \
                 node_left.name not in ('_inherit', '_name') or \
                 not isinstance(node.value, astroid.node_classes.Const) or \
                 not isinstance(node.parent, astroid.ClassDef):
