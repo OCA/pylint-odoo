@@ -399,3 +399,15 @@ class TestModel(models.Model):
 
         var[1] = 'SELECT name FROM account WHERE id IN %s' % tuple(ids)
         self._cr.execute(var[1])
+
+    def sql_no_injection_private_attributes(self, _variable, variable):
+        # Skip sql-injection using private attributes
+        self._cr.execute(
+            "CREATE VIEW %s AS (SELECT * FROM res_partner)" % self._table)
+        # Real sql-injection cases
+        self._cr.execute(
+            "CREATE VIEW %s AS (SELECT * FROM res_partner)" % self.table)
+        self._cr.execute(
+            "CREATE VIEW %s AS (SELECT * FROM res_partner)" % _variable)
+        self._cr.execute(
+            "CREATE VIEW %s AS (SELECT * FROM res_partner)" % variable)
