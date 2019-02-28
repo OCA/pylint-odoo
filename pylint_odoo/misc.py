@@ -32,11 +32,25 @@ def get_plugin_msgs(pylint_run_res):
     :param pylint_run_res: Object returned by pylint.run method.
     :return: List of strings with message name.
     """
+    msgs_store = pylint_run_res.linter.msgs_store
+
+    def get_messages():
+        if hasattr(msgs_store, '_messages'):
+            return pylint_run_res.linter.msgs_store._messages
+        # pylint 2.3.0 renamed _messages to _messages_definitions in:
+        # https://github.com/PyCQA/pylint/commit/75cecdb1b88cc759223e83fd325aeafd09fec37e  # noqa
+        elif hasattr(msgs_store, '_messages_definitions'):
+            return pylint_run_res.linter.msgs_store._messages_definitions
+        else:
+            raise ValueError(
+                'pylint.utils.MessagesStore does not have a '
+                '_messages/_messages_definitions attribute')
+
+    messages = get_messages()
+
     all_plugin_msgs = [
-        key
-        for key in pylint_run_res.linter.msgs_store._messages
-        if pylint_run_res.linter.msgs_store._messages[key].checker.name ==
-        settings.CFG_SECTION
+        key for key in messages
+        if messages[key].checker.name == settings.CFG_SECTION
     ]
     return all_plugin_msgs
 
