@@ -32,11 +32,25 @@ def get_plugin_msgs(pylint_run_res):
     :param pylint_run_res: Object returned by pylint.run method.
     :return: List of strings with message name.
     """
+    msgs_store = pylint_run_res.linter.msgs_store
+
+    def get_messages():
+        if hasattr(msgs_store, '_messages'):
+            return pylint_run_res.linter.msgs_store._messages
+        # pylint 2.3.0 renamed _messages to _messages_definitions in:
+        # https://github.com/PyCQA/pylint/commit/75cecdb1b88cc759223e83fd325aeafd09fec37e  # noqa
+        elif hasattr(msgs_store, '_messages_definitions'):
+            return pylint_run_res.linter.msgs_store._messages_definitions
+        else:
+            raise ValueError(
+                'pylint.utils.MessagesStore does not have a '
+                '_messages/_messages_definitions attribute')
+
+    messages = get_messages()
+
     all_plugin_msgs = [
-        key
-        for key in pylint_run_res.linter.msgs_store._messages
-        if pylint_run_res.linter.msgs_store._messages[key].checker.name ==
-        settings.CFG_SECTION
+        key for key in messages
+        if messages[key].checker.name == settings.CFG_SECTION
     ]
     return all_plugin_msgs
 
@@ -240,15 +254,28 @@ class WrapperModuleChecker(PylintOdooChecker):
             r"(?P<file>^[\w|\-|\.|/ \\]+):?(?P<lineno>\d+)?:?(?P<colno>\d+)?"
         fregex = re.compile(fregex_str)
         fmatch = fregex.match(first_arg)
-        # pylint 2.0 renamed check_message_id to get_message_definition in:
-        # https://github.com/PyCQA/pylint/commit/5ccbf9eaa54c0c302c9180bdfb745566c16e416d  # noqa
-        msgs_store = self.linter.msgs_store
-        if hasattr(msgs_store, 'check_message_id'):
-            get_message_definition = msgs_store.check_message_id
-        else:
-            get_message_definition = msgs_store.get_message_definition
 
-        msg = get_message_definition(msg_code).msg.strip('"\' ')
+        msgs_store = self.linter.msgs_store
+
+        def get_message_definitions(message_id_or_symbol):
+            if hasattr(msgs_store, 'check_message_id'):
+                return [msgs_store.check_message_id(message_id_or_symbol)]
+            # pylint 2.0 renamed check_message_id to get_message_definition in:
+            # https://github.com/PyCQA/pylint/commit/5ccbf9eaa54c0c302c9180bdfb745566c16e416d  # noqa
+            elif hasattr(msgs_store, 'get_message_definition'):
+                return \
+                    [msgs_store.get_message_definition(message_id_or_symbol)]
+            # pylint 2.3.0 renamed get_message_definition to get_message_definitions in:  # noqa
+            # https://github.com/PyCQA/pylint/commit/da67a9da682e51844fbc674229ff6619eb9c816a  # noqa
+            elif hasattr(msgs_store, 'get_message_definitions'):
+                return \
+                    msgs_store.get_message_definitions(message_id_or_symbol)
+            else:
+                raise ValueError(
+                    'pylint.utils.MessagesStore does not have a '
+                    'get_message_definition(s) method')
+
+        msg = get_message_definitions(msg_code)[0].msg.strip('"\' ')
         if not fmatch or not msg.startswith(r"%s"):
             return msg_args
         module_path = os.path.dirname(self.odoo_node.file)
