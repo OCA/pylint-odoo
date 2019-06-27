@@ -20,7 +20,7 @@ matrix:
 
 
 install:
-    - nvm install 6  # Update nodejs version to 6.latest, required by eslint
+    - nvm install 11  # Update nodejs version to 11.latest, required by eslint
     # Remove packages installed from addons-apt-packages of travis file
     - sed -i '/node/d' ${TRAVIS_BUILD_DIR}/install.sh
     - sed -i '/pip install ./d' ${TRAVIS_BUILD_DIR}/install.sh
