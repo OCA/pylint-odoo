@@ -190,6 +190,11 @@ ODOO_MSGS = {
         'development-status-allowed',
         settings.DESC_DFLT
     ),
+    'C%d12' % settings.BASE_NOMODULE_ID: (
+        'Name of default method should start with "_default_"',
+        'method-default',
+        settings.DESC_DFLT
+    ),
     'R%d10' % settings.BASE_NOMODULE_ID: (
         'Method defined with old api version 7',
         'old-api7-method-defined',
@@ -435,7 +440,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                           'renamed-field-parameter',
                           'translation-required',
                           'translation-contains-variable',
-                          'print-used',
+                          'print-used', 'method-default'
                           )
     def visit_call(self, node):
         infer_node = utils.safe_infer(node.func)
@@ -464,7 +469,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 if isinstance(argument, astroid.Keyword):
                     argument_aux = argument.value
                     deprecated = self.config.deprecated_field_parameters
-                    if argument.arg in ['compute', 'search', 'inverse'] and \
+                    if argument.arg in ['compute', 'search', 'inverse', 'default'] and \
                             isinstance(argument_aux, astroid.Const) and \
                             isinstance(argument_aux.value, string_types) and \
                             not argument_aux.value.startswith(

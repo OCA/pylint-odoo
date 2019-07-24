@@ -42,6 +42,7 @@ EXPECTED_ERRORS = {
     'method-inverse': 1,
     'method-required-super': 8,
     'method-search': 1,
+    'method-default': 1,
     'missing-import-error': 7,
     'missing-manifest-dependency': 5,
     'missing-newline-extrafiles': 4,
