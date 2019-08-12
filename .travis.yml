@@ -20,7 +20,6 @@ matrix:
 
 
 install:
-    - nvm install 11  # Update nodejs version to 11.latest, required by eslint
     # Remove packages installed from addons-apt-packages of travis file
     - sed -i '/node/d' ${TRAVIS_BUILD_DIR}/install.sh
     - sed -i '/pip install ./d' ${TRAVIS_BUILD_DIR}/install.sh
@@ -29,13 +28,7 @@ install:
     - ${TRAVIS_BUILD_DIR}/install.sh
 
     # Install testing dependencies
-    - pip install coveralls flake8==3.4.1
-
-    # Install tox
-    - pip install tox
-
-    # Install rst check
-    - pip install restructuredtext_lint pygments
+    - pip install coveralls flake8==3.4.1 tox restructuredtext_lint pygments
 
 script:
     - flake8 --ignore=F601,W503,W504 --exclude=__init__.py .

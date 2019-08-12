@@ -469,7 +469,8 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 if isinstance(argument, astroid.Keyword):
                     argument_aux = argument.value
                     deprecated = self.config.deprecated_field_parameters
-                    if argument.arg in ['compute', 'search', 'inverse', 'default'] and \
+                    if argument.arg in ['compute', 'search', 'inverse',
+                                        'default'] and \
                             isinstance(argument_aux, astroid.Const) and \
                             isinstance(argument_aux.value, string_types) and \
                             not argument_aux.value.startswith(
