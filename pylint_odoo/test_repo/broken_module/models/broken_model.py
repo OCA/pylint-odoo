@@ -35,9 +35,6 @@ class TestModel(models.Model):
         search='_search_name',  # good search method name
         inverse='_inverse_name',  # good inverse method name
     )
-    name_default = fields.Char(
-        default='_default_name'  # good default method name
-    )
 
     # Imported openerp.fields use Char (Upper case)
     other_field = fields.char(
@@ -46,9 +43,6 @@ class TestModel(models.Model):
         compute='my_method_compute',  # bad compute method name
         search='my_method_search',  # bad search method name
         inverse='my_method_inverse',  # bad inverse method name
-    )
-    other_name_default = fields.Char(
-        default='get_default'  # bad default method name
     )
     compute_none = fields.Char(compute=None)
 
