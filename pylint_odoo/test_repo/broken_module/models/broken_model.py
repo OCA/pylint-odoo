@@ -65,6 +65,14 @@ class TestModel(models.Model):
             fields.Datetime.context_timestamp(self,
                                               timestamp=fields.Datetime.now())
         )
+        self.with_context({'overwrite_context': True}).write({})
+        ctx = {'overwrite_context': True}
+        self.with_context(ctx).write({})
+        ctx2 = ctx
+        self.with_context(ctx2).write({})
+
+        self.with_context(**ctx).write({})
+        self.with_context(overwrite_context=False).write({})
         return date
 
     my_ok_field = fields.Float(
