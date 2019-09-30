@@ -285,5 +285,7 @@
     "yield-star-spacing": "off",
     "yoda": "error"
   },
-  "parserOptions": {}
+  "parserOptions": {
+    "ecmaVersion": 6,
+  }
 }
