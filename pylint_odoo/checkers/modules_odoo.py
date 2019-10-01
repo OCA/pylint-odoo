@@ -431,7 +431,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                     # Skip directive errors
                     continue
                 self.msg_args.append((
-                    "%s:%d" % (rst_file, error.line),
+                    "%s:%d" % (rst_file, error.line or 0),
                     msg.strip('\n').replace('\n', '|')))
         if self.msg_args:
             return False
