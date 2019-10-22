@@ -276,9 +276,18 @@ class ModuleChecker(misc.WrapperModuleChecker):
         node.file = self.linter.current_file
         self.inh_dup.setdefault(key, []).append(node)
 
+    def _build_whitelist_module_patterns(self):
+        known_patterns = []
+        for known_pattern in self.config.import_name_whitelist:
+            pattern = known_pattern.replace('*', '.*').replace('?', '.?')
+            known_patterns.append(re.compile('^' + pattern + '$'))
+        return known_patterns
+
     def open(self):
         """Define variables to use cache"""
         self.inh_dup = {}
+        patterns = self._build_whitelist_module_patterns()
+        self._whitelist_module_patterns = patterns
         super(ModuleChecker, self).open()
 
     def close(self):
@@ -339,6 +348,25 @@ class ModuleChecker(misc.WrapperModuleChecker):
         except:
             pass
 
+    def _is_module_name_in_whitelist(self, module_name):
+        # Try to find most specific placement instruction match (if any)
+        # (from isort place_module() method)
+        parts = module_name.split('.')
+        module_names_to_check = [
+            '.'.join(parts[:first_k])
+            for first_k in range(len(parts), 0, -1)
+        ]
+        # Check if one of the module name is part of the whitelist.
+        # For an module name such as 'anybox.testing.openerp', the
+        # modules names to check will be:
+        # ['anybox.testing.openerp', 'anybox.testing', 'anybox']
+        # Only one of them has to be in the whitelist to be accepted.
+        for module_name_to_check in module_names_to_check:
+            for pattern in self._whitelist_module_patterns:
+                if pattern.match(module_name_to_check):
+                    return True
+        return False
+
     def _check_imported_packages(self, node, module_name):
         """Check if the import node is a external dependency to validate it"""
         if not module_name:
@@ -353,10 +381,10 @@ class ModuleChecker(misc.WrapperModuleChecker):
         if self._is_absolute_import(node, module_name):
             # skip absolute imports
             return
-        isort_obj = isort.SortImports(
-            file_contents='',
-            known_standard_library=self.config.import_name_whitelist,
-        )
+        if self._is_module_name_in_whitelist(module_name):
+            # ignore whitelisted modules
+            return
+        isort_obj = isort.SortImports(file_contents='')
         import_category = isort_obj.place_module(module_name)
         if import_category not in ('FIRSTPARTY', 'THIRDPARTY'):
             # skip if is not a external library or is a white list library
