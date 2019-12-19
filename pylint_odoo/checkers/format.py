@@ -22,7 +22,8 @@ ODOO_MSGS = {
     ),
     'W%d01' % settings.BASE_FORMAT_ID: (
         'You have a python file with execution permissions but you don\'t '
-        'have a interpreter magic comment. '
+        'have an interpreter magic comment, or a magic comment but no '
+        'execution permission. '
         'If you really needs a execution permission then add a magic comment '
         '( https://en.wikipedia.org/wiki/Shebang_(Unix) ). '
         'If you don\'t needs a execution permission then remove it with: '
