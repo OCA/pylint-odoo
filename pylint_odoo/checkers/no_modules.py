@@ -413,14 +413,38 @@ class NoModuleChecker(misc.PylintOdooChecker):
         return dict(item.split(":") for item in colon_list)
 
     def _check_node_for_sqli_risk(self, node):
-        is_bin_op = (isinstance(node, astroid.BinOp) and
-                     node.op in ('%', '+') and
-                     # ignore self._table / model._table / self._uid...
-                     not (isinstance(node.right, astroid.Attribute) and
-                          node.right.attrname.startswith('_')))
+        is_bin_op = False
+        if isinstance(node, astroid.BinOp) and node.op in ('%', '+'):
+            # Ignoring execute("..." % self._table)
+            if isinstance(node.right, astroid.Attribute):
+                if not node.right.attrname.startswith('_'):
+                    is_bin_op = True
+            # Ignoring execute("..." % (self._table, ...))
+            elif isinstance(node.right, astroid.Tuple):
+                for elt in node.right.elts:
+                    if (isinstance(elt, astroid.Call) and
+                            not self.get_func_name(elt.func).startswith('_')):
+                        is_bin_op = True
+                        break
+            else:
+                is_bin_op = True
 
-        is_format = (isinstance(node, astroid.Call) and
-                     self.get_func_name(node.func) == 'format')
+        is_format = False
+        if (isinstance(node, astroid.Call) and
+                self.get_func_name(node.func) == 'format'):
+            # Ignoring execute("...".format(table=self._table))
+            for keyword in node.keywords or []:
+                if (isinstance(keyword.value, astroid.Attribute) and
+                        not keyword.value.attrname.startswith('_')):
+                    is_format = True
+                    break
+
+            # Ignoring execute("...".format(self._table))
+            for argument in node.args or []:
+                if (isinstance(argument, astroid.Name) and
+                        not argument.name.startswith('_')):
+                    is_format = True
+                    break
 
         return is_bin_op or is_format
 
