@@ -425,20 +425,17 @@ class NoModuleChecker(misc.PylintOdooChecker):
     def _check_node_for_sqli_risk(self, node):
         is_bin_op = False
         if isinstance(node, astroid.BinOp) and node.op in ('%', '+'):
-            # Ignoring execute("..." % self._table)
-            #          execute("..." % self._where())
-            if isinstance(node.right, astroid.Attribute):
-                is_bin_op = not self._is_private_node(node.right)
-
             # Ignoring execute("..." % (self._table, ...))
             #          execute("..." % (self._where(), ...))
-            elif isinstance(node.right, astroid.Tuple):
+            if isinstance(node.right, astroid.Tuple):
                 for elt in node.right.elts:
                     if not self._is_private_node(elt):
                         is_bin_op = True
                         break
             else:
-                is_bin_op = True
+                # Ignoring execute("..." % self._table)
+                #          execute("..." % self._where())
+                is_bin_op = not self._is_private_node(node.right)
 
         is_format = False
         if (isinstance(node, astroid.Call) and
