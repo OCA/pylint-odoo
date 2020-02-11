@@ -370,7 +370,7 @@ class WrapperModuleChecker(PylintOdooChecker):
         :param fname: String with file name path to check
         :return: Return list of errors.
         """
-        return rst_lint(fname)
+        return rst_lint(fname, encoding='UTF-8')
 
     def npm_which_module(self, module):
         module_bin = which(module)
