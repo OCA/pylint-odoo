@@ -405,7 +405,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
         if isinstance(node, astroid.ImportFrom) and (node.level or 0) >= 1:
             return
         if module_name not in py_ext_deps and \
-                module_name.split('.')[0] not in py_ext_deps:
+                module_name.split('.')[0] not in py_ext_deps and \
+                not any(dep in module_name for dep in py_ext_deps):
             self.add_message('missing-manifest-dependency', node=node,
                              args=(module_name,))
 
