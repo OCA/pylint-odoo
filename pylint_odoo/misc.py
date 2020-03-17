@@ -151,8 +151,10 @@ class PylintOdooChecker(BaseChecker):
                 os.path.dirname(self.odoo_node.file))
             with open(self.manifest_file) as f_manifest:
                 self.manifest_dict = ast.literal_eval(f_manifest.read())
-        elif self.odoo_node and not os.path.dirname(self.odoo_node.file) in \
-                os.path.dirname(node.file):
+        elif self.odoo_node and os.path.commonprefix(
+                [os.path.dirname(self.odoo_node.file),
+                 os.path.dirname(node.file)]) != os.path.dirname(
+                self.odoo_node.file):
             # It's not a sub-module python of a odoo module and
             #  it's not a odoo module
             self.odoo_node = None
