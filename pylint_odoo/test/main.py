@@ -86,7 +86,8 @@ def profiling(profile):
 class MainTest(unittest.TestCase):
     def setUp(self):
         dummy_cfg = os.path.join(gettempdir(), 'nousedft.cfg')
-        open(dummy_cfg, "w").write("")
+        with open(dummy_cfg, "w") as f_dummy:
+            f_dummy.write("")
         self.default_options = [
             '--load-plugins=pylint_odoo', '--reports=no', '--msg-template='
             '"{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}"',

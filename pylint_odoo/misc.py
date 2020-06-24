@@ -40,19 +40,27 @@ def get_plugin_msgs(pylint_run_res):
             return pylint_run_res.linter.msgs_store._messages
         # pylint 2.3.0 renamed _messages to _messages_definitions in:
         # https://github.com/PyCQA/pylint/commit/75cecdb1b88cc759223e83fd325aeafd09fec37e  # noqa
-        elif hasattr(msgs_store, '_messages_definitions'):
+        if hasattr(msgs_store, '_messages_definitions'):
             return pylint_run_res.linter.msgs_store._messages_definitions
-        else:
-            raise ValueError(
-                'pylint.utils.MessagesStore does not have a '
-                '_messages/_messages_definitions attribute')
+        # pragma: no cover
+        raise ValueError(
+            'pylint.utils.MessagesStore does not have a '
+            '_messages/_messages_definitions attribute')
 
     messages = get_messages()
 
-    all_plugin_msgs = [
-        key for key in messages
-        if messages[key].checker.name == settings.CFG_SECTION
-    ]
+    all_plugin_msgs = []
+    for key in messages:
+        message = messages[key]
+        if hasattr(message, 'checker'):
+            checker_name = message.checker.name
+        elif hasattr(message, 'msgid'):
+            # pylint 2.5.3 renamed message.checker.name (symbol) to message.msgid
+            checker_name = message.msgid
+        else:
+            raise ValueError('Message does not have a checker name')  # pragma: no cover
+        if checker_name == settings.CFG_SECTION:
+            all_plugin_msgs.append(key)
     return all_plugin_msgs
 
 
@@ -98,7 +106,7 @@ class PylintOdooChecker(BaseChecker):
         node_name = node.name
         if os.path.basename(node.file) == '__init__.py':
             node_name += '.__init__'
-        for depth in range(node_name.count('.')):
+        for _ in range(node_name.count('.')):
             module_path = os.path.dirname(module_path)
 
         for manifest_basename in settings.MANIFEST_FILES:
@@ -178,7 +186,7 @@ class PylintOdooChecker(BaseChecker):
         self.module_path = os.path.dirname(node.file)
         self.module = os.path.basename(self.module_path)
         self.set_caches()
-        for msg_code, (title, name_key, description) in \
+        for msg_code, (_, name_key, _) in \
                 sorted(self.msgs.items()):
             self.msg_code = msg_code
             self.msg_name_key = name_key
@@ -235,7 +243,7 @@ class PylintOdooChecker(BaseChecker):
             'min_odoo_version', DFTL_VALID_ODOO_VERSIONS[0]))
         max_odoo_version = LooseVersion(odoo_check_versions.get(
             'max_odoo_version', DFTL_VALID_ODOO_VERSIONS[-1]))
-        return (min_odoo_version <= version <= max_odoo_version)
+        return min_odoo_version <= version <= max_odoo_version
 
 
 class PylintOdooTokenChecker(BaseTokenChecker, PylintOdooChecker):
@@ -275,15 +283,16 @@ class WrapperModuleChecker(PylintOdooChecker):
                 return [msgs_store.check_message_id(message_id_or_symbol)]
             # pylint 2.0 renamed check_message_id to get_message_definition in:
             # https://github.com/PyCQA/pylint/commit/5ccbf9eaa54c0c302c9180bdfb745566c16e416d  # noqa
-            elif hasattr(msgs_store, 'get_message_definition'):
+            if hasattr(msgs_store, 'get_message_definition'):
                 return \
                     [msgs_store.get_message_definition(message_id_or_symbol)]
             # pylint 2.3.0 renamed get_message_definition to get_message_definitions in:  # noqa
             # https://github.com/PyCQA/pylint/commit/da67a9da682e51844fbc674229ff6619eb9c816a  # noqa
-            elif hasattr(msgs_store, 'get_message_definitions'):
+            if hasattr(msgs_store, 'get_message_definitions'):
                 return \
                     msgs_store.get_message_definitions(message_id_or_symbol)
             else:
+                # pragma: no cover
                 raise ValueError(
                     'pylint.utils.MessagesStore does not have a '
                     'get_message_definition(s) method')
@@ -372,7 +381,6 @@ class WrapperModuleChecker(PylintOdooChecker):
                         skips = etree.parse(xml_file, parser)
                 except etree.XMLSyntaxError:
                     skips = []
-                    pass
                 if method_called in skips and fname in fnames:
                     fnames.remove(fname)
         return fnames
@@ -457,8 +465,8 @@ class WrapperModuleChecker(PylintOdooChecker):
         if not os.path.isfile(xml_file):
             return etree.Element("__empty__")
         try:
-            with open(xml_file, "rb") as f:
-                doc = etree.parse(f)
+            with open(xml_file, "rb") as f_obj:
+                doc = etree.parse(f_obj)
         except etree.XMLSyntaxError as xmlsyntax_error_exception:
             return str(xmlsyntax_error_exception)
         return doc
