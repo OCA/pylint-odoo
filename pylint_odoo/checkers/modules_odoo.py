@@ -168,7 +168,7 @@ DFLT_IMPORT_NAME_WHITELIST = [
     # self-odoo
     'odoo', 'openerp',
     # Known external packages of odoo
-    'PIL', 'anybox.testing.openerp', 'argparse', 'babel',
+    'PIL', 'PyPDF2', 'anybox.testing.openerp', 'argparse', 'babel', 'chardet',
     'dateutil', 'decorator', 'docutils', 'faces', 'feedparser',
     'gdata', 'gevent', 'greenlet', 'jcconv', 'jinja2',
     'ldap', 'lxml', 'mako', 'markupsafe', 'mock', 'odf',
@@ -176,7 +176,7 @@ DFLT_IMPORT_NAME_WHITELIST = [
     'psutil', 'psycogreen', 'psycopg2', 'pyPdf', 'pychart',
     'pydot', 'pyparsing', 'pytz', 'qrcode', 'reportlab',
     'requests', 'serial', 'simplejson', 'six', 'suds',
-    'unittest2', 'usb', 'vatnumber', 'vobject', 'werkzeug',
+    'unittest2', 'urllib3', 'usb', 'vatnumber', 'vobject', 'werkzeug',
     'wsgiref', 'xlsxwriter', 'xlwt', 'yaml',
 ]
 DFTL_JSLINTRC = os.path.join(
