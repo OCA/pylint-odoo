@@ -1,5 +1,9 @@
 # coding: utf-8
 
+import psycopg2
+from psycopg2 import sql
+from psycopg2.sql import SQL, Identifier
+
 from openerp import fields, models, _
 from openerp.exceptions import Warning as UserError
 from openerp import exceptions
@@ -341,6 +345,57 @@ class TestModel(models.Model):
         # Ignore when the query is built using private attributes
         self._cr.execute(
             'DELETE FROM %s WHERE id IN %%s' % self._table, (tuple(ids),))
+
+        # Ignore string parsed with "".format() if args are psycopg2.sql.* calls
+        query = "SELECT * FROM table"
+        # imported from pyscopg2 import sql
+        self._cr.execute(
+            sql.SQL("""CREATE or REPLACE VIEW {} as ({})""").format(
+                sql.Identifier(self._table),
+                sql.SQL(query)
+            ))
+        self._cr.execute(
+            sql.SQL("""CREATE or REPLACE VIEW {table} as ({query})""").format(
+                table=sql.Identifier(self._table),
+                query=sql.SQL(query),
+            ))
+        # imported from pyscopg2.sql import SQL, Identifier
+        self._cr.execute(
+            SQL("""CREATE or REPLACE VIEW {} as ({})""").format(
+                Identifier(self._table),
+                SQL(query),
+            ))
+        self._cr.execute(
+            SQL("""CREATE or REPLACE VIEW {table} as ({query})""").format(
+                table=Identifier(self._table),
+                query=SQL(query),
+            ))
+        # imported from pyscopg2 direclty
+        self._cr.execute(
+            psycopg2.SQL("""CREATE or REPLACE VIEW {} as ({})""").format(
+                psycopg2.sql.Identifier(self._table),
+                psycopg2.sql.SQL(query),
+            ))
+        self._cr.execute(
+            psycopg2.sql.SQL("""CREATE or REPLACE VIEW {table} as ({query})""").format(
+                table=Identifier(self._table),
+                query=SQL(query),
+            ))
+        # Variables build using pyscopg2.sql.* callers
+        table = Identifier('table_name')
+        sql_query = SQL(query)
+        # format params
+        self._cr.execute(
+            SQL("""CREATE or REPLACE VIEW {} as ({})""").format(
+                table,
+                sql_query,
+            ))
+        # format dict
+        self._cr.execute(
+            SQL("""CREATE or REPLACE VIEW {table} as ({query})""").format(
+                table=table,
+                query=sql_query,
+            ))
 
     # old api
     def sql_injection_modulo_operator(self, cr, uid, ids, context=None):
