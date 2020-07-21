@@ -1,6 +1,7 @@
 docutils==0.16
 isort==4.3.4
 lxml>=4.2.3
+polib==1.1.0
 Pygments==2.2 ;python_version < '3'
 Pygments==2.6.1 ;python_version >= '3'
 pylint-plugin-utils==0.6
