@@ -2,6 +2,7 @@ import ast
 import csv
 import os
 import re
+import string
 import subprocess
 import inspect
 
@@ -26,6 +27,25 @@ DFTL_VALID_ODOO_VERSIONS = [
     '13.0',
 ]
 DFTL_MANIFEST_VERSION_FORMAT = r"({valid_odoo_versions})\.\d+\.\d+\.\d+$"
+
+# Regex used from https://github.com/translate/translate/blob/9de0d72437/translate/filters/checks.py#L50-L62  # noqa
+PRINTF_PATTERN = re.compile(r'''
+        %(                          # initial %
+        (?P<boost_ord>\d+)%         # boost::format style variable order, like %1%
+        |
+              (?:(?P<ord>\d+)\$|    # variable order, like %1$s
+              \((?P<key>\w+)\))?    # Python style variables, like %(var)s
+        (?P<fullvar>
+            [+#-]*                  # flags
+            (?:\d+)?                # width
+            (?:\.\d+)?              # precision
+            (hh\|h\|l\|ll)?         # length formatting
+            (?P<type>[\w@]))        # type (%s, %d, etc.)
+        )''', re.VERBOSE)
+
+
+class StringParseError(TypeError):
+    pass
 
 
 def get_plugin_msgs(pylint_run_res):
@@ -523,3 +543,113 @@ class WrapperModuleChecker(PylintOdooChecker):
             if module and xml_module == module:
                 xml_ids.append((xml_id, record.sourceline))
         return xml_ids
+
+    @staticmethod
+    def _get_format_str_args_kwargs(format_str):
+        """Get dummy args and kwargs of a format string
+        e.g. format_str = '{} {} {variable}'
+            dummy args = (0, 0)
+            kwargs = {'variable': 0}
+        return args, kwargs
+        Motivation to use format_str.format(*args, **kwargs)
+        and validate if it was parsed correctly
+        """
+        format_str_args = []
+        format_str_kwargs = {}
+        placeholders = []
+        for line in format_str.splitlines():
+            try:
+                placeholders.extend(
+                    name for _, name, _, _ in string.Formatter().parse(line)
+                    if name is not None)
+            except ValueError:
+                continue
+            for placeholder in placeholders:
+                if placeholder == "":
+                    # unnumbered "{} {}"
+                    # append 0 to use max(0, 0, ...) == 0
+                    # and identify that all args are unnumbered vs numbered
+                    format_str_args.append(0)
+                elif placeholder.isdigit():
+                    # numbered "{0} {1} {2} {0}"
+                    # append +1 to use max(1, 2) and know the quantity of args
+                    # and identify that the args are numbered
+                    format_str_args.append(int(placeholder) + 1)
+                else:
+                    # named "{var0} {var1} {var2} {var0}"
+                    format_str_kwargs[placeholder] = 0
+        if format_str_args:
+            format_str_args = (range(len(format_str_args)) if max(format_str_args) == 0
+                               else range(max(format_str_args)))
+        return format_str_args, format_str_kwargs
+
+    @staticmethod
+    def _get_printf_str_args_kwargs(printf_str):
+        """Get dummy args and kwargs of a printf string
+        e.g. printf_str = '%s %d'
+            dummy args = ('', 0)
+        e.g. printf_str = '%(var1)s %(var2)d'
+            dummy kwargs = {'var1': '', 'var2': 0}
+        return args or kwargs
+        Motivation to use printf_str % (args or kwargs)
+        and validate if it was parsed correctly
+        """
+        args = []
+        kwargs = {}
+
+        # Remove all escaped %%
+        printf_str = re.sub('%%', '', printf_str)
+        for line in printf_str.splitlines():
+            for match in PRINTF_PATTERN.finditer(line):
+                match_items = match.groupdict()
+                var = '' if match_items['type'] == 's' else 0
+                if match_items['key'] is None:
+                    args.append(var)
+                else:
+                    kwargs[match_items['key']] = var
+        return tuple(args) or kwargs
+
+    @staticmethod
+    def parse_printf(main_str, secondary_str):
+        """Compute args and kwargs of main_str to parse secondary_str
+        Using secondary_str%_get_printf_str_args_kwargs(main_str)
+        """
+        printf_args = WrapperModuleChecker._get_printf_str_args_kwargs(main_str)
+        if not printf_args:
+            return
+        try:
+            main_str % printf_args
+        except Exception:
+            # The original source string couldn't be parsed correctly
+            # So return early without error in order to avoid a false error
+            return
+        try:
+            secondary_str % printf_args
+        except Exception as exc:
+            # The translated string couldn't be parsed correctly
+            # with the args and kwargs of the original string
+            # so it is a real error
+            raise StringParseError(repr(exc))
+
+    @staticmethod
+    def parse_format(main_str, secondary_str):
+        """Compute args and kwargs of main_str to parse secondary_str
+        Using secondary_str.format(_get_printf_str_args_kwargs(main_str))
+        """
+        msgid_args, msgid_kwargs = (
+            WrapperModuleChecker._get_format_str_args_kwargs(main_str))
+        if not msgid_args and not msgid_kwargs:
+            return
+        try:
+            main_str.format(*msgid_args, **msgid_kwargs)
+        except Exception:
+            # The original source string couldn't be parsed correctly
+            # So return early without error in order to avoid a false error
+            return
+        try:
+            secondary_str.format(*msgid_args, **msgid_kwargs)
+        except Exception as exc:
+            # The translated string couldn't be parsed correctly
+            # with the args and kwargs of the original string
+            # so it is a real error
+            raise StringParseError(repr(exc))

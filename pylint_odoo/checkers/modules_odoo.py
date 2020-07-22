@@ -164,6 +164,11 @@ ODOO_MSGS = {
         'po-syntax-error',
         settings.DESC_DFLT
     ),
+    'W%d68' % settings.BASE_OMODULE_ID: (
+        '%s %s',
+        'po-msgstr-variables',
+        settings.DESC_DFLT
+    ),
 }
 
 
@@ -478,13 +483,21 @@ class ModuleChecker(misc.WrapperModuleChecker):
     def _check_duplicate_po_message_definition(self):
         """Check duplicate message definition (message-id)
         in all entries of PO files
+
+        We are not using `check_for_duplicates` parameter of polib.pofile method
+            e.g. polib.pofile(..., check_for_duplicates=True)
+        Because the output is:
+            raise ValueError('Entry "%s" already exists' % entry.msgid)
+        It doesn't show the number of lines duplicated
+        It shows the entire string of the message_id without truncating it
+            or replacing newlines
         """
         self.msg_args = []
         for po_file in self.filter_files_ext('po') + self.filter_files_ext('pot'):
             try:
                 po = polib.pofile(os.path.join(self.module_path, po_file))
             except (IOError, OSError):
-                # If there is an error it is another check
+                # If there is a syntax error, it will be covered in another check
                 continue
             duplicated = defaultdict(list)
             for entry in po:
@@ -503,6 +516,38 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 if len(entries[0].msgid) > 40:
                     msg_id_short = "%s..." % msg_id_short
                 self.msg_args.append((po_fname_linenum, msg_id_short, duplicated))
+
+    def _check_po_msgstr_variables(self):
+        """Check if 'msgid' is using 'str' variables like '%s'
+        So translation 'msgstr' must be the same number of variables too"""
+        self.msg_args = []
+        for po_file in self.filter_files_ext('po'):
+            try:
+                po = polib.pofile(os.path.join(self.module_path, po_file))
+            except (IOError, OSError):
+                # If there is a syntax error, it will be covered in another check
+                continue
+            for entry in po:
+                if not entry.msgstr or 'python-format' not in entry.flags:
+                    # skip untranslated entry
+                    # skip if it is not a python format
+                    # because "%s"%var won't be parsed
+                    continue
+                linenum = self._get_po_line_number(entry)
+                po_fname_linenum = "%s:%d" % (po_file, linenum)
+                try:
+                    self.parse_printf(entry.msgid, entry.msgstr)
+                except misc.StringParseError as str_parse_exc:
+                    self.msg_args.append((
+                        po_fname_linenum, "Translation string couldn't be parsed "
+                        "correctly using string%%variables %s" % str_parse_exc))
+                    continue
+                try:
+                    self.parse_format(entry.msgid, entry.msgstr)
+                except misc.StringParseError as str_parse_exc:
+                    self.msg_args.append((
+                        po_fname_linenum, "Translation string couldn't be parsed "
+                        "correctly using string.format() %s" % str_parse_exc))
 
     def _check_rst_syntax_error(self):
         """Check if rst file there is syntax error

@@ -55,6 +55,7 @@ EXPECTED_ERRORS = {
     'old-api7-method-defined': 2,
     'openerp-exception-warning': 3,
     'po-syntax-error': 1,
+    'po-msgstr-variables': 6,
     'print-used': 1,
     'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
