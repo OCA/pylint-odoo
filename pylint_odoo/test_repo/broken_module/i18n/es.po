@@ -1,0 +1,85 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 1985-04-14 17:12+0000\n"
+"PO-Revision-Date: 1985-04-14 02:03+0000\n"
+"Last-Translator: Moisés López <moylop260@vauxoo.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: broken_module
+#: model:ir.model.fields,field_description:broken_module.field_description
+#: model:ir.model.fields,field_description:broken_module.field_wizard_description
+#, python-format
+msgid "Branch"
+msgstr ""
+
+#. module: broken_module
+#: model:ir.model.fields,field_description:broken_module.field_wizard_description
+#, python-format
+msgid "Branch"
+msgstr ""
+
+#. module: broken_module
+#: model:ir.model.fields,field_description2:broken_module.field_wizard_description2
+#, python-format
+msgid "Message id toooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo laaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaarge"
+msgstr ""
+
+#. module: broken_module
+#: model:ir.model.fields,field_description2:broken_module.field_wizard_description2
+#, python-format
+msgid "Message id toooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo laaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaarge"
+msgstr ""
+
+#. module: broken_module
+#: model:ir.model.fields,field_description3:broken_module.field_wizard_description3
+#, python-format
+msgid "Two variables %s %s"
+msgstr "Translated just one %s"
+
+#. module: broken_module
+#: model:ir.model.fields,field_description4:broken_module.field_wizard_description4
+#, python-format
+msgid "One variable {}"
+msgstr "Translated 2 {} {}"
+
+#. module: broken_module
+#: model:ir.model.fields,field_description5:broken_module.field_wizard_description5
+#, python-format
+msgid "One variable {0}"
+msgstr "Translated 2 {0} {1}"
+
+#. module: broken_module
+#: model:ir.model.fields,field_description5:broken_module.field_wizard_description5
+#, python-format
+msgid "One variable {variable1}"
+msgstr "Translated 2 {variable1} {variable2}"
+
+#. module: broken_module
+#: model:ir.model.fields,field_description10:broken_module.field_wizard_description10
+#, python-format
+msgid "One variable {variable1}"
+msgstr "Translated other one {variable2}"
+
+#. module: broken_module
+#: model:ir.model.fields,field_description6:broken_module.field_wizard_description6
+#, python-format
+msgid "It is a mistake"
+msgstr "but without raising an error %s"
+
+#. module: broken_module
+#: model:ir.model.fields,field_description7:broken_module.field_wizard_description7
+#, python-format
+msgid "Same quantity of variables but different variable %s"
+msgstr "Same quantity of variables but different variable %d"
+
+#. module: broken_module
+#: model:ir.model.fields,field_description8:broken_module.field_wizard_description8
+#, no-python-format
+msgid "String variables error but it is not a python format %s"
+msgstr "String variables error but it is not a python format"

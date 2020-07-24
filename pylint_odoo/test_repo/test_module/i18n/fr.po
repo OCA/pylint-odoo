@@ -1,0 +1,89 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 1985-04-14 17:12+0000\n"
+"PO-Revision-Date: 1985-04-14 02:03+0000\n"
+"Last-Translator: Moisés López <moylop260@vauxoo.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: test_module
+#: model:ir.model.fields,field_description:test_module.field_description
+#, python-format
+msgid "Branch"
+msgstr "Branche"
+
+#. module: test_module
+#: model:ir.model.fields,field_description2:test_module.field_description2
+#: model:ir.model.fields,field_description2:test_module.field_description2
+#, python-format
+msgid "Correct variables %s"
+msgstr "Correct variables %s"
+
+#. module: test_module
+#: model:ir.model.fields,field_description5:test_module.field_description5
+#: model:ir.model.fields,field_description5:test_module.field_description5
+#, python-format
+msgid "Correct variables %(variable)s"
+msgstr "Correct variables %(variable)s"
+
+#. module: test_module
+#: model:ir.model.fields,field_description3:test_module.field_description3
+#: model:ir.model.fields,field_description3:test_module.field_description3
+#, python-format
+msgid "Correct variables {}"
+msgstr "Correct variables {}"
+
+#. module: test_module
+#: model:ir.model.fields,field_description4:test_module.field_description4
+#: model:ir.model.fields,field_description4:test_module.field_description4
+#, python-format
+msgid "Correct variables {variable}"
+msgstr "Correct variables {variable}"
+
+#. module: test_module
+#: code:test_module/__init__.py:0
+#, python-format
+msgid ""
+"Multi line valid message!\n"
+"{message: %s,\n"
+"error code: %s,\n"
+"error type: %s,\n"
+"request id: %s}"
+msgstr ""
+"Multi line valid message!\n"
+"{message2: %s,\n"
+"error code2: %s,\n"
+"error type2: %s,\n"
+"request id2: %s}"
+
+#. module: test_module
+#: code:test_module/__init__.py:0
+#, python-format
+msgid ""
+"Multi line valid message!\n"
+"{message: %s,\n"
+msgstr ""
+"Multi line valid message!\n"
+"{message2: %s,\n"
+
+
+#. module: test_module
+#: code:test_module/__init__.py:2
+#, python-format
+msgid ""
+"it must be a literal python dictionary definition e.g. "
+"\"{'field': 'value'}\""
+msgstr ""
+"it must be a literal python dictionary definition e.g. "
+"\"{'field_translated': 'value_translated'}\""
+
+#. module: test_module
+#: code:addons/test_module/__init__.py:8
+#, python-format
+msgid "%s%% discount"
+msgstr "%s%%discount without space"
