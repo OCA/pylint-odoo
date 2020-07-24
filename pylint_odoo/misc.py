@@ -62,8 +62,7 @@ def get_plugin_msgs(pylint_run_res):
         # https://github.com/PyCQA/pylint/commit/75cecdb1b88cc759223e83fd325aeafd09fec37e  # noqa
         if hasattr(msgs_store, '_messages_definitions'):
             return pylint_run_res.linter.msgs_store._messages_definitions
-        # pragma: no cover
-        raise ValueError(
+        raise ValueError(  # pragma: no cover
             'pylint.utils.MessagesStore does not have a '
             '_messages/_messages_definitions attribute')
 
@@ -303,7 +302,7 @@ class WrapperModuleChecker(PylintOdooChecker):
                 return [msgs_store.check_message_id(message_id_or_symbol)]
             # pylint 2.0 renamed check_message_id to get_message_definition in:
             # https://github.com/PyCQA/pylint/commit/5ccbf9eaa54c0c302c9180bdfb745566c16e416d  # noqa
-            if hasattr(msgs_store, 'get_message_definition'):
+            if hasattr(msgs_store, 'get_message_definition'):  # pragma: no cover
                 return \
                     [msgs_store.get_message_definition(message_id_or_symbol)]
             # pylint 2.3.0 renamed get_message_definition to get_message_definitions in:  # noqa
@@ -312,8 +311,7 @@ class WrapperModuleChecker(PylintOdooChecker):
                 return \
                     msgs_store.get_message_definitions(message_id_or_symbol)
             else:
-                # pragma: no cover
-                raise ValueError(
+                raise ValueError(  # pragma: no cover
                     'pylint.utils.MessagesStore does not have a '
                     'get_message_definition(s) method')
 
@@ -619,7 +617,7 @@ class WrapperModuleChecker(PylintOdooChecker):
             return
         try:
             main_str % printf_args
-        except Exception:
+        except Exception:  # pragma: no cover
             # The original source string couldn't be parsed correctly
             # So return early without error in order to avoid a false error
             return
