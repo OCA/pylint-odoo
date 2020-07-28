@@ -54,7 +54,7 @@ EXPECTED_ERRORS = {
     'odoo-addons-relative-import': 4,
     'old-api7-method-defined': 2,
     'openerp-exception-warning': 3,
-    'po-syntax-error': 1,
+    'po-syntax-error': 2,
     'po-msgstr-variables': 6,
     'print-used': 1,
     'redundant-modulename-xml': 1,

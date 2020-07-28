@@ -87,3 +87,9 @@ msgstr ""
 #, python-format
 msgid "%s%% discount"
 msgstr "%s%%discount without space"
+
+#. module: test_module
+#: code:addons/test_module/__init__.py:10
+#, python-format
+#~ msgid "Obsolet msgid"
+#~ msgstr "Obsolet msgstr"

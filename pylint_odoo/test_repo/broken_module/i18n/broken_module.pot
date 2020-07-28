@@ -1,0 +1,19 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 1985-04-14 17:12+0000\n"
+"PO-Revision-Date: 1985-04-14 02:03+0000\n"
+"Last-Translator: Moisés López <moylop260@vauxoo.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+# Missing module: comment
+#: model:ir.model.fields,field_description:broken_module.field_description
+#: model:ir.model.fields,field_description:broken_module.field_wizard_description
+#, python-format
+msgid "Branch"
+msgstr ""
