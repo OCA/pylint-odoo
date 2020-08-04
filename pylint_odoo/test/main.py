@@ -48,9 +48,6 @@ EXPECTED_ERRORS = {
     'missing-newline-extrafiles': 4,
     'missing-readme': 1,
     'missing-return': 1,
-    'no-utf8-coding-comment': 6,
-    # TODO: Check why broken_module3/__init__.py is not raising this check:
-    'unnecessary-utf8-coding-comment': 19,
     'odoo-addons-relative-import': 4,
     'old-api7-method-defined': 2,
     'openerp-exception-warning': 3,
@@ -77,6 +74,11 @@ EXPECTED_ERRORS = {
     'website-manifest-key-not-valid-uri': 1,
     'character-not-valid-in-resource-link': 2,
 }
+
+if six.PY3:
+    EXPECTED_ERRORS['unnecessary-utf8-coding-comment'] = 19
+else:
+    EXPECTED_ERRORS['no-utf8-coding-comment'] = 6
 
 
 @contextmanager
@@ -270,6 +272,8 @@ class MainTest(unittest.TestCase):
         }
         self.assertDictEqual(real_errors, expected_errors)
 
+    @unittest.skipIf(not six.PY3, "unnecessary-utf8-coding-comment "
+                     "disabled directly from py2")
     def test_100_read_version_from_manifest(self):
         """Test the functionality to get the version from the file manifest
         to avoid the parameter --valid_odoo_versions"""
