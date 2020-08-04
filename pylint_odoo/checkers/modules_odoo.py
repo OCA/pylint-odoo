@@ -474,11 +474,24 @@ class ModuleChecker(misc.WrapperModuleChecker):
         self.msg_args = []
         for po_file in self.filter_files_ext('po') + self.filter_files_ext('pot'):
             try:
-                polib.pofile(os.path.join(self.module_path, po_file))
+                po = polib.pofile(os.path.join(self.module_path, po_file))
             except (IOError, OSError) as oe:
                 fname = os.path.join(self.module_path, po_file)
                 msg = str(oe).replace(fname + ' ', '').strip()
                 self.msg_args.append((po_file, msg))
+                continue
+            for entry in po:
+                if entry.obsolete:
+                    continue
+                # Regex from https://github.com/odoo/odoo/blob/fa4f36bb631e82/odoo/tools/translate.py#L616  # noqa
+                match = re.match(r"(module[s]?): (\w+)", entry.comment)
+                if match:
+                    continue
+                linenum = self._get_po_line_number(entry)
+                po_fname_linenum = "%s:%d" % (po_file, linenum)
+                self.msg_args.append((
+                    po_fname_linenum, "Translation entry requires comment "
+                    "'#. module: MODULE'"))
 
     def _check_duplicate_po_message_definition(self):
         """Check duplicate message definition (message-id)
@@ -501,6 +514,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 continue
             duplicated = defaultdict(list)
             for entry in po:
+                if entry.obsolete:
+                    continue
                 # Using `set` in order to fix false red
                 # if the same entry has duplicated occurrences
                 for occurrence in set(entry.occurrences):
@@ -528,6 +543,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 # If there is a syntax error, it will be covered in another check
                 continue
             for entry in po:
+                if entry.obsolete:
+                    continue
                 if not entry.msgstr or 'python-format' not in entry.flags:
                     # skip untranslated entry
                     # skip if it is not a python format
