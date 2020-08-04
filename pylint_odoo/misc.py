@@ -205,8 +205,8 @@ class PylintOdooChecker(BaseChecker):
         self.module_path = os.path.dirname(node.file)
         self.module = os.path.basename(self.module_path)
         self.set_caches()
-        for msg_code, (_, name_key, _) in \
-                sorted(self.msgs.items()):
+        for msg_code, msg_params in sorted(self.msgs.items()):
+            name_key = msg_params[1]
             self.msg_code = msg_code
             self.msg_name_key = name_key
             self.msg_args = None
