@@ -47,8 +47,8 @@ def messages2rst():
     title_list = ["Code", "Description", "Short name"]
     lines = []
     max_col_sizes = [len(item) for item in title_list]
-    for msg_code, (title, name_key, description) in \
-            sorted(all_msgs.items()):
+    for msg_code, msg_items in sorted(all_msgs.items()):
+        title, name_key, description = msg_items[0:3]
         line = [item.replace('`', '``')
                 for item in [msg_code, title, name_key]]
         for index in range(len(max_col_sizes)):
