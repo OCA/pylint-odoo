@@ -10,13 +10,16 @@ matrix:
   include:
     - python: 2.7
       env:
-        TOXENV=py27-pylint19
+        TOXENV=pylint
     - python: 3.5
       env:
-        TOXENV=py35-pylint2
+        TOXENV=pylint
     - python: 3.7
       env:
-        TOXENV=py37-pylint2
+        TOXENV=pylint
+    - python: 3.8
+        env:
+          TOXENV=pylint
 
 
 install:
