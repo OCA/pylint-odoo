@@ -18,11 +18,11 @@ matrix:
       env:
         TOXENV=pylint
     - python: 3.8
-        env:
-          TOXENV=pylint
+      env:
+        TOXENV=pylint
     - python: 3.9-dev
-        env:
-          TOXENV=pylint
+      env:
+        TOXENV=pylint
 
 
 install:
