@@ -237,7 +237,7 @@ class TestModel(models.Model):
         self.message_post(_('Variables not translatable: %s, %s' % (
             variable1, variable2)))
         self.message_post(body=_('Variable not translatable: %s' % variable1))
-        self.message_post(body=_('Variables not translatable: %s' % (
+        self.message_post(body=_('Variables not translatable: %s %s' % (
             variable1, variable2)))
         error_msg = _('Variable not translatable: %s' % variable1)
         error_msg = _('Variables not translatable: %s, %s' % (
