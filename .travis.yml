@@ -10,13 +10,19 @@ matrix:
   include:
     - python: 2.7
       env:
-        TOXENV=py27-pylint19
+        TOXENV=pylint
     - python: 3.5
       env:
-        TOXENV=py35-pylint2
+        TOXENV=pylint
     - python: 3.7
       env:
-        TOXENV=py37-pylint2
+        TOXENV=pylint
+    - python: 3.8
+      env:
+        TOXENV=pylint
+    - python: 3.9-dev
+      env:
+        TOXENV=pylint
 
 
 install:
@@ -28,10 +34,10 @@ install:
     - ${TRAVIS_BUILD_DIR}/install.sh
 
     # Install testing dependencies
-    - pip install coveralls flake8==3.4.1 tox restructuredtext_lint pygments
+    - pip install coveralls flake8==3.8.3 tox restructuredtext_lint pygments
 
 script:
-    - flake8 --ignore=F601,W503,W504 --max-line-length=88 --exclude=__init__.py .
+    - flake8 --ignore=E722,F601,F841,W503,W504,W605 --max-line-length=88 --exclude=__init__.py .
     - restructuredtext-lint ${TRAVIS_BUILD_DIR}/README.rst
     - tox -e $TOXENV,profile-stats
 
