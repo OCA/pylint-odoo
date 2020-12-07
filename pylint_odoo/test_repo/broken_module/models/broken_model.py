@@ -245,6 +245,20 @@ class TestModel(models.Model):
         error_msg = _('Variable not translatable: {}'.format(variable1))
         error_msg = _('Variables not translatable: {}, {variable2}'.format(
             variable1, variable2=variable2))
+
+        # string with parameters without name
+        # so you can't change the order in the translation
+        _('%s %d') % ('hello', 3)
+        _('{} {}') % ('hello', 3)
+        _('{} {:d}') % ('hello', 3)
+
+        # Valid cases
+        _('{0} {1}') % ('hello', 3)
+        _('%(strname)s %(intname)d') % {'strname': 'hello', 'intname': 3}
+        _('%s') % 'hello'
+        _('%d') % 3
+        _('{}') % 'hello'
+        _('{:d}') % 3
         return error_msg
 
     def my_method2(self, variable2):
