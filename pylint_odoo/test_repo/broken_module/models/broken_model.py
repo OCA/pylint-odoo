@@ -249,16 +249,13 @@ class TestModel(models.Model):
         # string with parameters without name
         # so you can't change the order in the translation
         _('%s %d') % ('hello', 3)
-        _('{} {}') % ('hello', 3)
-        _('{} {:d}') % ('hello', 3)
+        _('%s %s') % ('hello', 'world')
 
         # Valid cases
-        _('{0} {1}') % ('hello', 3)
+        _('%(strname)s') % {'strname': 'hello'}
         _('%(strname)s %(intname)d') % {'strname': 'hello', 'intname': 3}
         _('%s') % 'hello'
         _('%d') % 3
-        _('{}') % 'hello'
-        _('{:d}') % 3
         return error_msg
 
     def my_method2(self, variable2):

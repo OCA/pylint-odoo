@@ -233,9 +233,8 @@ ODOO_MSGS = {
         settings.DESC_DFLT
     ),
     'W%d20' % settings.BASE_NOMODULE_ID: (
-        'Translation method _(%s) is using positional string formatting. '
-        'Use named placeholder string formatting "_(%%(placeholder)s)" '
-        'or "_({placeholder})" instead.',
+        'Translation method _(%s) is using positional string printf formatting. '
+        'Use named placeholder `_("%%(placeholder)s")` instead.',
         'translation-positional-used',
         settings.DESC_DFLT
     ),
@@ -625,24 +624,14 @@ class NoModuleChecker(misc.PylintOdooChecker):
                     args=(wrong, right))
 
             # translation-positional-used: Check "string to translate"
-            # to check %s or {} used
+            # to check "%s %s..." used where the position can't be changed
             str2translate = arg.as_string()
-            extra_data = {}
-            msgid_args, msgid_kwargs = (
+            printf_args = (
                 misc.WrapperModuleChecker.
-                _get_format_str_args_kwargs(str2translate, extra_data=extra_data))
-            is_positional = False
-            if extra_data['has_placeholders']:
-                if len(msgid_args) >= 2 and extra_data['has_positional']:
-                    is_positional = True
-            else:
-                printf_args = (
-                    misc.WrapperModuleChecker.
-                    _get_printf_str_args_kwargs(str2translate))
+                _get_printf_str_args_kwargs(str2translate))
+            if isinstance(printf_args, tuple) and len(printf_args) >= 2:
                 # Return tuple for %s and dict for %(varname)s
-                if isinstance(printf_args, tuple) and len(printf_args) >= 2:
-                    is_positional = True
-            if is_positional:
+                # Check just the following cases "%s %s..."
                 self.add_message('translation-positional-used',
                                  node=node, args=(str2translate,))
 

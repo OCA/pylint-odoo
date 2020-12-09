@@ -543,7 +543,7 @@ class WrapperModuleChecker(PylintOdooChecker):
         return xml_ids
 
     @staticmethod
-    def _get_format_str_args_kwargs(format_str, extra_data=None):
+    def _get_format_str_args_kwargs(format_str):
         """Get dummy args and kwargs of a format string
         e.g. format_str = '{} {} {variable}'
             dummy args = (0, 0)
@@ -552,18 +552,9 @@ class WrapperModuleChecker(PylintOdooChecker):
         Motivation to use format_str.format(*args, **kwargs)
         and validate if it was parsed correctly
         """
-        if extra_data is None:
-            extra_data = {}
-        extra_data.update({
-            'has_positional': False,
-            'has_numbered': False,
-            'has_named': False,
-            'has_placeholders': False,
-        })
         format_str_args = []
         format_str_kwargs = {}
         placeholders = []
-        has_named_vars = False
         for line in format_str.splitlines():
             try:
                 placeholders.extend(
@@ -577,21 +568,14 @@ class WrapperModuleChecker(PylintOdooChecker):
                     # append 0 to use max(0, 0, ...) == 0
                     # and identify that all args are unnumbered vs numbered
                     format_str_args.append(0)
-                    extra_data['has_positional'] = True
                 elif placeholder.isdigit():
                     # numbered "{0} {1} {2} {0}"
                     # append +1 to use max(1, 2) and know the quantity of args
                     # and identify that the args are numbered
-                    has_named_vars = True
                     format_str_args.append(int(placeholder) + 1)
-                    extra_data['has_numbered'] = True
                 else:
                     # named "{var0} {var1} {var2} {var0}"
-                    has_named_vars = True
                     format_str_kwargs[placeholder] = 0
-                    extra_data['has_named'] = True
-            if placeholders:
-                extra_data['has_placeholders'] = True
         if format_str_args:
             format_str_args = (range(len(format_str_args)) if max(format_str_args) == 0
                                else range(max(format_str_args)))
