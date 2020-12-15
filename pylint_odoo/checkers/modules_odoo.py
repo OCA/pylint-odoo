@@ -325,6 +325,15 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
     def _get_odoo_module_imported(self, node):
         odoo_module = []
+        if self.manifest_file and hasattr(node.parent, 'file'):
+            relpath = os.path.relpath(
+                node.parent.file, os.path.dirname(self.manifest_file))
+            if os.path.dirname(relpath) == 'tests':
+                # import errors rules don't apply to the test files
+                # since these files are loaded only when running tests
+                # and in such a case your
+                # module and their external dependencies are installed.
+                return odoo_module
         if isinstance(node, astroid.ImportFrom) and \
                 ('openerp.addons' in node.modname or
                  'odoo.addons' in node.modname):
