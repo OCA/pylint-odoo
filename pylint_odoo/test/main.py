@@ -22,7 +22,7 @@ EXPECTED_ERRORS = {
     'copy-wo-api-one': 2,
     'create-user-wo-reset-password': 1,
     'dangerous-filter-wo-user': 1,
-    'dangerous-view-replace-wo-priority': 5,
+    'dangerous-view-replace-wo-priority': 6,
     'deprecated-openerp-xml-node': 5,
     'development-status-allowed': 1,
     'duplicate-id-csv': 2,

@@ -104,6 +104,29 @@
             <field name="name">view.model.form80</field>
             <field name="model">test.model</field>
         </record>
-
+        <!-- Replace with low priority wo field -->
+        <record id="view_model_form90" model="ir.ui.view">
+            <field name="name">view.model.form90</field>
+            <field name="model">test.model</field>
+            <field name="priority">10</field>
+            <field name="arch" type="xml">
+                 <label for="name" position="replace"/>
+            </field>
+        </record>
+        <!-- Record with position after and before positions -->
+        <record id="view_model_form100" model="ir.ui.view">
+            <field name="name">view.model.form100</field>
+            <field name="model">test.model</field>
+            <field name="priority">10</field>
+            <field name="arch" type="xml">
+                <label for="name" position="after"/>
+                <field name="description" position="before">
+                    <field name="name" position="move"/>
+                </field>
+                <field name="description" position="attributes">
+                    <attribute name="colors" translation="off">red</attribute>
+                </field>
+            </field>
+        </record>
     </data>
 </openerp>

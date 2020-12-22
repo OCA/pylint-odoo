@@ -822,7 +822,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
             return None
         replaces = \
             arch.xpath(".//field[@name='name' and @position='replace'][1]") + \
-            arch.xpath(".//xpath[@position='replace'][1]")
+            arch.xpath(".//*[@position='replace'][1]")
         return bool(replaces)
 
     def _check_dangerous_view_replace_wo_priority(self):
