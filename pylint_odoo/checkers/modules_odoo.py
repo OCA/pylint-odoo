@@ -32,6 +32,11 @@ ODOO_MSGS = {
         'xml-syntax-error',
         settings.DESC_DFLT
     ),
+    'E%d03' % settings.BASE_OMODULE_ID: (
+        'Test folder imported in module %s',
+        'test-folder-imported',
+        settings.DESC_DFLT
+    ),
     'W%d01' % settings.BASE_OMODULE_ID: (
         '%s Dangerous filter without explicit `user_id` in xml_id %s',
         'dangerous-filter-wo-user',
@@ -359,6 +364,14 @@ class ModuleChecker(misc.WrapperModuleChecker):
             self.add_message('odoo-addons-relative-import', node=node,
                              args=(self.odoo_module_name))
 
+    def check_folder_test_imported(self, node):
+        if (hasattr(node.parent, 'file')
+            and os.path.basename(node.parent.file) == '__init__.py'
+            and ("tests" in [item for item, _ in node.names]
+                 or "tests" in node.modname)):
+            self.add_message('test-folder-imported', node=node,
+                             args=(node.parent.name,))
+
     @staticmethod
     def _is_absolute_import(node, name):
         modnode = node.root()
@@ -440,18 +453,22 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
     @utils.check_messages('odoo-addons-relative-import',
                           'missing-import-error',
-                          'missing-manifest-dependency')
+                          'missing-manifest-dependency',
+                          'test-folder-imported')
     def visit_importfrom(self, node):
         self.check_odoo_relative_import(node)
+        self.check_folder_test_imported(node)
         if isinstance(node.scope(), astroid.Module):
             package = node.modname
             self._check_imported_packages(node, package)
 
     @utils.check_messages('odoo-addons-relative-import',
                           'missing-import-error',
-                          'missing-manifest-dependency')
+                          'missing-manifest-dependency',
+                          'test-folder-imported')
     def visit_import(self, node):
         self.check_odoo_relative_import(node)
+        self.check_folder_test_imported(node)
         for name, _ in node.names:
             if isinstance(node.scope(), astroid.Module):
                 self._check_imported_packages(node, name)
