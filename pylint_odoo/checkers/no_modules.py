@@ -246,7 +246,7 @@ DFTL_LICENSE_ALLOWED = [
     'AGPL-3', 'GPL-2', 'GPL-2 or any later version',
     'GPL-3', 'GPL-3 or any later version', 'LGPL-3',
     'Other OSI approved licence', 'Other proprietary',
-    'OEEL-1',
+    'OEEL-1', 'OPL-1',
 ]
 DFTL_DEVELOPMENT_STATUS_ALLOWED = [
     'Alpha', 'Beta', 'Production/Stable', 'Mature',
