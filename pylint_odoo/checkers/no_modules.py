@@ -139,7 +139,7 @@ ODOO_MSGS = {
     ),
     'E%d05' % settings.BASE_NOMODULE_ID: (
         'Use of `str.format` method in a translated string. '
-        'Use `"%(varname)s" % {"varname": value}` instead. '
+        'Use `_("%(varname)s") % {"varname": value}` instead. '
         'Be careful https://lucumr.pocoo.org/2016/12/29/careful-with-str-format',
         'str-format-used',
         settings.DESC_DFLT
