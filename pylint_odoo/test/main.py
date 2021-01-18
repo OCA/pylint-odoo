@@ -57,6 +57,7 @@ EXPECTED_ERRORS = {
     'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
     'sql-injection': 18,
+    'str-format-used': 3,
     'translation-field': 2,
     'translation-required': 15,
     'translation-contains-variable': 10,
@@ -75,12 +76,13 @@ EXPECTED_ERRORS = {
     'website-manifest-key-not-valid-uri': 1,
     'character-not-valid-in-resource-link': 2,
     'manifest-maintainers-list': 1,
+    'test-folder-imported': 2,
 }
 
 if six.PY3:
     EXPECTED_ERRORS['unnecessary-utf8-coding-comment'] = 19
 else:
-    EXPECTED_ERRORS['no-utf8-coding-comment'] = 6
+    EXPECTED_ERRORS['no-utf8-coding-comment'] = 7
 
 
 @contextmanager
