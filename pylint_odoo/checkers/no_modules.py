@@ -239,6 +239,12 @@ ODOO_MSGS = {
         'print-used',
         settings.DESC_DFLT
     ),
+    'W%d20' % settings.BASE_NOMODULE_ID: (
+        'Translation method _(%s) is using positional string printf formatting. '
+        'Use named placeholder `_("%%(placeholder)s")` instead.',
+        'translation-positional-used',
+        settings.DESC_DFLT
+    ),
     'F%d01' % settings.BASE_NOMODULE_ID: (
         'File "%s": "%s" not found.',
         'resource-not-exist',
@@ -491,7 +497,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                           'renamed-field-parameter',
                           'translation-required',
                           'translation-contains-variable',
-                          'print-used',
+                          'print-used', 'translation-positional-used',
                           'str-format-used',
                           )
     def visit_call(self, node):
@@ -601,6 +607,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 and node.func.name == '_'
                 and node.args):
             wrong = ''
+            right = ''
             arg = node.args[0]
             # case: _('...' % (variables))
             if isinstance(arg, astroid.BinOp) and arg.op == '%':
@@ -620,10 +627,22 @@ class NoModuleChecker(misc.PylintOdooChecker):
                     for x in itertools.chain(arg.args, arg.keywords or [])])
                 right = '_(%s).format(%s)' % (
                     arg.func.expr.as_string(), params_as_string)
-            if wrong:
+            if wrong and right:
                 self.add_message(
                     'translation-contains-variable', node=node,
                     args=(wrong, right))
+
+            # translation-positional-used: Check "string to translate"
+            # to check "%s %s..." used where the position can't be changed
+            str2translate = arg.as_string()
+            printf_args = (
+                misc.WrapperModuleChecker.
+                _get_printf_str_args_kwargs(str2translate))
+            if isinstance(printf_args, tuple) and len(printf_args) >= 2:
+                # Return tuple for %s and dict for %(varname)s
+                # Check just the following cases "%s %s..."
+                self.add_message('translation-positional-used',
+                                 node=node, args=(str2translate,))
 
         # SQL Injection
         if isinstance(node, astroid.Call) and node.args and \
