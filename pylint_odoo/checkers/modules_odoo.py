@@ -366,11 +366,15 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
     def check_folder_test_imported(self, node):
         if (hasattr(node.parent, 'file')
-            and os.path.basename(node.parent.file) == '__init__.py'
-            and ("tests" in [item for item, _ in node.names]
-                 or "tests" in node.modname)):
-            self.add_message('test-folder-imported', node=node,
-                             args=(node.parent.name,))
+                and os.path.basename(node.parent.file) == '__init__.py'):
+            package_names = []
+            if isinstance(node, astroid.ImportFrom):
+                package_names = node.modname.split('.')[:1]
+            elif isinstance(node, astroid.Import):
+                package_names = [name[0].split('.')[0] for name in node.names]
+            if "tests" in package_names:
+                self.add_message('test-folder-imported', node=node,
+                                 args=(node.parent.name,))
 
     @staticmethod
     def _is_absolute_import(node, name):
