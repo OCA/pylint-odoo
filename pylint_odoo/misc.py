@@ -123,6 +123,9 @@ class PylintOdooChecker(BaseChecker):
         # Get 'module' part from node.name 'module.models.file'
         module_path = node.file
         node_name = node.name
+        if "odoo.addons." in node_name:
+            # we are into a namespace package...
+            node_name = node_name.split("odoo.addons.")[1]
         if os.path.basename(node.file) == '__init__.py':
             node_name += '.__init__'
         for _ in range(node_name.count('.')):
@@ -186,6 +189,9 @@ class PylintOdooChecker(BaseChecker):
             self.odoo_node = node
             self.odoo_module_name = os.path.basename(
                 os.path.dirname(manifest_file))
+            self.odoo_module_name_with_ns = "odoo.addons.{}".format(
+                self.odoo_module_name
+            )
             with open(self.manifest_file) as f_manifest:
                 self.manifest_dict = ast.literal_eval(f_manifest.read())
         elif self.odoo_node and os.path.commonprefix(
@@ -199,7 +205,10 @@ class PylintOdooChecker(BaseChecker):
             self.manifest_dict = {}
             self.manifest_file = None
         self.is_main_odoo_module = False
-        if self.manifest_file and node.name.count('.') == 0:
+        if self.manifest_file and (
+                node.name.count('.') == 0 or
+                node.name.endswith(self.odoo_module_name_with_ns)
+        ):
             self.is_main_odoo_module = True
         self.node = node
         self.module_path = os.path.dirname(node.file)
