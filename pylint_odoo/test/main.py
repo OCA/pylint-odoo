@@ -109,6 +109,9 @@ class MainTest(unittest.TestCase):
         root, dirs, _ = six.next(os.walk(path_modules))
         for path in dirs:
             self.paths_modules.append(os.path.join(root, path))
+        self.odoo_namespace_addons_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+            'test_repo_odoo_namespace', 'odoo')
         self.default_extra_params = [
             '--disable=all',
             '--enable=odoolint,pointless-statement,trailing-newlines',
@@ -341,6 +344,19 @@ class MainTest(unittest.TestCase):
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors_120 = pylint_res.linter.stats['by_msg']
         self.assertFalse(real_errors_120)
+
+    def test_130_odoo_namespace_repo(self):
+        extra_params = [
+            '--valid_odoo_versions=12.0',
+            '--disable=all',
+            '--enable=po-msgstr-variables,missing-readme',
+        ]
+        pylint_res = self.run_pylint([self.odoo_namespace_addons_path], extra_params)
+        real_errors = pylint_res.linter.stats['by_msg']
+        self.assertDictEqual(
+            real_errors,
+            {"po-msgstr-variables": 1, "missing-readme": 1}
+        )
 
 
 if __name__ == '__main__':
