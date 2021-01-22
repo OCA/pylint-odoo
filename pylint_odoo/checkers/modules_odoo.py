@@ -5,7 +5,6 @@ import os
 import re
 
 import astroid
-import isort
 import polib
 from collections import defaultdict
 from pylint.checkers import utils
@@ -429,8 +428,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
         if self._is_module_name_in_whitelist(module_name):
             # ignore whitelisted modules
             return
-        isort_obj = isort.SortImports(file_contents='')
-        import_category = isort_obj.place_module(module_name)
+        isort_driver = misc.IsortDriver()
+        import_category = isort_driver.place_module(module_name)
         if import_category not in ('FIRSTPARTY', 'THIRDPARTY'):
             # skip if is not a external library or is a white list library
             return
