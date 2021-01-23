@@ -22,6 +22,15 @@ try:
 except ImportError:
     from whichcraft import which
 
+try:
+    import isort.api
+
+    HAS_ISORT_5 = True
+except ImportError:  # isort < 5
+    import isort
+
+    HAS_ISORT_5 = False
+
 DFTL_VALID_ODOO_VERSIONS = [
     '4.2', '5.0', '6.0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0',
     '13.0', '14.0',
@@ -660,3 +669,23 @@ class WrapperModuleChecker(PylintOdooChecker):
             # with the args and kwargs of the original string
             # so it is a real error
             raise StringParseError(repr(exc))
+
+
+class IsortDriver:
+    """
+    A wrapper around isort API that changed between versions 4 and 5.
+    Taken of https://git.io/Jt3dw
+    """
+
+    def __init__(self):
+        if HAS_ISORT_5:
+            self.isort5_config = isort.api.Config()
+        else:
+            self.isort4_obj = isort.SortImports(  # pylint: disable=no-member
+                file_contents=""
+            )
+
+    def place_module(self, package):
+        if HAS_ISORT_5:
+            return isort.api.place_module(package, self.isort5_config)
+        return self.isort4_obj.place_module(package)
