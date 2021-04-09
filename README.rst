@@ -155,7 +155,11 @@ Or
 Usage
 -----
 
-``pylint --load-plugins=pylint_odoo -e odoolint ...``
+``pylint --load-plugins=pylint_odoo -e odoolint path/to/test``
+
+or use configuration file (find example configuration in https://github.com/oca/pylint-odoo/blob/patch-1/pylint_odoo/examples/.pylintrc):
+
+``pylint --rcfile=.pylintrc -e odoolint path/to/test``
 
 Example to test just odoo-lint case:
 
