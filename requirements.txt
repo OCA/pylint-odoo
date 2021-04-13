@@ -1,5 +1,6 @@
 docutils==0.16
 lxml>=4.2.3
+pbr
 polib==1.1.0
 Pygments==2.2 ;python_version < '3'
 Pygments==2.6.1 ;python_version >= '3'
