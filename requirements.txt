@@ -3,7 +3,7 @@ lxml>=4.2.3
 pbr
 polib==1.1.0
 Pygments==2.2 ;python_version < '3'
-Pygments==2.6.1 ;python_version >= '3'
+Pygments==2.7.4 ;python_version >= '3'
 pylint-plugin-utils==0.6
 pylint==1.9.5 ;python_version < '3'
 pylint==2.6.0 ;python_version >= '3'
