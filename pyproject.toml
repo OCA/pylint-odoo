@@ -33,9 +33,14 @@ Pygments = [
     {version = "^2.2", python = "<3"},
     {version = "<=2.10.0", python = ">=3"}
 ]
-pylint-plugin-utils = "0.6"
+pylint-plugin-utils = "^0.6"
 
 [tool.poetry.dev-dependencies]
+nodeenv = "^1.6.0"
+coveralls = [
+    {version = "<2.0.0", python = "^2.7"},
+    {version = "^3.0.1", python = "^3"}
+]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
