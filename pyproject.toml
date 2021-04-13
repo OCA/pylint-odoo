@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "pylint-odoo"
+version = "3.7.1"
+description = "Odoo plugin for Pylint"
+authors = ["Odoo Community Association (OCA) <support@odoo-community.org>"]
+license = "APGL3"
+homepage = "https://github.com/OCA/pylint-odoo"
+readme = "README.rst"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+]
+
+[tool.poetry.dependencies]
+python = ">=2.7,<3.0.0 || >=3.5.0"
+docutils = "<=0.17.1"
+lxml = "^4.6.3"
+polib = "<=1.1.1"
+restructuredtext-lint = "<=1.3.2"
+rfc3986 = "^1.4.0"
+six = "^1.15.0"
+whichcraft = "^0.6.1"
+pylint = [
+    {version = "^1.9.5", python = "<3"},
+    {version = "<=2.11.1", python = ">=3"}
+]
+Pygments = [
+    {version = "^2.2", python = "<3"},
+    {version = "<=2.10.0", python = ">=3"}
+]
+pylint-plugin-utils = "0.6"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
