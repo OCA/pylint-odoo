@@ -8,44 +8,51 @@ cache:
 
 matrix:
   include:
-    - python: 2.7
+    # Use python 3.8 as system executable for Poetry compatibility
+    - python: 3.8
       env:
         TOXENV=pylint
-    - python: 3.5
+        PY=2.7
+    - python: 3.8
       env:
         TOXENV=pylint
+        PY=3.5
     - python: 3.7
       env:
         TOXENV=pylint
+        PY=3.7
         DEPLOY="1"
     - python: 3.8
       env:
         TOXENV=pylint
-    - python: 3.9-dev
+        PY=3.8
+    - python: 3.9
       env:
         TOXENV=pylint
+        PY=3.9
 
+
+before_install:
+    - pip install -U pip
 
 install:
-    # Remove packages installed from addons-apt-packages of travis file
-    - pip install -U pip
-    - sed -i '/node/d' ${TRAVIS_BUILD_DIR}/install.sh
-    - sed -i '/pip install ./d' ${TRAVIS_BUILD_DIR}/install.sh
-
     # Install dependencies
-    - ${TRAVIS_BUILD_DIR}/install.sh
+    - pip install poetry tox
+    # Use correct python version
+    - poetry env use ${PY}
 
-    # Install testing dependencies
-    - pip install coveralls flake8==3.8.3 tox restructuredtext_lint pygments
+before_script:
+    # HACK: Pre-create venv paths. See https://github.com/python-poetry/poetry/issues/3218
+    - venv_path=($(poetry env list --full-path | tr " " "\n"))
+    - mkdir -p ${venv_path[0]}/local/lib/python${PY}/dist-packages/
 
 script:
-    - flake8 --ignore=E722,F601,F841,W503,W504,W605 --max-line-length=88 --exclude=__init__.py .
-    - restructuredtext-lint ${TRAVIS_BUILD_DIR}/README.rst
     - tox -e $TOXENV,profile-stats
+    - poetry run flake8 --ignore=E722,F601,F841,W503,W504,W605 --max-line-length=88 --exclude=__init__.py ./pylint_odoo
+    - poetry run restructuredtext-lint ${TRAVIS_BUILD_DIR}/README.rst
 
 after_success:
-    - coveralls
-    - python setup.py sdist  # Build ChangeLog file from git log
+    - poetry run coveralls
 
 deploy:
   skip_cleanup: true  # Allow to upload Changelog generated from tox
