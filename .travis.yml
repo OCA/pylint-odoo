@@ -53,6 +53,7 @@ script:
 
 after_success:
     - poetry run coveralls
+    - poetry build
 
 deploy:
   skip_cleanup: true  # Allow to upload Changelog generated from tox
