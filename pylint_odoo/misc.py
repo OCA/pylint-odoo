@@ -11,7 +11,6 @@ from lxml import etree
 from pylint.checkers import BaseChecker, BaseTokenChecker
 from pylint.interfaces import UNDEFINED
 from pylint.interfaces import IAstroidChecker, ITokenChecker
-from pylint.utils import _basename_in_blacklist_re
 from restructuredtext_lint import lint_file as rst_lint
 from six import string_types
 
@@ -154,10 +153,6 @@ class PylintOdooChecker(BaseChecker):
             for filename in filenames:
                 fext = os.path.splitext(filename)[1].lower()
                 fname = os.path.join(root, filename)
-                # If the file is within black_list_re is ignored
-                if _basename_in_blacklist_re(fname,
-                                             self.linter.config.black_list_re):
-                    continue
                 # If the file is within ignores is ignored
                 find = False
                 for ignore in self.linter.config.black_list:
