@@ -515,10 +515,11 @@ class NoModuleChecker(misc.PylintOdooChecker):
                     isinstance(node.parent.targets[0], astroid.AssignName)):
                 field_name = (node.parent.targets[0].name
                               .replace('_', ' '))
+            is_related = bool([1 for kw in node.keywords or [] if kw.arg == 'related'])
             for argument in args:
                 argument_aux = argument
                 # Check this 'name = fields.Char("name")'
-                if (isinstance(argument, astroid.Const) and
+                if (not is_related and isinstance(argument, astroid.Const) and
                     (index ==
                      FIELDS_METHOD.get(argument.parent.func.attrname, 0)) and
                     (argument.value in
@@ -536,7 +537,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                                          node=argument_aux)
                     # Check if the param string is equal to the name
                     #   of variable
-                    elif argument.arg == 'string' and \
+                    elif not is_related and argument.arg == 'string' and \
                         (isinstance(argument_aux, astroid.Const) and
                          argument_aux.value in
                          [field_name.capitalize(), field_name.title()]):
