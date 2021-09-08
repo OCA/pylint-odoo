@@ -432,6 +432,9 @@ class NoModuleChecker(misc.PylintOdooChecker):
         return dict(item.split(":") for item in colon_list)
 
     def _sqli_allowable(self, node):
+        # sql.SQL or sql.Identifier is OK
+        if self._is_psycopg2_sql(node):
+            return True
         if isinstance(node, astroid.Call):
             node = node.func
         # self._thing is OK (mostly self._table), self._thing() also because
@@ -482,14 +485,6 @@ class NoModuleChecker(misc.PylintOdooChecker):
         if isinstance(node, astroid.Call) \
                 and isinstance(node.func, astroid.Attribute) \
                 and node.func.attrname == 'format':
-
-            # exclude sql.SQL or sql.Identifier
-            is_psycopg2 = (
-                list(map(self._is_psycopg2_sql, node.args)) +
-                [self._is_psycopg2_sql(keyword.value)
-                 for keyword in (node.keywords or [])])
-            if is_psycopg2 and all(is_psycopg2):
-                return False
 
             if not all(map(self._sqli_allowable, node.args or [])):
                 return True
