@@ -492,7 +492,7 @@ class WrapperModuleChecker(PylintOdooChecker):
                 unique_items.add(item)
         return list(duplicated_items)
 
-    def parse_xml(self, xml_file):
+    def parse_xml(self, xml_file, raise_if_error=False):
         """Get xml parsed.
         :param xml_file: Path of file xml
         :return: Doc parsed (lxml.etree object)
@@ -504,7 +504,9 @@ class WrapperModuleChecker(PylintOdooChecker):
             with open(xml_file, "rb") as f_obj:
                 doc = etree.parse(f_obj)
         except etree.XMLSyntaxError as xmlsyntax_error_exception:
-            return str(xmlsyntax_error_exception)
+            if raise_if_error:
+                raise xmlsyntax_error_exception
+            return etree.Element("__empty__")
         return doc
 
     def get_xml_records(self, xml_file, model=None, more=None):
@@ -530,8 +532,7 @@ class WrapperModuleChecker(PylintOdooChecker):
             more_filter = more
         doc = self.parse_xml(xml_file)
         return doc.xpath("/openerp//record" + model_filter + more_filter) + \
-            doc.xpath("/odoo//record" + model_filter + more_filter) \
-            if not isinstance(doc, string_types) else []
+            doc.xpath("/odoo//record" + model_filter + more_filter)
 
     def get_field_csv(self, csv_file, field='id'):
         """Get xml ids from csv file
