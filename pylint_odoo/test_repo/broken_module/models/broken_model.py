@@ -411,6 +411,9 @@ class TestModel(models.Model):
                 query=sql_query,
             ))
 
+        self._cr.execute(
+            'SELECT name FROM %(table)s' % {'table': self._table})
+
     # old api
     def sql_injection_modulo_operator(self, cr, uid, ids, context=None):
         # Use of % operator: risky
@@ -432,6 +435,9 @@ class TestModel(models.Model):
         values = ([1, 2, 3, ], )
         self._cr.execute(var % values)
 
+        self._cr.execute(
+            'SELECT name FROM account WHERE id IN %(ids)s' % {'ids': ids})
+
     def sql_injection_executemany(self, ids, cr, v1, v2):
         # Check executemany() as well
         self.cr.executemany(
@@ -445,6 +451,9 @@ class TestModel(models.Model):
         var = 'SELECT name FROM account WHERE id IN {}'
         values = (1, 2, 3)
         self._cr.execute(var.format(values))
+
+        self.cr.execute(
+            'SELECT name FROM account WHERE id IN {ids}'.format(ids=ids))
 
     def sql_injection_plus_operator(self, ids, cr):
         # Use of +: risky
@@ -473,6 +482,12 @@ class TestModel(models.Model):
         self._cr.execute(var)
 
         var[1] = 'SELECT name FROM account WHERE id IN %s' % tuple(ids)
+        self._cr.execute(var[1])
+
+        var = 'SELECT name FROM account WHERE id IN %(ids)s' % {'ids': tuple(ids)}
+        self._cr.execute(var)
+
+        var[1] = 'SELECT name FROM account WHERE id IN %(ids)s' % {'ids': tuple(ids)}
         self._cr.execute(var[1])
 
     def sql_no_injection_private_attributes(self, _variable, variable):

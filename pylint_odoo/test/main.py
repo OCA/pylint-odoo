@@ -56,7 +56,7 @@ EXPECTED_ERRORS = {
     'print-used': 1,
     'redundant-modulename-xml': 1,
     'rst-syntax-error': 2,
-    'sql-injection': 17,
+    'sql-injection': 21,
     'str-format-used': 3,
     'translation-field': 2,
     'translation-required': 15,
