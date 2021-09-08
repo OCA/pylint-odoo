@@ -998,7 +998,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 if not fname.endswith('.xml'):
                     continue
                 referenced_files.update(
-                    self._get_xml_referenced_files_report(os.path.normpath(fname), data_type)
+                    self._get_xml_referenced_files_report(
+                        os.path.normpath(fname), data_type)
                 )
         return referenced_files
 
