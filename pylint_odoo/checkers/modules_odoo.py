@@ -988,7 +988,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
         referenced_files = {}
         for data_type in DFTL_MANIFEST_DATA_KEYS:
             for fname in self.manifest_dict.get(data_type) or []:
-                referenced_files[fname] = data_type
+                referenced_files[os.path.normpath(fname)] = data_type
         return referenced_files
 
     def _get_xml_referenced_files(self):
@@ -998,7 +998,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 if not fname.endswith('.xml'):
                     continue
                 referenced_files.update(
-                    self._get_xml_referenced_files_report(fname, data_type)
+                    self._get_xml_referenced_files_report(
+                        os.path.normpath(fname), data_type)
                 )
         return referenced_files
 
@@ -1006,7 +1007,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
         return {
             # those files are relative to the addon path
             os.path.join(
-                *record.attrib[attribute].split(os.sep)[1:]
+                *os.path.normpath(record.attrib[attribute]).split(os.sep)[1:]
             ): data_type
             for attribute in ['xml', 'xsl']
             for record in self.parse_xml(
