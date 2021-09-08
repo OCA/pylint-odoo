@@ -561,7 +561,9 @@ class NoModuleChecker(misc.PylintOdooChecker):
             self.add_message('invalid-commit', node=node)
 
         # Call the message_post()
-        if (isinstance(node, astroid.Call) and
+        base_dirname = os.path.basename(os.path.normpath(
+            os.path.dirname(self.linter.current_file)))
+        if (base_dirname != 'tests' and isinstance(node, astroid.Call) and
                 isinstance(node.func, astroid.Attribute) and
                 node.func.attrname == 'message_post'):
             for arg in itertools.chain(node.args, node.keywords or []):
