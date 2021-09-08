@@ -518,20 +518,9 @@ class NoModuleChecker(misc.PylintOdooChecker):
         first_arg = node.args[0]
         is_concatenation = self._check_node_for_sqli_risk(first_arg)
         # if first parameter is a variable, check how it was built instead
-        if (not is_concatenation and
-                isinstance(first_arg, (astroid.Name, astroid.Subscript))):
-
-            # 1) look for parent scope (where the definition lives)
-            current = node
-            while (current and not isinstance(current.parent, astroid.FunctionDef)):
-                current = current.parent
-            parent = current.parent
-
-            # 2) check how was the variable built
-            for node_ofc in parent.nodes_of_class(astroid.Assign):
-                if node_ofc.targets[0].as_string() != first_arg.as_string():
-                    continue
-                is_concatenation = self._check_node_for_sqli_risk(node_ofc.value)
+        if not is_concatenation:
+            for node_assignation in self._get_assignation_nodes(first_arg):
+                is_concatenation = self._check_node_for_sqli_risk(node_assignation)
                 if is_concatenation:
                     break
         return is_concatenation
