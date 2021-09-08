@@ -841,7 +841,9 @@ class NoModuleChecker(misc.PylintOdooChecker):
     @utils.check_messages('attribute-deprecated')
     def visit_assign(self, node):
         node_left = node.targets[0]
-        if isinstance(node_left, astroid.AssignName):
+        if (isinstance(node.parent, astroid.ClassDef) and
+                isinstance(node_left, astroid.AssignName) and
+                [1 for m in node.parent.basenames if 'Model' in m]):
             if node_left.name in self.config.attribute_deprecated:
                 self.add_message('attribute-deprecated',
                                  node=node_left, args=(node_left.name,))

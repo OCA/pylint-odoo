@@ -480,3 +480,11 @@ class TestModel(models.Model):
             "CREATE VIEW %s AS (SELECT * FROM res_partner)" % _variable)
         self._cr.execute(
             "CREATE VIEW %s AS (SELECT * FROM res_partner)" % variable)
+
+    def func(a):
+        length = len(a)
+        return length
+
+
+class NoOdoo(object):
+    length = 0
