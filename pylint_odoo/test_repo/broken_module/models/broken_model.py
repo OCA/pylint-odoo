@@ -424,6 +424,7 @@ class TestModel(models.Model):
             'SELECT name FROM account WHERE id IN %s' % (tuple(ids),))
 
         operator = 'WHERE'
+        # Ignore sql-injection because of there is a parameter e.g. "ids"
         self._cr.execute(
             'SELECT name FROM account %s id IN %%s' % operator, ids)
 
@@ -447,6 +448,7 @@ class TestModel(models.Model):
             'SELECT name FROM account WHERE id IN ' + str(tuple(ids)))
 
         operator = 'WHERE'
+        # Ignore sql-injection because of there is a parameter e.g. "ids"
         self._cr.execute(
             'SELECT name FROM account ' + operator + ' id IN %s', ids)
         self.cr.execute(
@@ -481,7 +483,24 @@ class TestModel(models.Model):
         self._cr.execute(
             "CREATE VIEW %s AS (SELECT * FROM res_partner)" % variable)
 
-    def func(a):
+    def sql_no_injection_private_methods(self):
+        # Skip sql-injection using private methods
+        self.env.cr.execute(
+            """
+            CREATE OR REPLACE VIEW %s AS (
+                %s %s %s %s
+            )
+        """
+            % (
+                self._table,
+                self._select(),
+                self._from(),
+                self._where(),
+                self._group_by(),
+            )
+        )
+
+    def func(self, a):
         length = len(a)
         return length
 
