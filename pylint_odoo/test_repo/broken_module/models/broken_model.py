@@ -442,6 +442,10 @@ class TestModel(models.Model):
         self.cr.execute(
             'SELECT name FROM account WHERE id IN {}'.format(ids))
 
+        var = 'SELECT name FROM account WHERE id IN {}'
+        values = (1, 2, 3)
+        self._cr.execute(var.format(values))
+
     def sql_injection_plus_operator(self, ids, cr):
         # Use of +: risky
         self.cr.execute(

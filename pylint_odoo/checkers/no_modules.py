@@ -431,6 +431,15 @@ class NoModuleChecker(misc.PylintOdooChecker):
         """
         return dict(item.split(":") for item in colon_list)
 
+    def _sqli_allowable(self, node):
+        if isinstance(node, astroid.Call):
+            node = node.func
+        # self._thing is OK (mostly self._table), self._thing() also because
+        # it's a common pattern of reports (self._select, self._group_by, ...)
+        return (isinstance(node, astroid.Attribute)
+                and isinstance(node.expr, astroid.Name)
+                and node.attrname.startswith('_'))
+
     def _is_psycopg2_sql(self, node):
         if isinstance(node, astroid.Name):
             for assignation_node in self._get_assignation_nodes(node):
@@ -454,15 +463,6 @@ class NoModuleChecker(misc.PylintOdooChecker):
         if 'psycopg2' in package_names:
             return True
 
-    def _sqli_allowable(self, node):
-        if isinstance(node, astroid.Call):
-            node = node.func
-        # self._thing is OK (mostly self._table), self._thing() also because
-        # it's a common pattern of reports (self._select, self._group_by, ...)
-        return (isinstance(node, astroid.Attribute)
-                and isinstance(node.expr, astroid.Name)
-                and node.attrname.startswith('_'))
-
     def _check_node_for_sqli_risk(self, node):
         if isinstance(node, astroid.BinOp) and node.op in ('%', '+'):
             if isinstance(node.right, astroid.Tuple):
@@ -481,8 +481,15 @@ class NoModuleChecker(misc.PylintOdooChecker):
         # ignore sql.SQL().format
         if isinstance(node, astroid.Call) \
                 and isinstance(node.func, astroid.Attribute) \
-                and isinstance(node.func.expr, astroid.Const) \
                 and node.func.attrname == 'format':
+
+            # exclude sql.SQL or sql.Identifier
+            is_psycopg2 = (
+                list(map(self._is_psycopg2_sql, node.args)) +
+                [self._is_psycopg2_sql(keyword.value)
+                 for keyword in (node.keywords or [])])
+            if is_psycopg2 and all(is_psycopg2):
+                return False
 
             if not all(map(self._sqli_allowable, node.args or [])):
                 return True
