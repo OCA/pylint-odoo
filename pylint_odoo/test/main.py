@@ -254,6 +254,31 @@ class MainTest(unittest.TestCase):
         self.expected_errors.pop('javascript-lint')
         self.assertEqual(self.expected_errors, real_errors)
 
+    def test_85_valid_odoo_version_format(self):
+        """Test --manifest_version_format parameter"""
+        # First, run Pylint for version 8.0
+        extra_params = [
+            '--manifest_version_format="8\.0\.\d+\.\d+.\d+$"'
+            '--valid_odoo_versions=""',
+            '--disable=all',
+            '--enable=manifest-version-format',
+        ]
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats['by_msg']
+        expected_errors = {
+            'manifest-version-format': 6,
+        }
+        self.assertDictEqual(real_errors, expected_errors)
+
+        # Now for version 11.0
+        extra_params[0] = '--manifest_version_format="11\.0\.\d+\.\d+.\d+$"'
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats['by_msg']
+        expected_errors = {
+            'manifest-version-format': 5,
+        }
+        self.assertDictEqual(real_errors, expected_errors)
+
     def test_90_valid_odoo_versions(self):
         """Test --valid_odoo_versions parameter when it's '8.0' & '11.0'"""
         # First, run Pylint for version 8.0
