@@ -117,9 +117,10 @@ class PylintOdooChecker(BaseChecker):
             'valid_odoo_versions'].config.valid_odoo_versions
         valid_odoo_versions = '|'.join(
             map(re.escape, valid_odoo_versions))
+        manifest_version_format = self.linter._all_options[
+            'manifest_version_format'].config.manifest_version_format
         self.config.manifest_version_format_parsed = (
-            DFTL_MANIFEST_VERSION_FORMAT.format(
-                valid_odoo_versions=valid_odoo_versions))
+            manifest_version_format.format(valid_odoo_versions=valid_odoo_versions))
         return re.match(self.config.manifest_version_format_parsed, string)
 
     def get_manifest_file(self, node):
