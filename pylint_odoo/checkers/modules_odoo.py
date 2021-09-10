@@ -105,6 +105,12 @@ ODOO_MSGS = {
         'dangerous-view-replace-wo-priority',
         settings.DESC_DFLT
     ),
+    'W%d41' % settings.BASE_OMODULE_ID: (
+        '%s Dangerous use of "replace" from view '
+        'with priority %s < %s',
+        'dangerous-qweb-replace-wo-priority',
+        settings.DESC_DFLT
+    ),
     'W%d30' % settings.BASE_OMODULE_ID: (
         '%s not used from manifest',
         'file-not-used',
@@ -863,6 +869,34 @@ class ModuleChecker(misc.WrapperModuleChecker):
                     self.msg_args.append((
                         "%s:%s" % (xml_file, view.sourceline), priority,
                         self.config.min_priority))
+        if self.msg_args:
+            return False
+        return True
+
+    def _check_dangerous_qweb_replace_wo_priority(self):
+        """Check dangerous qweb view defined with low priority
+        :return: False if exists errors and
+                 add list of errors in self.msg_args
+        """
+        self.msg_args = []
+        xml_files = self.filter_files_ext('xml')
+        for xml_file in self._skip_files_ext('.xml', xml_files):
+            xml_file_path = os.path.join(self.module_path, xml_file)
+
+            # view template
+            xml_doc = self.parse_xml(xml_file_path)
+            for template in xml_doc.xpath("/odoo//template|/openerp//template"):
+                try:
+                    priority = int(template.get('priority'))
+                except (ValueError, TypeError):
+                    priority = 0
+                for child in template.iterchildren():
+                    if (child.get('position') == 'replace' and
+                            priority < self.config.min_priority):
+                        self.msg_args.append((
+                            "%s:%s" % (xml_file, template.sourceline), priority,
+                            self.config.min_priority))
+                        break
         if self.msg_args:
             return False
         return True

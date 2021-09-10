@@ -15,7 +15,8 @@
         'skip_xml_check.xml',
         'skip_xml_check_2.xml',
         'skip_xml_check_3.xml',
-        'report.xml'
+        'report.xml',
+        'template1.xml',
     ],
     'demo': ['demo/duplicated_id_demo.xml', 'file_no_exist.xml'],
     'test': ['file_no_exist.yml'],

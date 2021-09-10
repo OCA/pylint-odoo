@@ -24,6 +24,7 @@ EXPECTED_ERRORS = {
     'create-user-wo-reset-password': 1,
     'dangerous-filter-wo-user': 1,
     'dangerous-view-replace-wo-priority': 6,
+    'dangerous-qweb-replace-wo-priority': 2,
     'deprecated-openerp-xml-node': 5,
     'development-status-allowed': 1,
     'duplicate-id-csv': 2,

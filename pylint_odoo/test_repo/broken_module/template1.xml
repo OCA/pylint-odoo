@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="my_template1" inherit_id="module.template">
+        <xpath expr="//div[@role='search']" position="replace">
+            <form/>
+        </xpath>
+        <xpath expr="//div[@role='search']" position="replace"/>
+    </template>
+
+    <template id="my_template2" inherit_id="module.template" priority="110">
+        <xpath expr="//div[@role='search']" position="replace">
+            <form/>
+        </xpath>
+        <xpath expr="//div[@role='search']" position="replace"/>
+    </template>
+
+    <template id="my_template3" inherit_id="module.template">
+        <t t-set="address" position="replace"/>
+    </template>
+
+    <template id="my_template4" inherit_id="module.template" priority="110">
+        <t t-set="address" position="replace"/>
+    </template>
+
+    <template id="my_template5" inherit_id="module.template">
+        <t t-set="address"/>
+    </template>
+</odoo>
