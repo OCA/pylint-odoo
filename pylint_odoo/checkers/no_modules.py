@@ -247,7 +247,7 @@ ODOO_MSGS = {
     ),
     'W%d21' % settings.BASE_NOMODULE_ID: (
         'Context overridden using dict. '
-        'Better using kwargs "with_context(**%s)" or "with_context(key=value)"',
+        'Better using kwargs `with_context(**%s)` or `with_context(key=value)`',
         'context-overridden',
         settings.DESC_DFLT
     ),
