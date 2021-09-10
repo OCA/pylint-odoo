@@ -19,6 +19,7 @@ EXPECTED_ERRORS = {
     'attribute-deprecated': 3,
     'class-camelcase': 1,
     'consider-merging-classes-inherited': 2,
+    'context-overridden': 3,
     'copy-wo-api-one': 2,
     'create-user-wo-reset-password': 1,
     'dangerous-filter-wo-user': 1,

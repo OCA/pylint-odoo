@@ -245,6 +245,12 @@ ODOO_MSGS = {
         'translation-positional-used',
         settings.DESC_DFLT
     ),
+    'W%d21' % settings.BASE_NOMODULE_ID: (
+        'Context overridden using dict. '
+        'Better using kwargs "with_context(**%s)" or "with_context(key=value)"',
+        'context-overridden',
+        settings.DESC_DFLT
+    ),
     'F%d01' % settings.BASE_NOMODULE_ID: (
         'File "%s": "%s" not found.',
         'resource-not-exist',
@@ -550,7 +556,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                           'translation-required',
                           'translation-contains-variable',
                           'print-used', 'translation-positional-used',
-                          'str-format-used',
+                          'str-format-used', 'context-overridden',
                           )
     def visit_call(self, node):
         infer_node = utils.safe_infer(node.func)
@@ -611,6 +617,15 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 node.func.attrname == 'commit' and \
                 self.get_cursor_name(node.func) in self.config.cursor_expr:
             self.add_message('invalid-commit', node=node)
+
+        if (isinstance(node, astroid.Call) and
+                isinstance(node.func, astroid.Attribute) and
+                node.func.attrname == 'with_context' and
+                not node.keywords and node.args):
+            # with_context(**ctx) is considered a keywords
+            # So, if only one args is received it is overridden
+            self.add_message('context-overridden', node=node,
+                             args=(node.args[0].as_string(),))
 
         # Call the message_post()
         base_dirname = os.path.basename(os.path.normpath(
