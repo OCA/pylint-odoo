@@ -537,12 +537,12 @@ class NoModuleChecker(misc.PylintOdooChecker):
             current = node
             while (current and not isinstance(current.parent, astroid.FunctionDef)):
                 current = current.parent
-            parent = current.parent
-
-            # 2) check how was the variable built
-            for assign_node in parent.nodes_of_class(astroid.Assign):
-                if assign_node.targets[0].as_string() == node.as_string():
-                    yield assign_node.value
+            if current:
+                parent = current.parent
+                # 2) check how was the variable built
+                for assign_node in parent.nodes_of_class(astroid.Assign):
+                    if assign_node.targets[0].as_string() == node.as_string():
+                        yield assign_node.value
 
     @utils.check_messages("print-used")
     def visit_print(self, node):

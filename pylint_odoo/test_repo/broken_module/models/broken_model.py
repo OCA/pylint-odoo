@@ -534,3 +534,13 @@ class TestModel(models.Model):
 
 class NoOdoo(object):
     length = 0
+
+
+if __name__ == '__main__':
+    self = None
+    queries = [
+        "SELECT id FROM res_partner",
+        "SELECT id FROM res_users",
+    ]
+    for query in queries:
+        self.env.cr.execute(query)
