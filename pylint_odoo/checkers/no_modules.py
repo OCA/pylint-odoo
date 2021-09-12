@@ -447,7 +447,10 @@ class NoModuleChecker(misc.PylintOdooChecker):
         # it's a common pattern of reports (self._select, self._group_by, ...)
         return (isinstance(node, astroid.Attribute)
                 and isinstance(node.expr, astroid.Name)
-                and node.attrname.startswith('_'))
+                and node.attrname.startswith('_')
+                # cr.execute('SELECT * FROM %s' % 'table') is OK
+                # since that is a constant and constant can not be injected
+                or isinstance(node, astroid.Const))
 
     def _is_psycopg2_sql(self, node):
         if isinstance(node, astroid.Name):
@@ -459,7 +462,8 @@ class NoModuleChecker(misc.PylintOdooChecker):
             return False
         imported_name = node.func.as_string().split('.')[0]
         imported_node = node.root().locals.get(imported_name)
-        # TODO: Consider "from psycopg2 import *"?
+        # "from psycopg2 import *" not considered since that it is hard
+        # and there is another check detecting these kind of imports
         if not imported_node:
             return None
         imported_node = imported_node[0]
@@ -484,6 +488,22 @@ class NoModuleChecker(misc.PylintOdooChecker):
                     return True
             elif not self._sqli_allowable(node.right):
                 # execute("..." % self._table)
+                return True
+
+            # Consider cr.execute('SELECT ' + operator + ' FROM table' + 'WHERE')"
+            # node.repr_tree()
+            # BinOp(
+            #    op='+',
+            #    left=BinOp(
+            #       op='+',
+            #       left=BinOp(
+            #          op='+',
+            #          left=Const(value='SELECT '),
+            #          right=Name(name='operator')),
+            #       right=Const(value=' FROM table')),
+            #    right=Const(value='WHERE'))
+            if (not self._sqli_allowable(node.left) and
+                    self._check_node_for_sqli_risk(node.left)):
                 return True
 
         # check execute("...".format(self._table, table=self._table))
