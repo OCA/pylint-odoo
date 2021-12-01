@@ -414,6 +414,24 @@ class MainTest(unittest.TestCase):
         }
         self.assertDictEqual(real_errors, expected_errors)
 
+    def test_140_check_migrations_is_not_odoo_module(self):
+        """Checking that migrations folder is not considered a odoo module
+        Related to https://github.com/OCA/pylint-odoo/issues/357"""
+        extra_params = [
+            '--disable=all',
+            '--enable=missing-readme',
+        ]
+        test_module = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+            'test_repo', 'test_module')
+        path_modules = [
+            os.path.join(test_module, '__init__.py'),
+            os.path.join(test_module, 'migrations', '10.0.1.0.0', 'pre-migration.py')]
+        pylint_res = self.run_pylint(path_modules, extra_params)
+        real_errors = pylint_res.linter.stats['by_msg']
+        expected_errors = {}
+        self.assertDictEqual(real_errors, expected_errors)
+
 
 if __name__ == '__main__':
     unittest.main()

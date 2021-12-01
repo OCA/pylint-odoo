@@ -230,7 +230,7 @@ class PylintOdooChecker(BaseChecker):
             self.manifest_dict = {}
             self.manifest_file = None
         self.is_main_odoo_module = False
-        if self.manifest_file and (
+        if self.manifest_file and os.path.basename(node.file) == '__init__.py' and (
                 node.name.count('.') == 0 or
                 node.name.endswith(self.odoo_module_name_with_ns)
         ):
