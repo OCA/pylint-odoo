@@ -275,7 +275,7 @@ DFTL_ATTRIBUTE_DEPRECATED = [
 ]
 DFTL_METHOD_REQUIRED_SUPER = [
     'create', 'write', 'read', 'unlink', 'copy',
-    'setUp', 'setUpClass', 'tearDown', 'default_get',
+    'setUp', 'setUpClass', 'tearDown', 'tearDownClass', 'default_get',
 ]
 DFTL_CURSOR_EXPR = [
     'self.env.cr', 'self._cr',  # new api
@@ -289,7 +289,7 @@ DFTL_ODOO_EXCEPTIONS = [
     'ValidationError', 'Warning',
 ]
 DFTL_NO_MISSING_RETURN = [
-    '__init__', 'setUp', 'setUpClass', 'tearDown', '_register_hook',
+    '__init__', 'setUp', 'setUpClass', 'tearDown', 'tearDownClass', '_register_hook',
 ]
 FIELDS_METHOD = {
     'Many2many': 4,
