@@ -1,8 +1,7 @@
-
 import os
 import stat
 import sys
-from tempfile import gettempdir
+from tempfile import gettempdir, NamedTemporaryFile
 import six
 
 import unittest
@@ -431,6 +430,42 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats['by_msg']
         expected_errors = {}
         self.assertDictEqual(real_errors, expected_errors)
+
+    @unittest.skipUnless(
+        sys.version_info >= (3, 6),
+        "Fstrings (PEP498) are only supported since 3.6"
+    )
+    def test_145_check_fstring_sqli(self):
+        """Verify the linter is capable of finding SQL Injection vulnerabilities
+        when using fstrings.
+        Related to https://github.com/OCA/pylint-odoo/issues/363"""
+        extra_params = [
+            '--disable=all',
+            '--enable=sql-injection'
+        ]
+        queries = '''
+def fstring_sqli(self):
+   self.env.cr.execute(f"SELECT * FROM TABLE WHERE SQLI = {self.table}")
+   self.env.cr.execute(
+       f"SELECT * FROM TABLE WHERE SQLI = {'hello' + self.name}"
+   )
+   self.env.cr.execute(f"SELECT * FROM {self.name} WHERE SQLI = {'hello'}")
+   death_wish = f"SELECT * FROM TABLE WHERE SQLI = {self.name}"
+   self.env.cr.execute(death_wish)
+def fstring_no_sqli(self):
+   self.env.cr.execute(f"SELECT * FROM TABLE WHERE SQLI = {'hello'}")
+   self.env.cr.execute(
+       f"CREATE VIEW {self._table} AS (SELECT * FROM res_partner)"
+   )
+   self.env.cr.execute(f"SELECT NAME FROM res_partner LIMIT 10")
+           '''
+        with NamedTemporaryFile(mode='w') as f:
+            f.write(queries)
+            f.flush()
+            pylint_res = self.run_pylint([f.name], extra_params)
+
+        real_errors = pylint_res.linter.stats['by_msg']
+        self.assertDictEqual(real_errors, {'sql-injection': 4})
 
 
 if __name__ == '__main__':
