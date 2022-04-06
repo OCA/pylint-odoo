@@ -1,3 +1,4 @@
+lazy-object-proxy==1.6 ;python_version < '3'
 docutils<=0.17.1
 lxml>=4.2.3
 pbr
