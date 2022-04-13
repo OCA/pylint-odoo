@@ -1,0 +1,6 @@
+-   id: pylint_odoo
+    name: Check for Odoo modules using pylint
+    entry: pylint
+    language: python
+    types: [python]
+    require_serial: true
