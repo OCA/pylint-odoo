@@ -3,6 +3,38 @@
 import psycopg2
 from psycopg2 import sql
 from psycopg2.sql import SQL, Identifier
+import requests
+from requests import (
+    delete, get, head, options, patch, post, put, request)
+from requests import (
+    delete as delete_r, get as get_r, head as head_r,
+    options as options_r, patch as patch_r, post as post_r,
+    put as put_r, request as request_r)
+
+import urllib
+from urllib.request import urlopen
+from urllib.request import urlopen as urlopen_r
+
+import suds.client
+from suds.client import Client
+from suds.client import Client as Client_r
+
+import http.client
+from http.client import HTTPConnection, HTTPSConnection
+from http.client import (
+    HTTPConnection as HTTPConnection_r,
+    HTTPSConnection as HTTPSConnection_r,
+)
+
+import smtplib
+import smtplib as smtplib_r
+from smtplib import SMTP
+from smtplib import SMTP as SMTP_r
+
+import serial
+import serial as serial_r
+from serial import Serial
+from serial import Serial as Serial_r
 
 from openerp import fields, models, _
 from openerp.exceptions import Warning as UserError
@@ -13,6 +45,10 @@ from openerp.addons.broken_module import broken_model as broken_model1
 from openerp.addons import broken_module as broken_module1
 import openerp.addons.broken_module as broken_module2
 import openerp.addons.broken_module.broken_model as broken_model2
+
+import odoo.addons.iap.models.iap.jsonrpc
+from odoo.addons.iap.models.iap import jsonrpc
+from odoo.addons.iap.models import iap
 
 
 other_field = fields.Char()
@@ -536,6 +572,133 @@ class TestModel(models.Model):
     def func(self, a):
         length = len(a)
         return length
+
+    def requests_test(self):
+        # requests without timeout
+        requests.delete('http://localhost')
+        requests.get('http://localhost')
+        requests.head('http://localhost')
+        requests.options('http://localhost')
+        requests.patch('http://localhost')
+        requests.post('http://localhost')
+        requests.put('http://localhost')
+        requests.request('call', 'http://localhost')
+
+        delete_r('http://localhost')
+        get_r('http://localhost')
+        head_r('http://localhost')
+        options_r('http://localhost')
+        patch_r('http://localhost')
+        post_r('http://localhost')
+        put_r('http://localhost')
+        request_r('call', 'http://localhost')
+
+        delete('http://localhost')
+        get('http://localhost')
+        head('http://localhost')
+        options('http://localhost')
+        patch('http://localhost')
+        post('http://localhost')
+        put('http://localhost')
+        request('call', 'http://localhost')
+
+        # requests valid cases
+        requests.delete('http://localhost', timeout=10)
+        requests.get('http://localhost', timeout=10)
+        requests.head('http://localhost', timeout=10)
+        requests.options('http://localhost', timeout=10)
+        requests.patch('http://localhost', timeout=10)
+        requests.post('http://localhost', timeout=10)
+        requests.put('http://localhost', timeout=10)
+        requests.request('call', 'http://localhost', timeout=10)
+
+        delete_r('http://localhost', timeout=10)
+        get_r('http://localhost', timeout=10)
+        head_r('http://localhost', timeout=10)
+        options_r('http://localhost', timeout=10)
+        patch_r('http://localhost', timeout=10)
+        post_r('http://localhost', timeout=10)
+        put_r('http://localhost', timeout=10)
+        request_r('call', 'http://localhost', timeout=10)
+
+        delete('http://localhost', timeout=10)
+        get('http://localhost', timeout=10)
+        head('http://localhost', timeout=10)
+        options('http://localhost', timeout=10)
+        patch('http://localhost', timeout=10)
+        post('http://localhost', timeout=10)
+        put('http://localhost', timeout=10)
+        request('call', 'http://localhost', timeout=10)
+
+        # urllib without timeout
+        urllib.request.urlopen('http://localhost')
+        urlopen('http://localhost')
+        urlopen_r('http://localhost')
+
+        # urllib valid cases
+        urllib.request.urlopen('http://localhost', timeout=10)
+        urlopen('http://localhost', timeout=10)
+        urlopen_r('http://localhost', timeout=10)
+
+        # suds without timeout
+        suds.client.Client('http://localhost')
+        Client('http://localhost')
+        Client_r('http://localhost')
+
+        # suds valid cases
+        suds.client.Client('http://localhost', timeout=10)
+        Client('http://localhost', timeout=10)
+        Client_r('http://localhost', timeout=10)
+
+        # http.client without timeout
+        http.client.HTTPConnection('http://localhost')
+        http.client.HTTPSConnection('http://localhost')
+        HTTPConnection('http://localhost')
+        HTTPSConnection('http://localhost')
+        HTTPConnection_r('http://localhost')
+        HTTPSConnection_r('http://localhost')
+
+        # http.client valid cases
+        http.client.HTTPConnection('http://localhost', timeout=10)
+        http.client.HTTPSConnection('http://localhost', timeout=10)
+        HTTPConnection('http://localhost', timeout=10)
+        HTTPSConnection('http://localhost', timeout=10)
+        HTTPConnection_r('http://localhost', timeout=10)
+        HTTPSConnection_r('http://localhost', timeout=10)
+
+        # smtplib without timeout
+        smtplib.SMTP('http://localhost')
+        smtplib_r.SMTP('http://localhost')
+        SMTP('http://localhost')
+        SMTP_r('http://localhost')
+
+        # smtplib valid cases
+        smtplib.SMTP('http://localhost', timeout=10)
+        smtplib_r.SMTP('http://localhost', timeout=10)
+        SMTP('http://localhost', timeout=10)
+        SMTP_r('http://localhost', timeout=10)
+
+        # Serial without timeout
+        serial.Serial('/dev/ttyS1')
+        serial_r.Serial('/dev/ttyS1')
+        Serial('/dev/ttyS1')
+        Serial_r('/dev/ttyS1')
+
+        # serial valid cases
+        serial.Serial('/dev/ttyS1', timeout=10)
+        serial_r.Serial('/dev/ttyS1', timeout=10)
+        Serial('/dev/ttyS1', timeout=10)
+        Serial_r('/dev/ttyS1', timeout=10)
+
+        # odoo.addons.iap without timeout
+        odoo.addons.iap.models.iap.jsonrpc('http://localhost')
+        jsonrpc('http://localhost')
+        iap.jsonrpc('http://localhost')
+
+        # odoo.addons.iap valid cases
+        odoo.addons.iap.models.iap.jsonrpc('http://localhost', timeout=10)
+        jsonrpc('http://localhost', timeout=10)
+        iap.jsonrpc('http://localhost', timeout=10)
 
 
 class NoOdoo(object):

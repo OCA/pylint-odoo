@@ -23,6 +23,7 @@ You can use:
     visit_expr
     visit_extslice
     visit_for
+    visit_import
     visit_importfrom
     visit_functiondef
     visit_genexpr
@@ -142,6 +143,12 @@ ODOO_MSGS = {
         'Use `_("%(varname)s") % {"varname": value}` instead. '
         'Be careful https://lucumr.pocoo.org/2016/12/29/careful-with-str-format',
         'str-format-used',
+        settings.DESC_DFLT
+    ),
+    'E%d06' % settings.BASE_NOMODULE_ID: (
+        'Use of external request method `%s` without timeout. '
+        'It could wait for a long time',
+        'external-request-timeout',
         settings.DESC_DFLT
     ),
     'C%d01' % settings.BASE_NOMODULE_ID: (
@@ -302,6 +309,23 @@ DFTL_DEPRECATED_FIELD_PARAMETERS = [
     # From odoo/odoo 10.0: odoo/odoo/fields.py:29
     'digits_compute:digits', 'select:index'
 ]
+DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS = [
+    "http.client.HTTPConnection",
+    "http.client.HTTPSConnection",
+    "odoo.addons.iap.models.iap.jsonrpc",
+    "requests.delete",
+    "requests.get",
+    "requests.head",
+    "requests.options",
+    "requests.patch",
+    "requests.post",
+    "requests.put",
+    "requests.request",
+    "serial.Serial",
+    "smtplib.SMTP",
+    "suds.client.Client",
+    "urllib.request.urlopen",
+]
 
 
 class NoModuleChecker(misc.PylintOdooChecker):
@@ -413,7 +437,28 @@ class NoModuleChecker(misc.PylintOdooChecker):
             'help': 'List of valid missing return method names, '
             'separated by a comma.'
         }),
+        ('external_request_timeout_methods', {
+            'type': 'csv',
+            'metavar': '<comma separated values>',
+            'default': DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS,
+            'help': 'List of library.method that must have a timeout '
+                    'parameter defined, separated by a comma. '
+                    'e.g. "requests.get,requests.post"'
+        }),
     )
+
+    def visit_module(self, node):
+        """Initizalize the cache to save the original library name
+        of all imported node
+        It is filled from "visit_importfrom" and "visit_import"
+        and it is used in "visit_call"
+        All these methods are these "visit_*" methods are called from pylint API
+        """
+        self._from_imports = {}
+
+    def leave_module(self, node):
+        """Clear variables"""
+        self._from_imports = {}
 
     def open(self):
         super(NoModuleChecker, self).open()
@@ -589,6 +634,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                           'translation-contains-variable',
                           'print-used', 'translation-positional-used',
                           'str-format-used', 'context-overridden',
+                          'external-request-timeout',
                           )
     def visit_call(self, node):
         infer_node = utils.safe_infer(node.func)
@@ -749,6 +795,27 @@ class NoModuleChecker(misc.PylintOdooChecker):
         # SQL Injection
         if self._check_sql_injection_risky(node):
             self.add_message('sql-injection', node=node)
+
+        # external-request-timeout
+        lib_alias = self.get_func_lib(node.func)
+        # Use dict "self._from_imports" to know the source library of the method
+        lib_original = self._from_imports.get(lib_alias) or lib_alias
+        func_name = self.get_func_name(node.func)
+        lib_original_func_name = (
+            # If it using "requests.request()"
+            "%s.%s" % (lib_original, func_name) if lib_original
+            # If it using "from requests import request;request()"
+            else self._from_imports.get(func_name))
+        if lib_original_func_name in self.config.external_request_timeout_methods:
+            for argument in misc.join_node_args_kwargs(node):
+                if not isinstance(argument, astroid.Keyword):
+                    continue
+                if argument.arg == 'timeout':
+                    break
+            else:
+                self.add_message(
+                    'external-request-timeout', node=node,
+                    args=(lib_original_func_name,))
 
     @utils.check_messages(
         'license-allowed', 'manifest-author-string', 'manifest-deprecated-key',
@@ -911,12 +978,22 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 node.name not in self.config.no_missing_return:
             self.add_message('missing-return', node=node, args=(node.name))
 
-    @utils.check_messages('openerp-exception-warning')
+    @utils.check_messages('external-request-timeout')
+    def visit_import(self, node):
+        self._from_imports.update({
+            alias or name: "%s" % name
+            for name, alias in node.names
+        })
+
+    @utils.check_messages('openerp-exception-warning', 'external-request-timeout')
     def visit_importfrom(self, node):
         if node.modname == 'openerp.exceptions':
             for (import_name, import_as_name) in node.names:
                 if import_name == 'Warning' and import_as_name != 'UserError':
                     self.add_message('openerp-exception-warning', node=node)
+        self._from_imports.update({
+            alias or name: "%s.%s" % (node.modname, name)
+            for name, alias in node.names})
 
     @utils.check_messages('class-camelcase')
     def visit_classdef(self, node):
