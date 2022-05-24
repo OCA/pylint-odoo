@@ -30,6 +30,7 @@ EXPECTED_ERRORS = {
     'duplicate-po-message-definition': 2,
     'duplicate-xml-fields': 9,
     'duplicate-xml-record-id': 2,
+    'external-request-timeout': 47,
     'file-not-used': 6,
     'incoherent-interpreter-exec-perm': 3,
     'invalid-commit': 4,
