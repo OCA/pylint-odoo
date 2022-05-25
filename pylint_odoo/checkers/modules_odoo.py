@@ -556,10 +556,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
             for entry in po:
                 if entry.obsolete:
                     continue
-                # Using `set` in order to fix false red
-                # if the same entry has duplicated occurrences
-                for occurrence in set(entry.occurrences):
-                    duplicated[(hash(entry.msgid), hash(occurrence))].append(entry)
+                duplicated[hash(entry.msgid)].append(entry)
             for entries in duplicated.values():
                 if len(entries) < 2:
                     continue

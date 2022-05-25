@@ -12,8 +12,13 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: broken_module
-#: model:ir.model.fields,field_description:broken_module.field_description
 #: model:ir.model.fields,field_description:broken_module.field_wizard_description
+#, python-format
+msgid "Branch"
+msgstr ""
+
+#. module: broken_module
+#: model:ir.model.fields,field_description:broken_module.field_description
 #, python-format
 msgid "Branch"
 msgstr ""

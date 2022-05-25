@@ -27,7 +27,7 @@ EXPECTED_ERRORS = {
     'deprecated-openerp-xml-node': 5,
     'development-status-allowed': 1,
     'duplicate-id-csv': 2,
-    'duplicate-po-message-definition': 2,
+    'duplicate-po-message-definition': 3,
     'duplicate-xml-fields': 9,
     'duplicate-xml-record-id': 2,
     'external-request-timeout': 47,
