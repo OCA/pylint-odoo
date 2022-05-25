@@ -374,7 +374,12 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 and os.path.basename(node.parent.file) == '__init__.py'):
             package_names = []
             if isinstance(node, astroid.ImportFrom):
-                package_names = node.modname.split('.')[:1]
+                if node.modname:
+                    # from .tests import test_file
+                    package_names = node.modname.split('.')[:1]
+                else:
+                    # from . import tests
+                    package_names = [name for name, alias in node.names]
             elif isinstance(node, astroid.Import):
                 package_names = [name[0].split('.')[0] for name in node.names]
             if "tests" in package_names:

@@ -78,7 +78,7 @@ EXPECTED_ERRORS = {
     'website-manifest-key-not-valid-uri': 1,
     'character-not-valid-in-resource-link': 2,
     'manifest-maintainers-list': 1,
-    'test-folder-imported': 2,
+    'test-folder-imported': 3,
 }
 
 if six.PY3:
