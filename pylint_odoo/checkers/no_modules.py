@@ -334,6 +334,13 @@ class NoModuleChecker(misc.PylintOdooChecker):
 
     name = settings.CFG_SECTION
     msgs = ODOO_MSGS
+
+    odoo_check_versions = {
+        'translation-positional-used': {
+            'min_odoo_version': '14.0',
+        },
+    }
+
     options = (
         ('manifest_required_authors', {
             'type': 'csv',
