@@ -204,7 +204,7 @@ DFLT_IMPORT_NAME_WHITELIST = [
     'pydot', 'pyparsing', 'pytz', 'qrcode', 'reportlab',
     'requests', 'serial', 'simplejson', 'six', 'suds',
     'unittest2', 'urllib3', 'usb', 'vatnumber', 'vobject', 'werkzeug',
-    'wsgiref', 'xlsxwriter', 'xlwt', 'yaml',
+    'wsgiref', 'xlrd', 'xlsxwriter', 'xlwt', 'yaml',
     # OpenUpgrade migration
     'openupgradelib'
 ]
