@@ -34,7 +34,6 @@ EXPECTED_ERRORS = {
     'file-not-used': 6,
     'incoherent-interpreter-exec-perm': 3,
     'invalid-commit': 4,
-    'javascript-lint': 24,
     'license-allowed': 1,
     'manifest-author-string': 1,
     'manifest-deprecated-key': 1,
@@ -222,44 +221,6 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats.by_msg
         self.assertListEqual(list(real_errors.items()),
                              list([('deprecated-openerp-xml-node', 3)]))
-
-    def test_70_without_jslint_installed(self):
-        """Test without jslint installed"""
-        # if not self.jslint_bin_content:
-        #     return
-        # TODO: Use mock to create a monkey patch
-        which_original = misc.which
-
-        def my_which(bin_name, *args, **kwargs):
-            if bin_name == 'eslint':
-                return None
-            return which_original(bin_name)
-        misc.which = my_which
-        my_which("noeslint")
-        pylint_res = self.run_pylint(self.paths_modules)
-        misc.which = which_original
-        real_errors = pylint_res.linter.stats.by_msg
-        self.expected_errors.pop('javascript-lint')
-        self.assertEqual(self.expected_errors, real_errors)
-
-    def test_80_with_jslint_error(self):
-        """Test with jslint error"""
-        # TODO: Use mock to create a monkey patch
-        which_original = misc.which
-
-        def my_which(bin_name, *args, **kwargs):
-            fname = os.path.join(gettempdir(), 'jslint.bad')
-            with open(fname, "w") as f_jslint:
-                f_jslint.write("#!/usr/bin/env node\n{}}")
-            os.chmod(fname, os.stat(fname).st_mode | stat.S_IEXEC)
-            return fname
-
-        misc.which = my_which
-        pylint_res = self.run_pylint(self.paths_modules)
-        misc.which = which_original
-        real_errors = pylint_res.linter.stats.by_msg
-        self.expected_errors.pop('javascript-lint')
-        self.assertEqual(self.expected_errors, real_errors)
 
     def test_85_valid_odoo_version_format(self):
         """Test --manifest_version_format parameter"""

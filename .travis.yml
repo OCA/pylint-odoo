@@ -36,11 +36,6 @@ matrix:
 install:
     # Remove packages installed from addons-apt-packages of travis file
     - pip install -U pip
-    - sed -i '/node/d' ${TRAVIS_BUILD_DIR}/install.sh
-    - sed -i '/pip install ./d' ${TRAVIS_BUILD_DIR}/install.sh
-
-    # Install dependencies
-    - ${TRAVIS_BUILD_DIR}/install.sh
 
     # Install testing dependencies
     - pip install -U --force-reinstall pluggy

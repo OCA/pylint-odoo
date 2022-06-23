@@ -46,11 +46,6 @@ ODOO_MSGS = {
         'duplicate-xml-record-id',
         settings.DESC_DFLT
     ),
-    'W%d03' % settings.BASE_OMODULE_ID: (
-        '%s',
-        'javascript-lint',
-        settings.DESC_DFLT
-    ),
     'W%d04' % settings.BASE_OMODULE_ID: (
         '%s Deprecated <openerp> xml node',
         'deprecated-openerp-xml-node',
@@ -208,10 +203,6 @@ DFLT_IMPORT_NAME_WHITELIST = [
     # OpenUpgrade migration
     'openupgradelib'
 ]
-DFTL_JSLINTRC = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-    'examples', '.jslintrc'
-)
 DFLT_DEPRECATED_TREE_ATTRS = ['colors', 'fonts', 'string']
 DFTL_MANIFEST_DATA_KEYS = ['data', 'demo', 'demo_xml', 'init_xml', 'test',
                            'update_xml']
@@ -252,14 +243,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
             'default': DFLT_IMPORT_NAME_WHITELIST,
             'help': 'List of known import dependencies of odoo,'
             ' separated by a comma.'
-        }),
-        ('jslintrc', {
-            'type': 'string',
-            'metavar': '<path to file>',
-            'default': os.environ.get('PYLINT_ODOO_JSLINTRC') or DFTL_JSLINTRC,
-            'help': ('A path to a file that contains a configuration file of '
-                     'javascript lint. You can use the environment variable '
-                     '"PYLINT_ODOO_JSLINTRC" too. Default: %s' % DFTL_JSLINTRC)
         }),
         ('deprecated_tree_attributes', {
             'type': 'multiple_choice',
@@ -922,21 +905,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 for user_record in user_records
                 if user_record.xpath("field[@name='name']") and
                 'no_reset_password' not in (user_record.get('context') or '')])
-        if self.msg_args:
-            return False
-        return True
-
-    def _check_javascript_lint(self):
-        """Check javascript lint
-        :return: False if exists errors and
-                 add list of errors in self.msg_args
-        """
-        self.msg_args = []
-        for js_file_rel in self.filter_files_ext('js', relpath=True):
-            js_file = os.path.join(self.module_path, js_file_rel)
-            errors = self.check_js_lint(js_file, self.config.jslintrc)
-            for error in errors:
-                self.msg_args.append((js_file_rel + error,))
         if self.msg_args:
             return False
         return True

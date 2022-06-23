@@ -463,37 +463,6 @@ class WrapperModuleChecker(PylintOdooChecker):
                 module_bin = which(module, path=os.pathsep.join(npm_bin_paths))
         return module_bin
 
-    def check_js_lint(self, fname, frc=None):
-        """Check javascript lint in fname.
-        :param fname: String with full path of file to check
-        :param frc: String with full path of configuration file for
-            the javascript-lint tool
-        :return: Return list of errors.
-        """
-        lint_bin = self.npm_which_module('eslint')
-        if not lint_bin:
-            return []
-        cmd = [lint_bin, '--format=unix', fname]
-        if frc:
-            cmd.append('--config=' + frc)
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        output, err = process.communicate()
-        output = output.decode('UTF-8')
-        err = err.decode('UTF-8')
-        if process.returncode != 0 and err:
-            output = err.replace('\n', '\\n')
-        # Strip multi-line output https://github.com/eslint/eslint/issues/6810
-        for old in re.findall(r"`(.*)` instead.", output, re.DOTALL):
-            new = old.split('\n')[0][:20] + '...'
-            output = output.replace(old, new)
-        output = output.replace(fname, '')
-        output_spplited = []
-        if output:
-            output_spplited.extend(
-                output.strip('\n').split('\n')[:-2])
-        return output_spplited
-
     def get_duplicated_items(self, items):
         """Get duplicated items
         :param items: Iterable items
