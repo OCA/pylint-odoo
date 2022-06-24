@@ -46,7 +46,6 @@ EXPECTED_ERRORS = {
     'method-search': 1,
     'missing-import-error': 7,
     'missing-manifest-dependency': 5,
-    'missing-newline-extrafiles': 4,
     'missing-readme': 1,
     'missing-return': 1,
     'odoo-addons-relative-import': 4,
