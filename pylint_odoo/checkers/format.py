@@ -1,3 +1,4 @@
+
 import os
 import tokenize
 from sys import platform
@@ -47,6 +48,7 @@ NO_IDENTIFIED = -1
 
 
 class FormatChecker(PylintOdooTokenChecker):
+
     name = settings.CFG_SECTION
     msgs = ODOO_MSGS
     odoo_check_versions = {
@@ -65,7 +67,7 @@ class FormatChecker(PylintOdooTokenChecker):
                 return MAGIC_COMMENT_INTERPRETER
             elif "# -*- coding: " in comment or "# coding: " in comment:
                 if "# -*- coding: utf-8 -*-" in comment \
-                        or "# coding: utf-8" in comment:
+                   or "# coding: utf-8" in comment:
                     return MAGIC_COMMENT_CODING_UTF8
                 return MAGIC_COMMENT_CODING
             elif "# -*- encoding: " in comment:
@@ -78,44 +80,29 @@ class FormatChecker(PylintOdooTokenChecker):
 
     def process_tokens(self, tokens):
         tokens_identified = {}
-        if (
-            self.linter.is_message_enabled('use-vim-comment') or
-            self.linter.is_message_enabled('no-utf8-coding-comment') or
-            self.linter.is_message_enabled('unnecessary-utf8-coding-comment')
-        ):
-            for idx, (tok_type, token_content,
-                      start_line_col, end_line_col,
-                      line_content) in enumerate(tokens):
-                if tokenize.COMMENT == tok_type:
-                    line_num = start_line_col[0]
-                    magic_comment_type = self.get_magic_comment_type(
-                        token_content, line_num)
-                    if magic_comment_type != NO_IDENTIFIED:
-                        tokens_identified[magic_comment_type] = [
-                            token_content, line_num]
-                    elif (
-                        self.linter.is_message_enabled('use-vim-comment') and
-                        self.is_vim_comment(token_content)
-                    ):
-                        self.add_message('use-vim-comment', line=line_num)
-
-        if self.linter.is_message_enabled('no-utf8-coding-comment'):
-            if not tokens_identified.get(MAGIC_COMMENT_CODING_UTF8) and \
-                    not os.path.basename(self.linter.current_file) == '__init__.py':
-                self.add_message('no-utf8-coding-comment', line=1)
-
-        if self.linter.is_message_enabled('unnecessary-utf8-coding-comment'):
-            if tokens_identified.get(MAGIC_COMMENT_CODING_UTF8):
-                self.add_message('unnecessary-utf8-coding-comment', line=1)
-
-        if self.linter.is_message_enabled('incoherent-interpreter-exec-perm'):
-            access_x = os.access(self.linter.current_file, os.X_OK)
-            interpreter_content, line_num = tokens_identified.get(
-                MAGIC_COMMENT_INTERPRETER, ['', 0]
-            )
-            if not platform.startswith('win') and bool(interpreter_content) != access_x:
-                self.add_message(
-                    'incoherent-interpreter-exec-perm',
-                    line=line_num,
-                    args=(os.path.basename(self.linter.current_file))
-                )
+        for idx, (tok_type, token_content,
+                  start_line_col, end_line_col,
+                  line_content) in enumerate(tokens):
+            if tokenize.COMMENT == tok_type:
+                line_num = start_line_col[0]
+                magic_comment_type = self.get_magic_comment_type(
+                    token_content, line_num)
+                if magic_comment_type != NO_IDENTIFIED:
+                    tokens_identified[magic_comment_type] = [
+                        token_content, line_num]
+                elif self.is_vim_comment(token_content):
+                    self.add_message('use-vim-comment', line=line_num)
+        if not tokens_identified.get(MAGIC_COMMENT_CODING_UTF8) and \
+           not os.path.basename(self.linter.current_file) == '__init__.py':
+            self.add_message('no-utf8-coding-comment', line=1)
+        if (tokens_identified.get(MAGIC_COMMENT_CODING_UTF8)):
+            self.add_message('unnecessary-utf8-coding-comment', line=1)
+        access_x = os.access(self.linter.current_file, os.X_OK)
+        interpreter_content, line_num = tokens_identified.get(
+            MAGIC_COMMENT_INTERPRETER, ['', 0])
+        if (not platform.startswith('win') and
+                bool(interpreter_content) != access_x):
+            self.add_message(
+                'incoherent-interpreter-exec-perm',
+                line=line_num, args=(
+                    os.path.basename(self.linter.current_file)))
