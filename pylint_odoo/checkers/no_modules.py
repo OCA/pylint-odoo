@@ -329,6 +329,7 @@ DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS = [
 
 
 class NoModuleChecker(misc.PylintOdooChecker):
+
     __implements__ = IAstroidChecker
 
     name = settings.CFG_SECTION
@@ -408,8 +409,8 @@ class NoModuleChecker(misc.PylintOdooChecker):
             'metavar': '<string>',
             'default': misc.DFTL_MANIFEST_VERSION_FORMAT,
             'help': 'Regex to check version format in manifest file. '
-                    'Use "{valid_odoo_versions}" to check the parameter of '
-                    '"valid_odoo_versions"'
+            'Use "{valid_odoo_versions}" to check the parameter of '
+            '"valid_odoo_versions"'
         }),
         ('cursor_expr', {
             'type': 'csv',
@@ -434,7 +435,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
             'metavar': '<comma separated values>',
             'default': DFTL_NO_MISSING_RETURN,
             'help': 'List of valid missing return method names, '
-                    'separated by a comma.'
+            'separated by a comma.'
         }),
         ('external_request_timeout_methods', {
             'type': 'csv',
@@ -565,8 +566,8 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 return True
 
             if not all(
-                    self._sqli_allowable(keyword.value)
-                    for keyword in (node.keywords or [])
+                self._sqli_allowable(keyword.value)
+                for keyword in (node.keywords or [])
             ):
                 return True
 
@@ -584,17 +585,17 @@ class NoModuleChecker(misc.PylintOdooChecker):
         # Thanks @moylop260 (Moises Lopez) & @nilshamerlinck (Nils Hamerlinck)
         current_file_bname = os.path.basename(self.linter.current_file)
         if not (
-                # .execute() or .executemany()
-                isinstance(node, astroid.Call) and node.args and
-                isinstance(node.func, astroid.Attribute) and
-                node.func.attrname in ('execute', 'executemany') and
-                # cursor expr (see above)
-                self.get_cursor_name(node.func) in DFTL_CURSOR_EXPR and
-                # cr.execute("select * from %s" % foo, [bar]) -> probably a good reason
-                # for string formatting
-                len(node.args) <= 1 and
-                # ignore in test files, probably not accessible
-                not current_file_bname.startswith('test_')
+            # .execute() or .executemany()
+            isinstance(node, astroid.Call) and node.args and
+            isinstance(node.func, astroid.Attribute) and
+            node.func.attrname in ('execute', 'executemany') and
+            # cursor expr (see above)
+            self.get_cursor_name(node.func) in DFTL_CURSOR_EXPR and
+            # cr.execute("select * from %s" % foo, [bar]) -> probably a good reason
+            # for string formatting
+            len(node.args) <= 1 and
+            # ignore in test files, probably not accessible
+            not current_file_bname.startswith('test_')
         ):
             return False
         first_arg = node.args[0]
@@ -636,10 +637,9 @@ class NoModuleChecker(misc.PylintOdooChecker):
                           'external-request-timeout',
                           )
     def visit_call(self, node):
-        if self.linter.is_message_enabled('print-used'):
-            infer_node = utils.safe_infer(node.func)
-            if utils.is_builtin_object(infer_node) and infer_node.name == 'print':
-                self.add_message('print-used', node=node)
+        infer_node = utils.safe_infer(node.func)
+        if utils.is_builtin_object(infer_node) and infer_node.name == 'print':
+            self.add_message('print-used', node=node)
         if ('fields' == self.get_func_lib(node.func) and
                 isinstance(node.parent, astroid.Assign) and
                 isinstance(node.parent.parent, astroid.ClassDef)):
@@ -655,112 +655,100 @@ class NoModuleChecker(misc.PylintOdooChecker):
             for argument in args:
                 argument_aux = argument
                 # Check this 'name = fields.Char("name")'
-                if self.linter.is_message_enabled('attribute-string-redundant'):
-                    if (not is_related and isinstance(argument, astroid.Const) and
-                            (index ==
-                             FIELDS_METHOD.get(argument.parent.func.attrname, 0)) and
-                            (argument.value in
-                             [field_name.capitalize(), field_name.title()])):
-                        self.add_message('attribute-string-redundant', node=node)
+                if (not is_related and isinstance(argument, astroid.Const) and
+                    (index ==
+                     FIELDS_METHOD.get(argument.parent.func.attrname, 0)) and
+                    (argument.value in
+                     [field_name.capitalize(), field_name.title()])):
+                    self.add_message('attribute-string-redundant', node=node)
                 if isinstance(argument, astroid.Keyword):
                     argument_aux = argument.value
                     deprecated = self.config.deprecated_field_parameters
-
-                    if self.linter.is_message_enabled('method-' + argument.arg) and \
-                            argument.arg in ['compute', 'search', 'inverse'] and \
+                    if argument.arg in ['compute', 'search', 'inverse'] and \
                             isinstance(argument_aux, astroid.Const) and \
                             isinstance(argument_aux.value, string_types) and \
-                            not argument_aux.value.startswith('_' + argument.arg + '_'):
-                        self.add_message('method-' + argument.arg, node=argument_aux)
+                            not argument_aux.value.startswith(
+                                '_' + argument.arg + '_'):
+                        self.add_message('method-' + argument.arg,
+                                         node=argument_aux)
                     # Check if the param string is equal to the name
                     #   of variable
-                    elif self.linter.is_message_enabled('attribute-string-redundant') \
-                            and not is_related and argument.arg == 'string' and \
-                            (isinstance(argument_aux, astroid.Const) and
-                             argument_aux.value in
-                             [field_name.capitalize(), field_name.title()]):
+                    elif not is_related and argument.arg == 'string' and \
+                        (isinstance(argument_aux, astroid.Const) and
+                         argument_aux.value in
+                         [field_name.capitalize(), field_name.title()]):
                         self.add_message(
                             'attribute-string-redundant', node=node)
-                    elif self.linter.is_message_enabled('renamed-field-parameter') and \
-                            argument.arg in deprecated:
+                    elif (argument.arg in deprecated):
                         self.add_message(
                             'renamed-field-parameter', node=node,
                             args=(argument.arg, deprecated[argument.arg])
                         )
-                if self.linter.is_message_enabled('translation-field') and \
-                        isinstance(argument_aux, astroid.Call) and \
+                if isinstance(argument_aux, astroid.Call) and \
                         isinstance(argument_aux.func, astroid.Name) and \
                         argument_aux.func.name == '_':
                     self.add_message('translation-field', node=argument_aux)
                 index += 1
         # Check cr.commit()
-        if self.linter.is_message_enabled('invalid-commit') and \
-                isinstance(node, astroid.Call) and \
+        if isinstance(node, astroid.Call) and \
                 isinstance(node.func, astroid.Attribute) and \
                 node.func.attrname == 'commit' and \
                 self.get_cursor_name(node.func) in self.config.cursor_expr:
             self.add_message('invalid-commit', node=node)
 
-        if self.linter.is_message_enabled('context-overridden') and \
-                isinstance(node, astroid.Call) and \
-                isinstance(node.func, astroid.Attribute) and \
-                node.func.attrname == 'with_context' and \
-                not node.keywords and node.args:
+        if (isinstance(node, astroid.Call) and
+                isinstance(node.func, astroid.Attribute) and
+                node.func.attrname == 'with_context' and
+                not node.keywords and node.args):
             # with_context(**ctx) is considered a keywords
             # So, if only one args is received it is overridden
             self.add_message('context-overridden', node=node,
                              args=(node.args[0].as_string(),))
 
         # Call the message_post()
-        if self.linter.is_message_enabled('translation-required'):
-            base_dirname = os.path.basename(os.path.normpath(
-                os.path.dirname(self.linter.current_file)))
-            if (base_dirname != 'tests' and isinstance(node, astroid.Call) and
-                    isinstance(node.func, astroid.Attribute) and
-                    node.func.attrname == 'message_post'):
-                for arg in itertools.chain(node.args, node.keywords or []):
-                    if isinstance(arg, astroid.Keyword):
-                        keyword = arg.arg
-                        value = arg.value
-                    else:
-                        keyword = ''
-                        value = arg
-                    if keyword and keyword not in ('subject', 'body'):
-                        continue
-                    as_string = ''
-                    # case: message_post(body='String')
-                    if isinstance(value, astroid.Const):
-                        as_string = value.as_string()
-                    # case: message_post(body='String %s' % (...))
-                    elif (
-                        isinstance(value, astroid.BinOp)
+        base_dirname = os.path.basename(os.path.normpath(
+            os.path.dirname(self.linter.current_file)))
+        if (base_dirname != 'tests' and isinstance(node, astroid.Call) and
+                isinstance(node.func, astroid.Attribute) and
+                node.func.attrname == 'message_post'):
+            for arg in itertools.chain(node.args, node.keywords or []):
+                if isinstance(arg, astroid.Keyword):
+                    keyword = arg.arg
+                    value = arg.value
+                else:
+                    keyword = ''
+                    value = arg
+                if keyword and keyword not in ('subject', 'body'):
+                    continue
+                as_string = ''
+                # case: message_post(body='String')
+                if isinstance(value, astroid.Const):
+                    as_string = value.as_string()
+                # case: message_post(body='String %s' % (...))
+                elif (isinstance(value, astroid.BinOp)
                         and value.op == '%'
                         and isinstance(value.left, astroid.Const)
                         # The right part is translatable only if it's a
                         # function or a list of functions
                         and not (
-                            isinstance(
-                                value.right,
-                                (astroid.Call, astroid.Tuple, astroid.List)
-                            )
+                            isinstance(value.right, (
+                                astroid.Call, astroid.Tuple, astroid.List))
                             and all([
                                 isinstance(child, astroid.Call)
                                 for child in getattr(value.right, 'elts', [])
-                            ])
-                        )
-                    ):
-                        as_string = value.left.as_string()
-                    # case: message_post(body='String {...}'.format(...))
-                    elif (isinstance(value, astroid.Call)
-                          and isinstance(value.func, astroid.Attribute)
-                          and isinstance(value.func.expr, astroid.Const)
-                          and value.func.attrname == 'format'):
-                        as_string = value.func.expr.as_string()
-                    if as_string:
-                        keyword = keyword and '%s=' % keyword
-                        self.add_message(
-                            'translation-required', node=node,
-                            args=('message_post', keyword, as_string))
+                            ]))):
+                    as_string = value.left.as_string()
+                # case: message_post(body='String {...}'.format(...))
+                elif (isinstance(value, astroid.Call)
+                        and isinstance(value.func, astroid.Attribute)
+                        and isinstance(value.func.expr, astroid.Const)
+                        and value.func.attrname == 'format'):
+                    as_string = value.func.expr.as_string()
+                if as_string:
+                    keyword = keyword and '%s=' % keyword
+                    self.add_message(
+                        'translation-required', node=node,
+                        args=('message_post', keyword, as_string))
 
         # Call _(...) with variables into the term to be translated
         if (isinstance(node.func, astroid.Name)
@@ -776,11 +764,10 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 right = '_(%s) %% %s' % (
                     arg.left.as_string(), arg.right.as_string())
             # Case: _('...'.format(variables))
-            elif (self.linter.is_message_enabled('str-format-used')
-                  and isinstance(arg, astroid.Call)
-                  and isinstance(arg.func, astroid.Attribute)
-                  and isinstance(arg.func.expr, astroid.Const)
-                  and arg.func.attrname == 'format'):
+            elif (isinstance(arg, astroid.Call)
+                    and isinstance(arg.func, astroid.Attribute)
+                    and isinstance(arg.func.expr, astroid.Const)
+                    and arg.func.attrname == 'format'):
                 self.add_message('str-format-used', node=node)
                 wrong = arg.as_string()
                 params_as_string = ', '.join([
@@ -788,53 +775,47 @@ class NoModuleChecker(misc.PylintOdooChecker):
                     for x in itertools.chain(arg.args, arg.keywords or [])])
                 right = '_(%s).format(%s)' % (
                     arg.func.expr.as_string(), params_as_string)
-            if self.linter.is_message_enabled('translation-contains-variable') and \
-                    wrong and right:
+            if wrong and right:
                 self.add_message(
                     'translation-contains-variable', node=node,
                     args=(wrong, right))
 
             # translation-positional-used: Check "string to translate"
             # to check "%s %s..." used where the position can't be changed
-            if self.linter.is_message_enabled('translation-positional-used'):
-                str2translate = arg.as_string()
-                printf_args = (
-                    misc.WrapperModuleChecker._get_printf_str_args_kwargs(str2translate)
-                )
-                if isinstance(printf_args, tuple) and len(printf_args) >= 2:
-                    # Return tuple for %s and dict for %(varname)s
-                    # Check just the following cases "%s %s..."
-                    self.add_message('translation-positional-used',
-                                     node=node, args=(str2translate,))
+            str2translate = arg.as_string()
+            printf_args = (
+                misc.WrapperModuleChecker.
+                _get_printf_str_args_kwargs(str2translate))
+            if isinstance(printf_args, tuple) and len(printf_args) >= 2:
+                # Return tuple for %s and dict for %(varname)s
+                # Check just the following cases "%s %s..."
+                self.add_message('translation-positional-used',
+                                 node=node, args=(str2translate,))
 
         # SQL Injection
-        if (
-                self.linter.is_message_enabled('sql-injection') and
-                self._check_sql_injection_risky(node)
-        ):
+        if self._check_sql_injection_risky(node):
             self.add_message('sql-injection', node=node)
 
         # external-request-timeout
-        if self.linter.is_message_enabled('external-request-timeout'):
-            lib_alias = self.get_func_lib(node.func)
-            # Use dict "self._from_imports" to know the source library of the method
-            lib_original = self._from_imports.get(lib_alias) or lib_alias
-            func_name = self.get_func_name(node.func)
-            lib_original_func_name = (
-                # If it using "requests.request()"
-                "%s.%s" % (lib_original, func_name) if lib_original
-                # If it using "from requests import request;request()"
-                else self._from_imports.get(func_name))
-            if lib_original_func_name in self.config.external_request_timeout_methods:
-                for argument in misc.join_node_args_kwargs(node):
-                    if not isinstance(argument, astroid.Keyword):
-                        continue
-                    if argument.arg == 'timeout':
-                        break
-                else:
-                    self.add_message(
-                        'external-request-timeout', node=node,
-                        args=(lib_original_func_name,))
+        lib_alias = self.get_func_lib(node.func)
+        # Use dict "self._from_imports" to know the source library of the method
+        lib_original = self._from_imports.get(lib_alias) or lib_alias
+        func_name = self.get_func_name(node.func)
+        lib_original_func_name = (
+            # If it using "requests.request()"
+            "%s.%s" % (lib_original, func_name) if lib_original
+            # If it using "from requests import request;request()"
+            else self._from_imports.get(func_name))
+        if lib_original_func_name in self.config.external_request_timeout_methods:
+            for argument in misc.join_node_args_kwargs(node):
+                if not isinstance(argument, astroid.Keyword):
+                    continue
+                if argument.arg == 'timeout':
+                    break
+            else:
+                self.add_message(
+                    'external-request-timeout', node=node,
+                    args=(lib_original_func_name,))
 
     @utils.check_messages(
         'license-allowed', 'manifest-author-string', 'manifest-deprecated-key',
@@ -843,23 +824,17 @@ class NoModuleChecker(misc.PylintOdooChecker):
         'website-manifest-key-not-valid-uri', 'development-status-allowed',
         'manifest-maintainers-list')
     def visit_dict(self, node):
-        if (
-            not os.path.basename(self.linter.current_file) in settings.MANIFEST_FILES or
-            not isinstance(node.parent, astroid.Expr)
-        ):
+        if not os.path.basename(self.linter.current_file) in \
+                settings.MANIFEST_FILES \
+                or not isinstance(node.parent, astroid.Expr):
             return
         manifest_dict = ast.literal_eval(node.as_string())
 
         # Check author is a string
         author = manifest_dict.get('author', '')
-        author_str = isinstance(author, string_types)
-        if (
-            self.linter.is_message_enabled('manifest-author-string') and
-            not author_str
-
-        ):
+        if not isinstance(author, string_types):
             self.add_message('manifest-author-string', node=node)
-        elif self.linter.is_message_enabled('manifest-required-author') and author_str:
+        else:
             # Check author required
             authors = set([auth.strip() for auth in author.split(',')])
 
@@ -878,78 +853,66 @@ class NoModuleChecker(misc.PylintOdooChecker):
                                  args=(authors_str,))
 
         # Check keys required
-        if self.linter.is_message_enabled('manifest-required-key'):
-            required_keys = self.config.manifest_required_keys
-            for required_key in required_keys:
-                if required_key not in manifest_dict:
-                    self.add_message('manifest-required-key', node=node,
-                                     args=(required_key,))
+        required_keys = self.config.manifest_required_keys
+        for required_key in required_keys:
+            if required_key not in manifest_dict:
+                self.add_message('manifest-required-key', node=node,
+                                 args=(required_key,))
 
         # Check keys deprecated
-        if self.linter.is_message_enabled('manifest-deprecated-key'):
-            deprecated_keys = self.config.manifest_deprecated_keys
-            for deprecated_key in deprecated_keys:
-                if deprecated_key in manifest_dict:
-                    self.add_message('manifest-deprecated-key', node=node,
-                                     args=(deprecated_key,))
+        deprecated_keys = self.config.manifest_deprecated_keys
+        for deprecated_key in deprecated_keys:
+            if deprecated_key in manifest_dict:
+                self.add_message('manifest-deprecated-key', node=node,
+                                 args=(deprecated_key,))
 
         # Check license allowed
-        if self.linter.is_message_enabled('license-allowed'):
-            license = manifest_dict.get('license', None)
-            if license and license not in self.config.license_allowed:
-                self.add_message('license-allowed',
-                                 node=node, args=(license,))
+        license = manifest_dict.get('license', None)
+        if license and license not in self.config.license_allowed:
+            self.add_message('license-allowed',
+                             node=node, args=(license,))
 
         # Check version format
-        if self.linter.is_message_enabled('manifest-version-format'):
-            version_format = manifest_dict.get('version', '')
-            formatrgx = self.formatversion(version_format)
-            if version_format and not formatrgx:
-                self.add_message('manifest-version-format', node=node,
-                                 args=(version_format,
-                                       self.config.manifest_version_format_parsed))
+        version_format = manifest_dict.get('version', '')
+        formatrgx = self.formatversion(version_format)
+        if version_format and not formatrgx:
+            self.add_message('manifest-version-format', node=node,
+                             args=(version_format,
+                                   self.config.manifest_version_format_parsed))
 
         # Check if resource exist
-        if self.linter.is_message_enabled('resource-not-exist'):
-            dirname = os.path.dirname(self.linter.current_file)
-            for key in DFTL_MANIFEST_DATA_KEYS:
-                for resource in (manifest_dict.get(key) or []):
-                    if os.path.isfile(os.path.join(dirname, resource)):
-                        continue
-                    self.add_message('resource-not-exist', node=node,
-                                     args=(key, resource))
+        dirname = os.path.dirname(self.linter.current_file)
+        for key in DFTL_MANIFEST_DATA_KEYS:
+            for resource in (manifest_dict.get(key) or []):
+                if os.path.isfile(os.path.join(dirname, resource)):
+                    continue
+                self.add_message('resource-not-exist', node=node,
+                                 args=(key, resource))
 
         # Check if the website is valid URI
-        if self.linter.is_message_enabled('website-manifest-key-not-valid-uri'):
-            website = manifest_dict.get('website', '')
-            uri = rfc3986.uri_reference(website)
-            if ((website and ',' not in website) and
-                    (not uri.is_valid(require_scheme=True,
-                                      require_authority=True) or
-                     uri.scheme not in {"http", "https"})):
-                self.add_message('website-manifest-key-not-valid-uri',
-                                 node=node, args=(website))
+        website = manifest_dict.get('website', '')
+        uri = rfc3986.uri_reference(website)
+        if ((website and ',' not in website) and
+                (not uri.is_valid(require_scheme=True,
+                                  require_authority=True) or
+                 uri.scheme not in {"http", "https"})):
+            self.add_message('website-manifest-key-not-valid-uri',
+                             node=node, args=(website))
 
         # Check valid development_status values
-        if self.linter.is_message_enabled('development-status-allowed'):
-            dev_status = manifest_dict.get('development_status')
-            if (dev_status and
-                    dev_status not in self.config.development_status_allowed):
-                valid_status = ", ".join(self.config.development_status_allowed)
-                self.add_message('development-status-allowed',
-                                 node=node, args=(dev_status, valid_status))
+        dev_status = manifest_dict.get('development_status')
+        if (dev_status and
+                dev_status not in self.config.development_status_allowed):
+            valid_status = ", ".join(self.config.development_status_allowed)
+            self.add_message('development-status-allowed',
+                             node=node, args=(dev_status, valid_status))
 
         # Check maintainers key is a list of strings
-        if self.linter.is_message_enabled('manifest-maintainers-list'):
-            maintainers = manifest_dict.get('maintainers')
-            if (
-                maintainers and (
-                    not isinstance(maintainers, list)
-                    or any(not isinstance(item, str) for item in maintainers)
-                )
-            ):
-                self.add_message('manifest-maintainers-list',
-                                 node=node)
+        maintainers = manifest_dict.get('maintainers')
+        if(maintainers and (not isinstance(maintainers, list)
+                            or any(not isinstance(item, str) for item in maintainers))):
+            self.add_message('manifest-maintainers-list',
+                             node=node)
 
     @utils.check_messages('api-one-multi-together',
                           'copy-wo-api-one', 'api-one-deprecated',
@@ -982,8 +945,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
             if 'one' in decor_lastnames:
                 self.add_message('api-one-deprecated', node=node)
 
-        if self.linter.is_message_enabled('method-required-super') and \
-                node.name in self.config.method_required_super:
+        if node.name in self.config.method_required_super:
             calls = [
                 call_func.func.name
                 for call_func in node.nodes_of_class((astroid.Call,))
@@ -995,27 +957,26 @@ class NoModuleChecker(misc.PylintOdooChecker):
         if self.linter.is_message_enabled('old-api7-method-defined'):
             first_args = [arg.name for arg in node.args.args][:3]
             if len(first_args) == 3 and first_args[0] == 'self' and \
-                    first_args[1] in ['cr', 'cursor'] and \
-                    first_args[2] in ['uid', 'user', 'user_id']:
+               first_args[1] in ['cr', 'cursor'] and \
+               first_args[2] in ['uid', 'user', 'user_id']:
                 self.add_message('old-api7-method-defined', node=node)
 
-        if self.linter.is_message_enabled('missing-return'):
-            there_is_super = False
-            for stmt in node.nodes_of_class(astroid.Call):
-                func = stmt.func
-                if isinstance(func, astroid.Name) and func.name == 'super':
-                    there_is_super = True
-                    break
-            there_is_return = False
-            for stmt in node.nodes_of_class(astroid.Return,
-                                            skip_klass=(astroid.FunctionDef,
-                                                        astroid.ClassDef)):
-                there_is_return = True
+        there_is_super = False
+        for stmt in node.nodes_of_class(astroid.Call):
+            func = stmt.func
+            if isinstance(func, astroid.Name) and func.name == 'super':
+                there_is_super = True
                 break
-            if there_is_super and not there_is_return and \
-                    not node.is_generator() and \
-                    node.name not in self.config.no_missing_return:
-                self.add_message('missing-return', node=node, args=(node.name))
+        there_is_return = False
+        for stmt in node.nodes_of_class(astroid.Return,
+                                        skip_klass=(astroid.FunctionDef,
+                                                    astroid.ClassDef)):
+            there_is_return = True
+            break
+        if there_is_super and not there_is_return and \
+                not node.is_generator() and \
+                node.name not in self.config.no_missing_return:
+            self.add_message('missing-return', node=node, args=(node.name))
 
     @utils.check_messages('external-request-timeout')
     def visit_import(self, node):
@@ -1026,8 +987,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
 
     @utils.check_messages('openerp-exception-warning', 'external-request-timeout')
     def visit_importfrom(self, node):
-        if self.linter.is_message_enabled('openerp-exception-warning') and \
-                node.modname == 'openerp.exceptions':
+        if node.modname == 'openerp.exceptions':
             for (import_name, import_as_name) in node.names:
                 if import_name == 'Warning' and import_as_name != 'UserError':
                     self.add_message('openerp-exception-warning', node=node)
@@ -1037,33 +997,30 @@ class NoModuleChecker(misc.PylintOdooChecker):
 
     @utils.check_messages('class-camelcase')
     def visit_classdef(self, node):
-        if self.linter.is_message_enabled('class-camelcase'):
-            camelized = self.camelize(node.name)
-            if camelized != node.name:
-                self.add_message('class-camelcase', node=node,
-                                 args=(camelized, node.name))
+        camelized = self.camelize(node.name)
+        if camelized != node.name:
+            self.add_message('class-camelcase', node=node,
+                             args=(camelized, node.name))
 
     @utils.check_messages('attribute-deprecated')
     def visit_assign(self, node):
-        if self.linter.is_message_enabled('attribute-deprecated'):
-            node_left = node.targets[0]
-            if (isinstance(node.parent, astroid.ClassDef) and
-                    isinstance(node_left, astroid.AssignName) and
-                    [1 for m in node.parent.basenames if 'Model' in m]):
-                if node_left.name in self.config.attribute_deprecated:
-                    self.add_message('attribute-deprecated',
-                                     node=node_left, args=(node_left.name,))
+        node_left = node.targets[0]
+        if (isinstance(node.parent, astroid.ClassDef) and
+                isinstance(node_left, astroid.AssignName) and
+                [1 for m in node.parent.basenames if 'Model' in m]):
+            if node_left.name in self.config.attribute_deprecated:
+                self.add_message('attribute-deprecated',
+                                 node=node_left, args=(node_left.name,))
 
     @utils.check_messages('eval-referenced')
     def visit_name(self, node):
         """Detect when a "bad" built-in is referenced."""
-        if self.linter.is_message_enabled('eval-referenced'):
-            node_infer = utils.safe_infer(node)
-            if not utils.is_builtin_object(node_infer):
-                # Skip not builtin objects
-                return
-            if node_infer.name == 'eval':
-                self.add_message('eval-referenced', node=node)
+        node_infer = utils.safe_infer(node)
+        if not utils.is_builtin_object(node_infer):
+            # Skip not builtin objects
+            return
+        if node_infer.name == 'eval':
+            self.add_message('eval-referenced', node=node)
 
     def camelize(self, string):
         return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string)
@@ -1076,10 +1033,8 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 for decorator in nodes if decorator is not None]
 
     def get_func_name(self, node):
-        func_name = (
-            isinstance(node, astroid.Name) and node.name or
+        func_name = isinstance(node, astroid.Name) and node.name or \
             isinstance(node, astroid.Attribute) and node.attrname or ''
-        )
         return func_name
 
     def get_func_lib(self, node):
@@ -1098,31 +1053,30 @@ class NoModuleChecker(misc.PylintOdooChecker):
               my_string = 'My String'  # wrong
               raise UserError(my_string)  # Detect variable string here
         """
-        if self.linter.is_message_enabled('translation-required'):
-            if node.exc is None:
-                # ignore empty raise
-                return
-            expr = node.exc
-            if not isinstance(expr, astroid.Call):
-                # ignore raise without a call
-                return
-            if not expr.args:
-                return
-            func_name = self.get_func_name(expr.func)
+        if node.exc is None:
+            # ignore empty raise
+            return
+        expr = node.exc
+        if not isinstance(expr, astroid.Call):
+            # ignore raise without a call
+            return
+        if not expr.args:
+            return
+        func_name = self.get_func_name(expr.func)
 
-            argument = expr.args[0]
-            if isinstance(argument, astroid.Call) and \
-                    'format' == self.get_func_name(argument.func):
-                argument = argument.func.expr
-            elif isinstance(argument, astroid.BinOp):
-                argument = argument.left
+        argument = expr.args[0]
+        if isinstance(argument, astroid.Call) and \
+                'format' == self.get_func_name(argument.func):
+            argument = argument.func.expr
+        elif isinstance(argument, astroid.BinOp):
+            argument = argument.left
 
-            if isinstance(argument, astroid.Const) and \
-                    argument.name == 'str' and \
-                    func_name in self.config.odoo_exceptions:
-                self.add_message(
-                    'translation-required', node=node,
-                    args=(func_name, '', argument.as_string()))
+        if isinstance(argument, astroid.Const) and \
+                argument.name == 'str' and \
+                func_name in self.config.odoo_exceptions:
+            self.add_message(
+                'translation-required', node=node,
+                args=(func_name, '', argument.as_string()))
 
     def get_cursor_name(self, node):
         expr_list = []
