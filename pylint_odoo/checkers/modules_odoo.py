@@ -181,8 +181,9 @@ ODOO_MSGS = {
     ),
 }
 
+
 DFTL_README_TMPL_URL = 'https://github.com/OCA/maintainer-tools' + \
-                       '/blob/master/template/module/README.rst'
+    '/blob/master/template/module/README.rst'
 DFTL_README_FILES = ['README.rst', 'README.md', 'README.txt']
 DFTL_MIN_PRIORITY = 99
 # Files supported from manifest to convert
@@ -250,7 +251,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
             'metavar': '<comma separated values>',
             'default': DFLT_IMPORT_NAME_WHITELIST,
             'help': 'List of known import dependencies of odoo,'
-                    ' separated by a comma.'
+            ' separated by a comma.'
         }),
         ('jslintrc', {
             'type': 'string',
@@ -266,8 +267,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
             'default': DFLT_DEPRECATED_TREE_ATTRS,
             'choices': DFLT_DEPRECATED_TREE_ATTRS,
             'help': 'List of deprecated list view attributes,'
-                    ' separated by a comma. Valid values: %s' %
-                    ', '.join(DFLT_DEPRECATED_TREE_ATTRS)
+            ' separated by a comma. Valid values: %s' % ', '.join(
+                DFLT_DEPRECATED_TREE_ATTRS)
         }),
     )
 
@@ -283,7 +284,6 @@ class ModuleChecker(misc.WrapperModuleChecker):
     def visit_assign(self, node):
         if not self.odoo_node:
             return
-
         if not self.linter.is_message_enabled(
                 'consider-merging-classes-inherited', node.lineno):
             return
@@ -321,20 +321,17 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
     def close(self):
         """Final process get all cached values and add messages"""
-        if self.linter.is_message_enabled('consider-merging-classes-inherited'):
-            for (odoo_node, class_dup_name), nodes in self.inh_dup.items():
-                if len(nodes) == 1:
-                    continue
-                path_nodes = []
-                for node in nodes[1:]:
-                    relpath = os.path.relpath(node.file,
-                                              os.path.dirname(odoo_node.file))
-                    path_nodes.append("%s:%d" % (relpath, node.lineno))
-                self.add_message(
-                    'consider-merging-classes-inherited',
-                    node=nodes[0],
-                    args=(class_dup_name, ', '.join(path_nodes))
-                )
+        for (odoo_node, class_dup_name), nodes in self.inh_dup.items():
+            if len(nodes) == 1:
+                continue
+            path_nodes = []
+            for node in nodes[1:]:
+                relpath = os.path.relpath(node.file,
+                                          os.path.dirname(odoo_node.file))
+                path_nodes.append("%s:%d" % (relpath, node.lineno))
+            self.add_message('consider-merging-classes-inherited',
+                             node=nodes[0],
+                             args=(class_dup_name, ', '.join(path_nodes)))
 
     def _get_odoo_module_imported(self, node):
         odoo_module = []
@@ -368,32 +365,26 @@ class ModuleChecker(misc.WrapperModuleChecker):
         return odoo_module
 
     def check_odoo_relative_import(self, node):
-        if (
-                self.linter.is_message_enabled('odoo-addons-relative-import') and
-                self.odoo_module_name in self._get_odoo_module_imported(node)
-        ):
-            self.add_message(
-                'odoo-addons-relative-import', node=node, args=(self.odoo_module_name)
-            )
+        if self.odoo_module_name in self._get_odoo_module_imported(node):
+            self.add_message('odoo-addons-relative-import', node=node,
+                             args=(self.odoo_module_name))
 
     def check_folder_test_imported(self, node):
-        if self.linter.is_message_enabled('test-folder-imported'):
-            if (hasattr(node.parent, 'file')
-                    and os.path.basename(node.parent.file) == '__init__.py'):
-                package_names = []
-                if isinstance(node, astroid.ImportFrom):
-                    if node.modname:
-                        # from .tests import test_file
-                        package_names = node.modname.split('.')[:1]
-                    else:
-                        # from . import tests
-                        package_names = [name for name, alias in node.names]
-                elif isinstance(node, astroid.Import):
-                    package_names = [name[0].split('.')[0] for name in node.names]
-                if "tests" in package_names:
-                    self.add_message(
-                        'test-folder-imported', node=node, args=(node.parent.name,)
-                    )
+        if (hasattr(node.parent, 'file')
+                and os.path.basename(node.parent.file) == '__init__.py'):
+            package_names = []
+            if isinstance(node, astroid.ImportFrom):
+                if node.modname:
+                    # from .tests import test_file
+                    package_names = node.modname.split('.')[:1]
+                else:
+                    # from . import tests
+                    package_names = [name for name, alias in node.names]
+            elif isinstance(node, astroid.Import):
+                package_names = [name[0].split('.')[0] for name in node.names]
+            if "tests" in package_names:
+                self.add_message('test-folder-imported', node=node,
+                                 args=(node.parent.name,))
 
     @staticmethod
     def _is_absolute_import(node, name):
@@ -433,51 +424,46 @@ class ModuleChecker(misc.WrapperModuleChecker):
 
     def _check_imported_packages(self, node, module_name):
         """Check if the import node is a external dependency to validate it"""
-        if self.linter.is_message_enabled('missing-import-error'):
-            if not module_name:
-                # skip local packages because is not a external dependency.
-                return
-            if not self.manifest_dict:
-                # skip if is not a module of odoo
-                return
-            if not isinstance(node.parent, astroid.Module):
-                # skip nested import sentences
-                return
-            if self._is_absolute_import(node, module_name):
-                # skip absolute imports
-                return
-            if self._is_module_name_in_whitelist(module_name):
-                # ignore whitelisted modules
-                return
-            isort_driver = misc.IsortDriver()
-            import_category = isort_driver.place_module(module_name)
-            if import_category not in ('FIRSTPARTY', 'THIRDPARTY'):
-                # skip if is not a external library or is a white list library
-                return
-            relpath = os.path.relpath(
-                node.parent.file, os.path.dirname(self.manifest_file))
-            if os.path.dirname(relpath) == 'tests':
-                # import errors rules don't apply to the test files
-                # since these files are loaded only when running tests
-                # and in such a case your
-                # module and their external dependencies are installed.
-                return
-            self.add_message('missing-import-error', node=node, args=(module_name,))
+        if not module_name:
+            # skip local packages because is not a external dependency.
+            return
+        if not self.manifest_dict:
+            # skip if is not a module of odoo
+            return
+        if not isinstance(node.parent, astroid.Module):
+            # skip nested import sentences
+            return
+        if self._is_absolute_import(node, module_name):
+            # skip absolute imports
+            return
+        if self._is_module_name_in_whitelist(module_name):
+            # ignore whitelisted modules
+            return
+        isort_driver = misc.IsortDriver()
+        import_category = isort_driver.place_module(module_name)
+        if import_category not in ('FIRSTPARTY', 'THIRDPARTY'):
+            # skip if is not a external library or is a white list library
+            return
+        relpath = os.path.relpath(
+            node.parent.file, os.path.dirname(self.manifest_file))
+        if os.path.dirname(relpath) == 'tests':
+            # import errors rules don't apply to the test files
+            # since these files are loaded only when running tests
+            # and in such a case your
+            # module and their external dependencies are installed.
+            return
+        self.add_message('missing-import-error', node=node,
+                         args=(module_name,))
 
-        if self.linter.is_message_enabled('missing-manifest-dependency'):
-            if isinstance(node, astroid.ImportFrom) and (node.level or 0) >= 1:
-                return
-
-            ext_deps = self.manifest_dict.get('external_dependencies') or {}
-            py_ext_deps = ext_deps.get('python') or []
-            if (
-                    module_name not in py_ext_deps and
-                    module_name.split('.')[0] not in py_ext_deps and
-                    not any(dep in module_name for dep in py_ext_deps)
-            ):
-                self.add_message(
-                    'missing-manifest-dependency', node=node, args=(module_name,)
-                )
+        ext_deps = self.manifest_dict.get('external_dependencies') or {}
+        py_ext_deps = ext_deps.get('python') or []
+        if isinstance(node, astroid.ImportFrom) and (node.level or 0) >= 1:
+            return
+        if module_name not in py_ext_deps and \
+                module_name.split('.')[0] not in py_ext_deps and \
+                not any(dep in module_name for dep in py_ext_deps):
+            self.add_message('missing-manifest-dependency', node=node,
+                             args=(module_name,))
 
     @utils.check_messages('odoo-addons-relative-import',
                           'missing-import-error',
@@ -505,11 +491,9 @@ class ModuleChecker(misc.WrapperModuleChecker):
     def visit_tryexcept(self, node):
         """Visit block try except"""
         for handler in node.handlers:
-            if (
-                    not handler.name and
+            if (not handler.name and
                     len(handler.body) == 1 and
-                    isinstance(handler.body[0], astroid.node_classes.Pass)
-            ):
+                    isinstance(handler.body[0], astroid.node_classes.Pass)):
                 self.add_message('except-pass', node=handler)
 
     def _get_po_line_number(self, po_entry):
@@ -547,7 +531,7 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 po_fname_linenum = "%s:%d" % (po_file, linenum)
                 self.msg_args.append((
                     po_fname_linenum, "Translation entry requires comment "
-                                      "'#. module: MODULE'"))
+                    "'#. module: MODULE'"))
 
     def _check_duplicate_po_message_definition(self):
         """Check duplicate message definition (message-id)
@@ -609,19 +593,15 @@ class ModuleChecker(misc.WrapperModuleChecker):
                     self.parse_printf(entry.msgid, entry.msgstr)
                 except misc.StringParseError as str_parse_exc:
                     self.msg_args.append((
-                        po_fname_linenum,
-                        "Translation string couldn't be parsed "
-                        "correctly using string%%variables %s" % str_parse_exc
-                    ))
+                        po_fname_linenum, "Translation string couldn't be parsed "
+                        "correctly using string%%variables %s" % str_parse_exc))
                     continue
                 try:
                     self.parse_format(entry.msgid, entry.msgstr)
                 except misc.StringParseError as str_parse_exc:
                     self.msg_args.append((
-                        po_fname_linenum,
-                        "Translation string couldn't be parsed "
-                        "correctly using string.format() %s" % str_parse_exc
-                    ))
+                        po_fname_linenum, "Translation string couldn't be parsed "
+                        "correctly using string.format() %s" % str_parse_exc))
 
     def _check_rst_syntax_error(self):
         """Check if rst file there is syntax error
@@ -774,10 +754,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
                 for node in nodes:
                     resource = node.get(attr, '')
                     ext = os.path.splitext(os.path.basename(resource))[1]
-                    if (
-                        resource.startswith('/') and
-                        not re.search('^[.][a-zA-Z]+$', ext)
-                    ):
+                    if (resource.startswith('/') and not
+                            re.search('^[.][a-zA-Z]+$', ext)):
                         self.msg_args.append(("%s:%s" % (xml_file,
                                                          node.sourceline)))
         if self.msg_args:
@@ -942,11 +920,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
             self.msg_args.extend([
                 ("%s:%s" % (xml_file, user_record.sourceline))
                 for user_record in user_records
-                if (
-                    user_record.xpath("field[@name='name']") and
-                    'no_reset_password' not in (user_record.get('context') or '')
-                )
-            ])
+                if user_record.xpath("field[@name='name']") and
+                'no_reset_password' not in (user_record.get('context') or '')])
         if self.msg_args:
             return False
         return True
@@ -1072,7 +1047,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
             for attribute in ['xml', 'xsl']
             for record in self.parse_xml(
                 os.path.join(self.module_path, fname)
-            ).xpath('//report[@%s]' % attribute)
+            )
+            .xpath('//report[@%s]' % attribute)
         }
 
     def _get_module_files(self):
@@ -1137,15 +1113,11 @@ class ModuleChecker(misc.WrapperModuleChecker):
         ]
         valid_versions = set(
             self.linter._all_options['valid_odoo_versions'].config
-                .valid_odoo_versions)
+            .valid_odoo_versions)
 
-        applicable_checks = [
-            check for check in checks
-            if (
-                check['attr'] in self.config.deprecated_tree_attributes and
-                bool(valid_versions - check['skip_versions'])
-            )
-        ]
+        applicable_checks = [check for check in checks if (
+            check['attr'] in self.config.deprecated_tree_attributes and
+            bool(valid_versions - check['skip_versions']))]
 
         self.msg_args = []
         for xml_file in self.filter_files_ext('xml', relpath=True):
@@ -1167,9 +1139,8 @@ class ModuleChecker(misc.WrapperModuleChecker):
         :return: False if deprecated directives are found, in which case
                  self.msg_args will contain the error messages.
         """
-        valid_versions = set(
-            self.linter._all_options['valid_odoo_versions'].config.valid_odoo_versions
-        )
+        valid_versions = set(self.linter._all_options[
+            'valid_odoo_versions'].config.valid_odoo_versions)
         if not valid_versions & {'10.0', '11.0'}:
             return True
 
