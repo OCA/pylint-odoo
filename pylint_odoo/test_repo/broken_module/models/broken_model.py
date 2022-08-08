@@ -36,6 +36,11 @@ import serial as serial_r
 from serial import Serial
 from serial import Serial as Serial_r
 
+import ftplib
+import ftplib as ftplib_r
+from ftplib import FTP
+from ftplib import FTP as ftp_r
+
 from openerp import fields, models, _
 from openerp.exceptions import Warning as UserError
 from openerp import exceptions
@@ -699,6 +704,18 @@ class TestModel(models.Model):
         odoo.addons.iap.models.iap.jsonrpc('http://localhost', timeout=10)
         jsonrpc('http://localhost', timeout=10)
         iap.jsonrpc('http://localhost', timeout=10)
+
+        # FTP  without timeout
+        ftplib.FTP('localhost')
+        ftplib_r.FTP('localhost')
+        FTP('localhost')
+        ftp_r('localhost')
+
+        # FTP valid cases
+        ftplib.FTP('localhost', timeout=10)
+        ftplib_r.FTP('localhost', timeout=10)
+        FTP('localhost', timeout=10)
+        ftp_r('localhost', timeout=10)
 
 
 class NoOdoo(object):

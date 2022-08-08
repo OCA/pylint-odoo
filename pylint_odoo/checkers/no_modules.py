@@ -310,6 +310,7 @@ DFTL_DEPRECATED_FIELD_PARAMETERS = [
     'digits_compute:digits', 'select:index'
 ]
 DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS = [
+    "ftplib.FTP",
     "http.client.HTTPConnection",
     "http.client.HTTPSConnection",
     "odoo.addons.iap.models.iap.jsonrpc",
