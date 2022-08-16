@@ -31,7 +31,12 @@ matrix:
     - python: 3.9-dev
       env:
         TOXENV=pylint
-
+    - python: 3.10-dev
+      env:
+        TOXENV=pylint
+    - python: 3.11-dev
+      env:
+        TOXENV=pylint
 
 install:
     # Remove packages installed from addons-apt-packages of travis file
