@@ -1,3 +1,5 @@
+dist: jammy
+
 language: python
 
 sudo: false
@@ -14,27 +16,27 @@ node_js:
 
 matrix:
   include:
-    - python: 2.7
+    - python: "2.7"
       env:
         TOXENV=pylint
-    - python: 3.5
+    - python: "3.5"
       env:
         TOXENV=pylint
-    - python: 3.7
+    - python: "3.7"
       env:
         TOXENV=pylint
-    - python: 3.8
+    - python: "3.8"
       env:
         TOXENV=pylint
         LINT="1"
         DEPLOY="1"
-    - python: 3.9-dev
+    - python: "3.9"
       env:
         TOXENV=pylint
-    - python: 3.10-dev
+    - python: "3.10-dev"
       env:
         TOXENV=pylint
-    - python: 3.11-dev
+    - python: "3.11-dev"
       env:
         TOXENV=pylint
 
