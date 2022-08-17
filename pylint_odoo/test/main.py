@@ -82,7 +82,7 @@ EXPECTED_ERRORS = {
 }
 
 if six.PY3:
-    EXPECTED_ERRORS['unnecessary-utf8-coding-comment'] = 19
+    EXPECTED_ERRORS['unnecessary-utf8-coding-comment'] = 18
 else:
     EXPECTED_ERRORS['no-utf8-coding-comment'] = 7
 
