@@ -69,7 +69,7 @@ EXPECTED_ERRORS = {
     'eval-referenced': 5,
     'xml-syntax-error': 2,
     'except-pass': 3,
-    'attribute-string-redundant': 33,
+    'attribute-string-redundant': 31,
     'renamed-field-parameter': 2,
     'deprecated-data-xml-node': 5,
     'xml-deprecated-tree-attribute': 3,
