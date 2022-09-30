@@ -659,8 +659,8 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 if (not is_related and isinstance(argument, astroid.Const) and
                     (index ==
                      FIELDS_METHOD.get(argument.parent.func.attrname, 0)) and
-                    (argument.value in
-                     [field_name.capitalize(), field_name.title()])):
+                    (argument.value ==
+                     field_name.title())):
                     self.add_message('attribute-string-redundant', node=node)
                 if isinstance(argument, astroid.Keyword):
                     argument_aux = argument.value
@@ -676,8 +676,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                     #   of variable
                     elif not is_related and argument.arg == 'string' and \
                         (isinstance(argument_aux, astroid.Const) and
-                         argument_aux.value in
-                         [field_name.capitalize(), field_name.title()]):
+                         argument_aux.value == field_name.title()):
                         self.add_message(
                             'attribute-string-redundant', node=node)
                     elif (argument.arg in deprecated):
