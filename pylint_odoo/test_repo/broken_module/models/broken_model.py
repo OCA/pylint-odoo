@@ -302,12 +302,16 @@ class TestModel(models.Model):
         # so you can't change the order in the translation
         _('%s %d') % ('hello', 3)
         _('%s %s') % ('hello', 'world')
+        _('{} {}').format('hello', 3)
+        _('{} {}').format('hello', 'world')
 
         # Valid cases
         _('%(strname)s') % {'strname': 'hello'}
         _('%(strname)s %(intname)d') % {'strname': 'hello', 'intname': 3}
         _('%s') % 'hello'
         _('%d') % 3
+        _('{}').format('hello')
+        _('{}').format(3)
         return error_msg
 
     def my_method2(self, variable2):

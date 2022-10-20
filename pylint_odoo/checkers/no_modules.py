@@ -792,7 +792,11 @@ class NoModuleChecker(misc.PylintOdooChecker):
             printf_args = (
                 misc.WrapperModuleChecker.
                 _get_printf_str_args_kwargs(str2translate))
-            if isinstance(printf_args, tuple) and len(printf_args) >= 2:
+            format_args = (
+                misc.WrapperModuleChecker.
+                _get_format_str_args_kwargs(str2translate)[0])
+            if (isinstance(printf_args, tuple) and len(printf_args) >= 2 or
+                    len(format_args) >= 2):
                 # Return tuple for %s and dict for %(varname)s
                 # Check just the following cases "%s %s..."
                 self.add_message('translation-positional-used',
