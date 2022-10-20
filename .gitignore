@@ -1,6 +1,8 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+/.venv
+/.pytest_cache
 
 # C extensions
 *.so
@@ -12,8 +14,8 @@ bin/
 build/
 develop-eggs/
 dist/
+dist_wo_pbr/
 eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -22,8 +24,6 @@ var/
 .installed.cfg
 *.egg
 *.eggs
-AUTHORS
-ChangeLog
 
 # Installer logs
 pip-log.txt
@@ -33,6 +33,8 @@ pip-delete-this-directory.txt
 htmlcov/
 .tox/
 .coverage
+.coverage\.*
+.coverage\_*
 .cache
 nosetests.xml
 coverage.xml
@@ -42,6 +44,16 @@ coverage.xml
 
 # Pycharm
 .idea
+
+# Eclipse
+.settings
+
+# Visual Studio cache/options directory
+.vs/
+.vscode
+
+# OSX Files
+.DS_Store
 
 # Django stuff:
 *.log
@@ -61,10 +73,9 @@ docs/_build/
 *~
 *.swp
 
-# Mac files
-.DS_Store
+# OCA rules
+!static/lib/
 
-# file generated when running tests
-.cprofile_*
-node_modules
-package-lock.json
+# Auto-generated
+ChangeLog
+.pre-commit-config-local.yaml

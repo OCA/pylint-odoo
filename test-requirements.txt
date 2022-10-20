@@ -1,0 +1,11 @@
+build
+bump2version
+coverage
+pbr
+pre-commit
+pytest
+pytest-cov
+pytest-xdist
+tox
+twine
+wheel
