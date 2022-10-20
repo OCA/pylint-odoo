@@ -15,6 +15,8 @@
         'skip_xml_check.xml',
         'skip_xml_check_2.xml',
         'skip_xml_check_3.xml',
+        'duplicated.xml',
+        'duplicated.xml',
         'report.xml',
         'template1.xml',
     ],
