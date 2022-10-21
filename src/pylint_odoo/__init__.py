@@ -26,7 +26,7 @@ def get_all_messages():
 def messages2md():
     all_msgs = get_all_messages()
     md_msgs = "Code | Description | short name\n--- | --- | ---"
-    for msg_code, (title, name_key, description) in sorted(all_msgs.items()):
+    for msg_code, (title, name_key, _description) in sorted(all_msgs.items()):
         md_msgs += "\n{} | {} | {}".format(msg_code, title, name_key)
     md_msgs += "\n"
     return md_msgs
@@ -48,8 +48,10 @@ def messages2rst():
     lines = []
     max_col_sizes = [len(item) for item in title_list]
     for msg_code, msg_items in sorted(all_msgs.items()):
-        title, name_key, description = msg_items[0:3]
+        title, name_key, _description = msg_items[0:3]
         line = [item.replace("`", "``") for item in [msg_code, title, name_key]]
+        # TODO: consider using enumerate :)
+        # pylint: disable=consider-using-enumerate
         for index in range(len(max_col_sizes)):
             if len(line[index]) > max_col_sizes[index]:
                 max_col_sizes[index] = len(line[index])
@@ -74,5 +76,4 @@ def messages2rst():
     rst_msgs += rst_spaces(max_col_sizes, sep="+", fill="=")
     rst_msgs += rst_spaces(max_col_sizes, sep="+", fill="-").join([rst_spaces(max_col_sizes, item) for item in lines])
     rst_msgs += rst_spaces(max_col_sizes, sep="+", fill="-")
-    rst_msgs = rst_msgs
     return rst_msgs

@@ -50,7 +50,7 @@ EXPECTED_ERRORS = {
 class MainTest(unittest.TestCase):
     def setUp(self):
         dummy_cfg = os.path.join(gettempdir(), "nousedft.cfg")
-        with open(dummy_cfg, "w") as f_dummy:
+        with open(dummy_cfg, "w", encoding="UTF-8") as f_dummy:
             f_dummy.write("")
         self.default_options = [
             "--load-plugins=pylint_odoo",
@@ -287,10 +287,10 @@ def fstring_no_sqli(self):
    )
    self.env.cr.execute(f"SELECT NAME FROM res_partner LIMIT 10")
            """
-        with NamedTemporaryFile(mode="w") as f:
-            f.write(queries)
-            f.flush()
-            pylint_res = self.run_pylint([f.name], extra_params)
+        with NamedTemporaryFile(mode="w") as tmp_f:
+            tmp_f.write(queries)
+            tmp_f.flush()
+            pylint_res = self.run_pylint([tmp_f.name], extra_params)
 
         real_errors = pylint_res.linter.stats.by_msg
         self.assertDictEqual(real_errors, {"sql-injection": 4})

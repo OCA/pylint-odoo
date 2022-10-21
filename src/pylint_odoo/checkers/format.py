@@ -22,10 +22,10 @@ class FormatChecker(PylintOdooTokenChecker):
     msgs = ODOO_MSGS
 
     def is_vim_comment(self, comment):
-        return True if comment.strip("# ").lower().startswith("vim:") else False
+        return comment.strip("# ").lower().startswith("vim:")
 
     def process_tokens(self, tokens):
-        for idx, (tok_type, token_content, start_line_col, end_line_col, line_content) in enumerate(tokens):
+        for tok_type, token_content, start_line_col, _end_line_col, _line_content in tokens:
             if tokenize.COMMENT == tok_type:
                 line_num = start_line_col[0]
                 if self.is_vim_comment(token_content):

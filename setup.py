@@ -16,7 +16,6 @@ def generate_changelog():
         with open(fname, "w", encoding="UTF-8") as fchg:
             fchg.write(changelog_str)
         return changelog_str
-    # pylint: disable=protected-access
     changelog = git._iter_log_oneline()
     changelog = git._iter_changelog(changelog)
     git.write_git_changelog(changelog=changelog)

@@ -17,6 +17,7 @@ disable=c-extension-no-member,
     missing-class-docstring,
     missing-function-docstring,
     missing-module-docstring,
+    protected-access,
     suppressed-message,
     too-few-public-methods,
     too-many-ancestors,
@@ -36,6 +37,15 @@ disable=c-extension-no-member,
     too-many-return-statements,
     too-many-star-expressions,
     too-many-statements,
+    unused-argument,
+    # TODO: Re-enable the following one
+    attribute-defined-outside-init,
+    consider-using-f-string,
+    implicit-str-concat,
+    too-complex,
+    no-member,
+    abstract-method,
+    arguments-differ,
 
 [REPORTS]
 msg-template={path}:{line}: [{msg_id}({symbol}), {obj}] {msg}
@@ -54,3 +64,6 @@ ignore-docstrings=yes
 #     but that in some circumstances it may be appropriate to relax the restriction
 #     and permit modules with a complexity as high as 15
 max-complexity=15
+
+[BASIC]
+good-names=maxDiff

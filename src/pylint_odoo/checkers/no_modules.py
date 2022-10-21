@@ -337,6 +337,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
 
     __implements__ = IAstroidChecker
 
+    _from_imports = None
     name = settings.CFG_SECTION
     msgs = ODOO_MSGS
     options = (
@@ -618,7 +619,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
         if isinstance(node, astroid.JoinedStr):
             if hasattr(node, "value"):
                 return self._sqli_allowable(node.value)
-            elif hasattr(node, "values"):
+            if hasattr(node, "values"):
                 return not all(self._sqli_allowable(v) for v in node.values)
 
         return False
@@ -796,7 +797,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                     # function or a list of functions
                     and not (
                         isinstance(value.right, (astroid.Call, astroid.Tuple, astroid.List))
-                        and all([isinstance(child, astroid.Call) for child in getattr(value.right, "elts", [])])
+                        and all(isinstance(child, astroid.Call) for child in getattr(value.right, "elts", []))
                     )
                 ):
                     as_string = value.left.as_string()
@@ -902,7 +903,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 required_authors = {self.config.manifest_required_author}
             else:
                 required_authors = set(self.config.manifest_required_authors)
-            if not (authors & required_authors):
+            if not authors & required_authors:
                 # None of the required authors is present in the manifest
                 # Authors will be printed as 'author1', 'author2', ...
                 authors_str = ", ".join(["'%s'" % auth for auth in required_authors])
@@ -921,9 +922,9 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 self.add_message("manifest-deprecated-key", node=node, args=(deprecated_key,))
 
         # Check license allowed
-        license = manifest_dict.get("license", None)
-        if license and license not in self.config.license_allowed:
-            self.add_message("license-allowed", node=node, args=(license,))
+        license_str = manifest_dict.get("license", None)
+        if license_str and license_str not in self.config.license_allowed:
+            self.add_message("license-allowed", node=node, args=(license_str,))
 
         # Check version format
         version_format = manifest_dict.get("version", "")
@@ -975,9 +976,6 @@ class NoModuleChecker(misc.PylintOdooChecker):
         if not node.is_method():
             return
 
-        decor_names = self.get_decorators_names(node.decorators)
-        decor_lastnames = [decor.split(".")[-1] for decor in decor_names]
-
         if node.name in self.config.method_required_super:
             calls = [
                 call_func.func.name
@@ -993,10 +991,8 @@ class NoModuleChecker(misc.PylintOdooChecker):
             if isinstance(func, astroid.Name) and func.name == "super":
                 there_is_super = True
                 break
-        there_is_return = False
-        for stmt in node.nodes_of_class(astroid.Return, skip_klass=(astroid.FunctionDef, astroid.ClassDef)):
-            there_is_return = True
-            break
+
+        there_is_return = any(node.nodes_of_class(astroid.Return, skip_klass=(astroid.FunctionDef, astroid.ClassDef)))
         if (
             there_is_super
             and not there_is_return

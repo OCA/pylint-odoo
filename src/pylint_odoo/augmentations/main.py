@@ -37,14 +37,8 @@ def is_migration_path(node):
         return False
 
     # pre-migration.py
-    if (
-        isinstance(node, Module)
-        and "-" in node.name
-        or
-        # def migrate(cr, version):
-        isinstance(node, FunctionDef)
-        and node.name == "migrate"
-    ):
+    # def migrate(cr, version):
+    if isinstance(node, Module) and "-" in node.name or isinstance(node, FunctionDef) and node.name == "migrate":
         return True
     return False
 
@@ -54,7 +48,7 @@ def apply_augmentations(linter):
 
     # W0104 - pointless-statement
     # manifest file have a valid pointless-statement dict
-    discard = hasattr(BasicChecker, "visit_discard") and BasicChecker.visit_discard or BasicChecker.visit_expr
+    discard = BasicChecker.visit_discard if hasattr(BasicChecker, "visit_discard") else BasicChecker.visit_expr
     suppress_message(linter, discard, "W0104", is_manifest_file)
 
     # C0103 - invalid-name and W0613 - unused-argument for migrations/

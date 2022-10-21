@@ -54,7 +54,6 @@ def get_plugin_msgs(pylint_run_res):
     :param pylint_run_res: Object returned by pylint.run method.
     :return: List of strings with message name.
     """
-    pylint_run_res.linter.msgs_store
 
     def get_messages():
         return pylint_run_res.linter.msgs_store._messages_definitions
@@ -89,14 +88,14 @@ class PylintOdooChecker(BaseChecker):
     manifest_file = None
     manifest_dict = {}
 
-    def formatversion(self, string):
+    def formatversion(self, version_string):
         valid_odoo_versions = self.linter._all_options["valid_odoo_versions"].config.valid_odoo_versions
         valid_odoo_versions = "|".join(map(re.escape, valid_odoo_versions))
         manifest_version_format = self.linter._all_options["manifest_version_format"].config.manifest_version_format
         self.config.manifest_version_format_parsed = manifest_version_format.format(
             valid_odoo_versions=valid_odoo_versions
         )
-        return re.match(self.config.manifest_version_format_parsed, string)
+        return re.match(self.config.manifest_version_format_parsed, version_string)
 
     def get_manifest_file(self, node):
         """Get manifest file path
@@ -139,7 +138,7 @@ class PylintOdooChecker(BaseChecker):
             self.odoo_node = node
             self.odoo_module_name = os.path.basename(os.path.dirname(manifest_file))
             self.odoo_module_name_with_ns = "odoo.addons.{}".format(self.odoo_module_name)
-            with open(self.manifest_file) as f_manifest:
+            with open(self.manifest_file, encoding="UTF-8") as f_manifest:
                 self.manifest_dict = ast.literal_eval(f_manifest.read())
         elif self.odoo_node and os.path.commonprefix(
             [os.path.dirname(self.odoo_node.file), os.path.dirname(node.file)]
@@ -167,9 +166,7 @@ class PylintOdooChecker(BaseChecker):
             self.msg_args = None
             if not self.linter.is_message_enabled(msg_code):
                 continue
-            check_method = getattr(self, "_check_" + name_key.replace("-", "_"), None)
-            is_odoo_check = self.is_main_odoo_module and msg_code[1:3] == str(settings.BASE_OMODULE_ID)
-            is_py_check = msg_code[1:3] == str(settings.BASE_PYMODULE_ID)
+            getattr(self, "_check_" + name_key.replace("-", "_"), None)
 
     def visit_module(self, node):
         self.wrapper_visit_module(node)
