@@ -43,9 +43,9 @@ disable=c-extension-no-member,
     consider-using-f-string,
     implicit-str-concat,
     too-complex,
-    no-member,
-    abstract-method,
-    arguments-differ,
+    # no-member,
+    # abstract-method,
+    # arguments-differ,
 
 [REPORTS]
 msg-template={path}:{line}: [{msg_id}({symbol}), {obj}] {msg}
