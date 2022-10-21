@@ -25,7 +25,7 @@ class TestModel41(models.Model):
 
 
 class TestModel5(models.Model):
-    _inherit = 'valid.duplicated'  # pylint: disable=R7980
+    _inherit = 'valid.duplicated'  # pylint: disable=consider-merging-classes-inherited
 
 
 class TestModel6(models.Model):

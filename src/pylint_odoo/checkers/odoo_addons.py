@@ -55,185 +55,182 @@ import ast
 import itertools
 import os
 import re
-from collections import Counter
+import string
+from collections import Counter, defaultdict
 
 import astroid
 import validators
-from pylint.checkers import utils
+from pylint.checkers import BaseChecker, utils
 
-from .. import misc, settings
-from .modules_odoo import DFTL_MANIFEST_DATA_KEYS
+from .. import misc
+
+CHECK_DESCRIPTION = (
+    "You can review guidelines here: "
+    "https://github.com/OCA/odoo-community.org/blob/master/website/"
+    "Contribution/CONTRIBUTING.rst"
+)
 
 ODOO_MSGS = {
     # C->convention R->refactor W->warning E->error F->fatal
-    "R%d01"
-    % settings.BASE_NOMODULE_ID: (
+    "R8101": (
         "Import `Warning` should be renamed as UserError " "`from openerp.exceptions import Warning as UserError`",
         "openerp-exception-warning",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "W%d03"
-    % settings.BASE_NOMODULE_ID: (
+    "W8103": (
         'Translation method _("string") in fields is not necessary.',
         "translation-field",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "W%d05" % settings.BASE_NOMODULE_ID: ('attribute "%s" deprecated', "attribute-deprecated", settings.DESC_DFLT),
-    "W%d06"
-    % settings.BASE_NOMODULE_ID: ('Missing `super` call in "%s" method.', "method-required-super", settings.DESC_DFLT),
-    "W%d10"
-    % settings.BASE_NOMODULE_ID: (
+    "W8105": ('attribute "%s" deprecated', "attribute-deprecated", CHECK_DESCRIPTION),
+    "W8106": ('Missing `super` call in "%s" method.', "method-required-super", CHECK_DESCRIPTION),
+    "W8110": (
         "Missing `return` (`super` is used) in method %s.",
         "missing-return",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "E%d01"
-    % settings.BASE_NOMODULE_ID: (
+    "E8101": (
         "The author key in the manifest file must be a string " "(with comma separated values)",
         "manifest-author-string",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "E%d02"
-    % settings.BASE_NOMODULE_ID: (
+    "E8102": (
         "Use of cr.commit() directly - More info "
         "https://github.com/OCA/odoo-community.org/blob/master/website/"
         "Contribution/CONTRIBUTING.rst"
         "#never-commit-the-transaction",
         "invalid-commit",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "E%d03"
-    % settings.BASE_NOMODULE_ID: (
+    "E8103": (
         "SQL injection risk. "
         "Use parameters if you can. - More info "
         "https://github.com/OCA/odoo-community.org/blob/master/website/"
         "Contribution/CONTRIBUTING.rst"
         "#no-sql-injection",
         "sql-injection",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "E%d04"
-    % settings.BASE_NOMODULE_ID: (
+    "E8104": (
         "The maintainers key in the manifest file must be a list of strings",
         "manifest-maintainers-list",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "E%d06"
-    % settings.BASE_NOMODULE_ID: (
+    "E8106": (
         "Use of external request method `%s` without timeout. " "It could wait for a long time",
         "external-request-timeout",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "C%d01"
-    % settings.BASE_NOMODULE_ID: (
+    "C8101": (
         "One of the following authors must be present in manifest: %s",
         "manifest-required-author",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "C%d02"
-    % settings.BASE_NOMODULE_ID: (
+    "C8102": (
         'Missing required key "%s" in manifest file',
         "manifest-required-key",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "C%d03"
-    % settings.BASE_NOMODULE_ID: (
+    "C8103": (
         'Deprecated key "%s" in manifest file',
         "manifest-deprecated-key",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "C%d04"
-    % settings.BASE_NOMODULE_ID: (
+    "C8104": (
         'Use `CamelCase` "%s" in class name "%s". '
         "You can use oca-autopep8 of https://github.com/OCA/maintainer-tools"
         " to auto fix it.",
         "class-camelcase",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "C%d05"
-    % settings.BASE_NOMODULE_ID: ('License "%s" not allowed in manifest file.', "license-allowed", settings.DESC_DFLT),
-    "C%d06"
-    % settings.BASE_NOMODULE_ID: (
+    "C8105": ('License "%s" not allowed in manifest file.', "license-allowed", CHECK_DESCRIPTION),
+    "C8106": (
         'Wrong Version Format "%s" in manifest file. ' 'Regex to match: "%s"',
         "manifest-version-format",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "C%d07"
-    % settings.BASE_NOMODULE_ID: (
+    "C8107": (
         'String parameter on "%s" requires translation. Use %s_(%s)',
         "translation-required",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "C%d08"
-    % settings.BASE_NOMODULE_ID: (
+    "C8108": (
         'Name of compute method should start with "_compute_"',
         "method-compute",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "C%d09"
-    % settings.BASE_NOMODULE_ID: (
+    "C8109": (
         'Name of search method should start with "_search_"',
         "method-search",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "C%d10"
-    % settings.BASE_NOMODULE_ID: (
+    "C8110": (
         'Name of inverse method should start with "_inverse_"',
         "method-inverse",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "C%d11"
-    % settings.BASE_NOMODULE_ID: (
+    "C8111": (
         'Manifest key development_status "%s" not allowed. ' "Use one of: %s.",
         "development-status-allowed",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "W%d11"
-    % settings.BASE_NOMODULE_ID: (
+    "W8111": (
         'Field parameter "%s" is no longer supported. Use "%s" instead.',
         "renamed-field-parameter",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "W%d12" % settings.BASE_NOMODULE_ID: ('"eval" referenced detected.', "eval-referenced", settings.DESC_DFLT),
-    "W%d13"
-    % settings.BASE_NOMODULE_ID: (
+    "W8112": ('"eval" referenced detected.', "eval-referenced", CHECK_DESCRIPTION),
+    "W8113": (
         "The attribute string is redundant. " "String parameter equal to name of variable",
         "attribute-string-redundant",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "W%d14"
-    % settings.BASE_NOMODULE_ID: (
+    "W8114": (
         'Website "%s" in manifest key is not a valid URI',
         "website-manifest-key-not-valid-uri",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "W%d15"
-    % settings.BASE_NOMODULE_ID: (
+    "W8115": (
         'Translatable term in "%s" contains variables. Use %s instead',
         "translation-contains-variable",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "W%d16" % settings.BASE_NOMODULE_ID: ("Print used. Use `logger` instead.", "print-used", settings.DESC_DFLT),
-    "W%d20"
-    % settings.BASE_NOMODULE_ID: (
+    "W8116": ("Print used. Use `logger` instead.", "print-used", CHECK_DESCRIPTION),
+    "W8120": (
         "Translation method _(%s) is using positional string printf formatting. "
         'Use named placeholder `_("%%(placeholder)s")` instead.',
         "translation-positional-used",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "W%d21"
-    % settings.BASE_NOMODULE_ID: (
+    "W8121": (
         "Context overridden using dict. " "Better using kwargs `with_context(**%s)` or `with_context(key=value)`",
         "context-overridden",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "W%d25"
-    % settings.BASE_NOMODULE_ID: (
+    "W8125": (
         'The file "%s" is duplicated %d times from manifest key "%s"',
         "manifest-data-duplicated",
-        settings.DESC_DFLT,
+        CHECK_DESCRIPTION,
     ),
-    "F%d01" % settings.BASE_NOMODULE_ID: ('File "%s": "%s" not found.', "resource-not-exist", settings.DESC_DFLT),
+    "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
+    "W8138": (
+        "pass into block except. " "If you really need to use the pass consider logging that exception",
+        "except-pass",
+        CHECK_DESCRIPTION,
+    ),
+    "R8180": (
+        'Consider merging classes inherited to "%s" from %s.',
+        "consider-merging-classes-inherited",
+        CHECK_DESCRIPTION,
+    ),
+    "E8130": ("Test folder imported in module %s", "test-folder-imported", CHECK_DESCRIPTION),
+    "W8150": (
+        "Same Odoo module absolute import. You should use "
+        'relative import with "." '
+        'instead of "openerp.addons.%s"',
+        "odoo-addons-relative-import",
+        CHECK_DESCRIPTION,
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
@@ -330,12 +327,29 @@ DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS = [
     "suds.client.Client",
     "urllib.request.urlopen",
 ]
+# Regex used from https://github.com/translate/translate/blob/9de0d72437/translate/filters/checks.py#L50-L62  # noqa
+PRINTF_PATTERN = re.compile(
+    r"""
+        %(                          # initial %
+        (?P<boost_ord>\d+)%         # boost::format style variable order, like %1%
+        |
+              (?:(?P<ord>\d+)\$|    # variable order, like %1$s
+              \((?P<key>\w+)\))?    # Python style variables, like %(var)s
+        (?P<fullvar>
+            [+#-]*                  # flags
+            (?:\d+)?                # width
+            (?:\.\d+)?              # precision
+            (hh\|h\|l\|ll)?         # length formatting
+            (?P<type>[\w@]))        # type (%s, %d, etc.)
+        )""",
+    re.VERBOSE,
+)
 
 
-class NoModuleChecker(misc.PylintOdooChecker):
+class OdooAddons(BaseChecker):
 
     _from_imports = None
-    name = settings.CFG_SECTION
+    name = "odoolint"
     msgs = ODOO_MSGS
     options = (
         (
@@ -345,19 +359,6 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 "metavar": "<comma separated values>",
                 "default": DFTL_MANIFEST_REQUIRED_AUTHORS,
                 "help": "Author names, at least one is required in manifest file.",
-            },
-        ),
-        (
-            "manifest_required_author",
-            {
-                "type": "string",
-                "metavar": "<string>",
-                "default": "",
-                "help": (
-                    "Name of author required in manifest file. "
-                    "This parameter is deprecated use "
-                    '"manifest_required_authors" instead.'
-                ),
             },
         ),
         (
@@ -490,6 +491,20 @@ class NoModuleChecker(misc.PylintOdooChecker):
         ),
     )
 
+    def close(self):
+        """Final process get all cached values and add messages"""
+        for (manifest_path, odoo_class_inherit), nodes in self._odoo_inherit_items.items():
+            if len(nodes) <= 1:
+                continue
+            path_nodes = []
+            first_node = nodes.pop()
+            for node in nodes:
+                relpath = os.path.relpath(node.root().file, os.path.dirname(manifest_path))
+                path_nodes.append("%s:%d" % (relpath, node.lineno))
+            self.add_message(
+                "consider-merging-classes-inherited", node=first_node, args=(odoo_class_inherit, ", ".join(path_nodes))
+            )
+
     def visit_module(self, node):
         """Initizalize the cache to save the original library name
         of all imported node
@@ -505,6 +520,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
 
     def open(self):
         super().open()
+        self._odoo_inherit_items = defaultdict(set)
         self.linter.config.deprecated_field_parameters = self.colon_list_to_dict(
             self.linter.config.deprecated_field_parameters
         )
@@ -697,7 +713,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
             and isinstance(node.parent, astroid.Assign)
             and isinstance(node.parent.parent, astroid.ClassDef)
         ):
-            args = misc.join_node_args_kwargs(node)
+            args = self.join_node_args_kwargs(node)
             index = 0
             field_name = ""
             if (
@@ -837,8 +853,8 @@ class NoModuleChecker(misc.PylintOdooChecker):
             # translation-positional-used: Check "string to translate"
             # to check "%s %s..." used where the position can't be changed
             str2translate = arg.as_string()
-            printf_args = misc.WrapperModuleChecker._get_printf_str_args_kwargs(str2translate)
-            format_args = misc.WrapperModuleChecker._get_format_str_args_kwargs(str2translate)[0]
+            printf_args = self._get_printf_str_args_kwargs(str2translate)
+            format_args = self._get_format_str_args_kwargs(str2translate)[0]
             if isinstance(printf_args, tuple) and len(printf_args) >= 2 or len(format_args) >= 2:
                 # Return tuple for %s and dict for %(varname)s
                 # Check just the following cases "%s %s..."
@@ -861,7 +877,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
             else self._from_imports.get(func_name)
         )
         if lib_original_func_name in self.linter.config.external_request_timeout_methods:
-            for argument in misc.join_node_args_kwargs(node):
+            for argument in self.join_node_args_kwargs(node):
                 if not isinstance(argument, astroid.Keyword):
                     continue
                 if argument.arg == "timeout":
@@ -883,7 +899,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
         "manifest-data-duplicated",
     )
     def visit_dict(self, node):
-        if not os.path.basename(self.linter.current_file) in settings.MANIFEST_FILES or not isinstance(
+        if not os.path.basename(self.linter.current_file) in misc.MANIFEST_FILES or not isinstance(
             node.parent, astroid.Expr
         ):
             return
@@ -897,11 +913,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
             # Check author required
             authors = {auth.strip() for auth in author.split(",")}
 
-            if self.linter.config.manifest_required_author:
-                # Support compatibility for deprecated attribute
-                required_authors = {self.linter.config.manifest_required_author}
-            else:
-                required_authors = set(self.linter.config.manifest_required_authors)
+            required_authors = set(self.linter.config.manifest_required_authors)
             if not authors & required_authors:
                 # None of the required authors is present in the manifest
                 # Authors will be printed as 'author1', 'author2', ...
@@ -938,7 +950,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
         # Check if resource exist
         # Check manifest-data-duplicated
         dirname = os.path.dirname(self.linter.current_file)
-        for key in DFTL_MANIFEST_DATA_KEYS:
+        for key in misc.MANIFEST_DATA_KEYS:
             for resource, coincidences in Counter(manifest_dict.get(key) or []).items():
                 if coincidences >= 2:
                     self.add_message("manifest-data-duplicated", node=node, args=(resource, coincidences, key))
@@ -1002,17 +1014,25 @@ class NoModuleChecker(misc.PylintOdooChecker):
         ):
             self.add_message("missing-return", node=node, args=(node.name))
 
-    @utils.only_required_for_messages("external-request-timeout")
+    @utils.only_required_for_messages(
+        "external-request-timeout", "odoo-addons-relative-import", "test-folder-imported"
+    )
     def visit_import(self, node):
         self._from_imports.update({alias or name: "%s" % name for name, alias in node.names})
+        self.check_odoo_relative_import(node)
+        self.check_folder_test_imported(node)
 
-    @utils.only_required_for_messages("openerp-exception-warning", "external-request-timeout")
+    @utils.only_required_for_messages(
+        "openerp-exception-warning", "external-request-timeout", "odoo-addons-relative-import", "test-folder-imported"
+    )
     def visit_importfrom(self, node):
         if node.modname == "openerp.exceptions":
             for (import_name, import_as_name) in node.names:
                 if import_name == "Warning" and import_as_name != "UserError":
                     self.add_message("openerp-exception-warning", node=node)
         self._from_imports.update({alias or name: "%s.%s" % (node.modname, name) for name, alias in node.names})
+        self.check_odoo_relative_import(node)
+        self.check_folder_test_imported(node)
 
     @utils.only_required_for_messages("class-camelcase")
     def visit_classdef(self, node):
@@ -1020,16 +1040,39 @@ class NoModuleChecker(misc.PylintOdooChecker):
         if camelized != node.name:
             self.add_message("class-camelcase", node=node, args=(camelized, node.name))
 
-    @utils.only_required_for_messages("attribute-deprecated")
+    @utils.only_required_for_messages("attribute-deprecated", "consider-merging-classes-inherited")
     def visit_assign(self, node):
         node_left = node.targets[0]
         if (
-            isinstance(node.parent, astroid.ClassDef)
+            self.linter.is_message_enabled("attribute-deprecated", node.lineno)
+            and isinstance(node.parent, astroid.ClassDef)
             and isinstance(node_left, astroid.AssignName)
             and [1 for m in node.parent.basenames if "Model" in m]
         ):
             if node_left.name in self.linter.config.attribute_deprecated:
                 self.add_message("attribute-deprecated", node=node_left, args=(node_left.name,))
+        if self.linter.is_message_enabled("consider-merging-classes-inherited", node.lineno):
+            node_left = node.targets[0]
+            if (
+                not isinstance(node_left, astroid.node_classes.AssignName)
+                or node_left.name not in ("_inherit", "_name")
+                or not isinstance(node.value, astroid.node_classes.Const)
+                or not isinstance(node.parent, astroid.ClassDef)
+            ):
+                return
+            if node_left.name == "_name":
+                node.parent.odoo_attribute_name = node.value.value
+                return
+            odoo_class_name = getattr(node.parent, "odoo_attribute_name", None)
+            odoo_class_inherit = node.value.value
+            if odoo_class_name and odoo_class_name != odoo_class_inherit:
+                # Skip _name='model.name' _inherit='other.model' because is valid
+                # TODO: Consider case where _inherit is assigned before to _name
+                return
+            node_dirpath = os.path.dirname(node.root().file)
+            manifest_path = misc.walk_up(node_dirpath, tuple(misc.MANIFEST_FILES), misc.top_path(node_dirpath))
+            if manifest_path:
+                self._odoo_inherit_items[(manifest_path, odoo_class_inherit)].add(node)
 
     @utils.only_required_for_messages("eval-referenced")
     def visit_name(self, node):
@@ -1041,8 +1084,8 @@ class NoModuleChecker(misc.PylintOdooChecker):
         if node_infer.name == "eval":
             self.add_message("eval-referenced", node=node)
 
-    def camelize(self, string):
-        return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string)
+    def camelize(self, string2camelize):
+        return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string2camelize)
 
     def get_decorators_names(self, decorators):
         nodes = []
@@ -1105,3 +1148,143 @@ class NoModuleChecker(misc.PylintOdooChecker):
             expr_list.insert(0, node_expr.name)
         cursor_name = ".".join(expr_list)
         return cursor_name
+
+    def formatversion(self, version_string):
+        valid_odoo_versions = self.linter.config.valid_odoo_versions
+        valid_odoo_versions = "|".join(map(re.escape, valid_odoo_versions))
+        manifest_version_format = self.linter.config.manifest_version_format
+        self.linter.config.manifest_version_format_parsed = manifest_version_format.format(
+            valid_odoo_versions=valid_odoo_versions
+        )
+        return re.match(self.linter.config.manifest_version_format_parsed, version_string)
+
+    def join_node_args_kwargs(self, node):
+        """Method to join args and keywords
+        :param node: node to get args and keywords
+        :return: List of args
+        """
+        args = (getattr(node, "args", None) or []) + (getattr(node, "keywords", None) or [])
+        return args
+
+    @staticmethod
+    def _get_format_str_args_kwargs(format_str):
+        """Get dummy args and kwargs of a format string
+        e.g. format_str = '{} {} {variable}'
+            dummy args = (0, 0)
+            kwargs = {'variable': 0}
+        return args, kwargs
+        Motivation to use format_str.format(*args, **kwargs)
+        and validate if it was parsed correctly
+        """
+        format_str_args = []
+        format_str_kwargs = {}
+        placeholders = []
+        for line in format_str.splitlines():
+            try:
+                placeholders.extend(name for _, name, _, _ in string.Formatter().parse(line) if name is not None)
+            except ValueError:
+                continue
+            for placeholder in placeholders:
+                if placeholder == "":
+                    # unnumbered "{} {}"
+                    # append 0 to use max(0, 0, ...) == 0
+                    # and identify that all args are unnumbered vs numbered
+                    format_str_args.append(0)
+                elif placeholder.isdigit():
+                    # numbered "{0} {1} {2} {0}"
+                    # append +1 to use max(1, 2) and know the quantity of args
+                    # and identify that the args are numbered
+                    format_str_args.append(int(placeholder) + 1)
+                else:
+                    # named "{var0} {var1} {var2} {var0}"
+                    format_str_kwargs[placeholder] = 0
+        if format_str_args:
+            format_str_args = range(len(format_str_args)) if max(format_str_args) == 0 else range(max(format_str_args))
+        return format_str_args, format_str_kwargs
+
+    @staticmethod
+    def _get_printf_str_args_kwargs(printf_str):
+        """Get dummy args and kwargs of a printf string
+        e.g. printf_str = '%s %d'
+            dummy args = ('', 0)
+        e.g. printf_str = '%(var1)s %(var2)d'
+            dummy kwargs = {'var1': '', 'var2': 0}
+        return args or kwargs
+        Motivation to use printf_str % (args or kwargs)
+        and validate if it was parsed correctly
+        """
+        args = []
+        kwargs = {}
+
+        # Remove all escaped %%
+        printf_str = re.sub("%%", "", printf_str)
+        for line in printf_str.splitlines():
+            for match in PRINTF_PATTERN.finditer(line):
+                match_items = match.groupdict()
+                var = "" if match_items["type"] == "s" else 0
+                if match_items["key"] is None:
+                    args.append(var)
+                else:
+                    kwargs[match_items["key"]] = var
+        return tuple(args) or kwargs
+
+    @utils.only_required_for_messages("except-pass")
+    def visit_tryexcept(self, node):
+        """Visit block try except"""
+        for handler in node.handlers:
+            if not handler.name and len(handler.body) == 1 and isinstance(handler.body[0], astroid.node_classes.Pass):
+                self.add_message("except-pass", node=handler)
+
+    def _get_odoo_module_imported(self, node, manifest_path):
+        if hasattr(node.parent, "file"):
+            relpath = os.path.relpath(node.parent.file, os.path.dirname(manifest_path))
+            if os.path.dirname(relpath) == "tests":
+                # import errors rules don't apply to the test files
+                # since these files are loaded only when running tests
+                # and in such a case your
+                # module and their external dependencies are installed.
+                return []
+        odoo_module = []
+        if isinstance(node, astroid.ImportFrom) and (
+            "openerp.addons" in node.modname or "odoo.addons" in node.modname
+        ):
+            packages = node.modname.split(".")
+            if len(packages) >= 3:
+                # from openerp.addons.odoo_module import models
+                odoo_module.append(packages[2])
+            else:
+                # from openerp.addons import odoo_module
+                odoo_module.append(node.names[0][0])
+        elif isinstance(node, astroid.Import):
+            for name, _ in node.names:
+                if "openerp.addons" not in name and "odoo.addons" not in name:
+                    continue
+                packages = name.split(".")
+                if len(packages) >= 3:
+                    # import openerp.addons.odoo_module
+                    odoo_module.append(packages[2])
+        return odoo_module
+
+    def check_odoo_relative_import(self, node):
+        node_dirpath = os.path.dirname(node.root().file)
+        manifest_path = misc.walk_up(node_dirpath, tuple(misc.MANIFEST_FILES), misc.top_path(node_dirpath))
+        if not manifest_path:
+            return
+        odoo_module_name = os.path.basename(os.path.dirname(manifest_path))
+        if odoo_module_name in self._get_odoo_module_imported(node, manifest_path):
+            self.add_message("odoo-addons-relative-import", node=node, args=(odoo_module_name,))
+
+    def check_folder_test_imported(self, node):
+        if hasattr(node.parent, "file") and os.path.basename(node.parent.file) == "__init__.py":
+            package_names = []
+            if isinstance(node, astroid.ImportFrom):
+                if node.modname:
+                    # from .tests import test_file
+                    package_names = node.modname.split(".")[:1]
+                else:
+                    # from . import tests
+                    package_names = [name for name, alias in node.names]
+            elif isinstance(node, astroid.Import):
+                package_names = [name[0].split(".")[0] for name in node.names]
+            if "tests" in package_names:
+                self.add_message("test-folder-imported", node=node, args=(node.parent.name,))

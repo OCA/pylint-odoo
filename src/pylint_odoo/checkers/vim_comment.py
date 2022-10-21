@@ -2,24 +2,15 @@ import tokenize
 
 from pylint.checkers import BaseTokenChecker
 
-from .. import settings
-
 ODOO_MSGS = {
     # C->convention R->refactor W->warning E->error F->fatal
-    "W%d02"
-    % settings.BASE_FORMAT_ID: ("Use of vim comment", "use-vim-comment", settings.DESC_DFLT),
+    "W8202": ("Use of vim comment", "use-vim-comment", "Better using local vim configuration file"),
 }
 
-MAGIC_COMMENT_CODING = 1
-MAGIC_COMMENT_ENCODING = 2
-MAGIC_COMMENT_INTERPRETER = 3
-MAGIC_COMMENT_CODING_UTF8 = 4
-NO_IDENTIFIED = -1
 
+class VimComment(BaseTokenChecker):
 
-class FormatChecker(BaseTokenChecker):
-
-    name = settings.CFG_SECTION
+    name = "odoolint"
     msgs = ODOO_MSGS
 
     def is_vim_comment(self, comment):
