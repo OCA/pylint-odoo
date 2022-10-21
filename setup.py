@@ -35,7 +35,7 @@ def read(*names, **kwargs):
 def generage_long_description():
     long_description = "{}\n{}".format(
         # re.compile(".*\(start-badges\).*^.*\(end-badges\)", re.M | re.S).sub("", read("README.md")),
-        read("README.rst"),
+        read("README.md"),
         re.sub(":[a-z]+:`~?(.*?)`", r"``\1``", generate_changelog()),
     )
     return long_description
