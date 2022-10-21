@@ -3,7 +3,7 @@ import os
 import re
 import string
 
-from pylint.checkers import BaseChecker, BaseTokenChecker
+from pylint.checkers import BaseChecker
 
 from . import settings
 
@@ -166,13 +166,6 @@ class PylintOdooChecker(BaseChecker):
 
     def visit_module(self, node):
         self.wrapper_visit_module(node)
-
-
-class PylintOdooTokenChecker(BaseTokenChecker, PylintOdooChecker):
-    pass
-
-
-# TODO: Change all methods here
 
 
 class WrapperModuleChecker(PylintOdooChecker):
