@@ -4,7 +4,7 @@ import re
 import string
 
 from pylint.checkers import BaseChecker, BaseTokenChecker
-from pylint.interfaces import UNDEFINED, IAstroidChecker, ITokenChecker
+from pylint.interfaces import UNDEFINED
 
 from . import settings
 
@@ -80,22 +80,19 @@ def join_node_args_kwargs(node):
 
 class PylintOdooChecker(BaseChecker):
 
-    # Auto call to `process_tokens` method
-    __implements__ = IAstroidChecker
-
     odoo_node = None
     odoo_module_name = None
     manifest_file = None
     manifest_dict = {}
 
     def formatversion(self, version_string):
-        valid_odoo_versions = self.linter._all_options["valid_odoo_versions"].config.valid_odoo_versions
+        valid_odoo_versions = self.linter.config.valid_odoo_versions
         valid_odoo_versions = "|".join(map(re.escape, valid_odoo_versions))
-        manifest_version_format = self.linter._all_options["manifest_version_format"].config.manifest_version_format
-        self.config.manifest_version_format_parsed = manifest_version_format.format(
+        manifest_version_format = self.linter.config.manifest_version_format
+        self.linter.config.manifest_version_format_parsed = manifest_version_format.format(
             valid_odoo_versions=valid_odoo_versions
         )
-        return re.match(self.config.manifest_version_format_parsed, version_string)
+        return re.match(self.linter.config.manifest_version_format_parsed, version_string)
 
     def get_manifest_file(self, node):
         """Get manifest file path
@@ -176,15 +173,13 @@ class PylintOdooChecker(BaseChecker):
         match = self.formatversion(version)
         short_version = match.group(1) if match else ""
         if not short_version:
-            valid_odoo_versions = self.linter._all_options["valid_odoo_versions"].config.valid_odoo_versions
+            valid_odoo_versions = self.linter.config.valid_odoo_versions
             short_version = valid_odoo_versions[0] if len(valid_odoo_versions) == 1 else ""
         return super().add_message(msg_id, line, node, args, confidence)
 
 
 class PylintOdooTokenChecker(BaseTokenChecker, PylintOdooChecker):
-
-    # Auto call to `process_tokens` method
-    __implements__ = (ITokenChecker, IAstroidChecker)
+    pass
 
 
 # TODO: Change all methods here
