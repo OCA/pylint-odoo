@@ -42,8 +42,7 @@ jobs:
             python: '3.10'
             toxpython: 'python3.10'
             python_arch: 'x64'
-            # TODO: Enable "lint"
-            tox_env: 'py310,codecov,build'
+            tox_env: 'py310,codecov,lint,build'
             os: 'ubuntu-latest'
 
           # windows
