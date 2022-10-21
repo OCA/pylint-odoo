@@ -505,7 +505,9 @@ class NoModuleChecker(misc.PylintOdooChecker):
 
     def open(self):
         super().open()
-        self.linter.config.deprecated_field_parameters = self.colon_list_to_dict(self.linter.config.deprecated_field_parameters)
+        self.linter.config.deprecated_field_parameters = self.colon_list_to_dict(
+            self.linter.config.deprecated_field_parameters
+        )
 
     def colon_list_to_dict(self, colon_list):
         """Converts a colon list to a dictionary.
@@ -928,7 +930,9 @@ class NoModuleChecker(misc.PylintOdooChecker):
         formatrgx = self.formatversion(version_format)
         if version_format and not formatrgx:
             self.add_message(
-                "manifest-version-format", node=node, args=(version_format, self.linter.config.manifest_version_format_parsed)
+                "manifest-version-format",
+                node=node,
+                args=(version_format, self.linter.config.manifest_version_format_parsed),
             )
 
         # Check if resource exist
@@ -1084,7 +1088,11 @@ class NoModuleChecker(misc.PylintOdooChecker):
         elif isinstance(argument, astroid.BinOp):
             argument = argument.left
 
-        if isinstance(argument, astroid.Const) and argument.name == "str" and func_name in self.linter.config.odoo_exceptions:
+        if (
+            isinstance(argument, astroid.Const)
+            and argument.name == "str"
+            and func_name in self.linter.config.odoo_exceptions
+        ):
             self.add_message("translation-required", node=node, args=(func_name, "", argument.as_string()))
 
     def get_cursor_name(self, node):

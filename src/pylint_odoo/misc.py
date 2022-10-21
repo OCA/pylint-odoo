@@ -3,8 +3,7 @@ import os
 import re
 import string
 
-from pylint.checkers import BaseChecker, BaseTokenChecker
-from pylint.interfaces import UNDEFINED
+from pylint.checkers import BaseChecker
 
 from . import settings
 
@@ -167,22 +166,6 @@ class PylintOdooChecker(BaseChecker):
 
     def visit_module(self, node):
         self.wrapper_visit_module(node)
-
-    def add_message(self, msg_id, line=None, node=None, args=None, confidence=UNDEFINED):
-        version = self.manifest_dict.get("version") or "" if isinstance(self.manifest_dict, dict) else ""
-        match = self.formatversion(version)
-        short_version = match.group(1) if match else ""
-        if not short_version:
-            valid_odoo_versions = self.linter.config.valid_odoo_versions
-            short_version = valid_odoo_versions[0] if len(valid_odoo_versions) == 1 else ""
-        return super().add_message(msg_id, line, node, args, confidence)
-
-
-class PylintOdooTokenChecker(BaseTokenChecker, PylintOdooChecker):
-    pass
-
-
-# TODO: Change all methods here
 
 
 class WrapperModuleChecker(PylintOdooChecker):

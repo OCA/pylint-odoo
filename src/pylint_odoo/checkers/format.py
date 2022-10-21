@@ -1,7 +1,8 @@
 import tokenize
 
+from pylint.checkers import BaseTokenChecker
+
 from .. import settings
-from ..misc import PylintOdooTokenChecker
 
 ODOO_MSGS = {
     # C->convention R->refactor W->warning E->error F->fatal
@@ -16,7 +17,7 @@ MAGIC_COMMENT_CODING_UTF8 = 4
 NO_IDENTIFIED = -1
 
 
-class FormatChecker(PylintOdooTokenChecker):
+class FormatChecker(BaseTokenChecker):
 
     name = settings.CFG_SECTION
     msgs = ODOO_MSGS
