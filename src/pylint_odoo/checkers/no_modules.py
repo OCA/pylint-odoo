@@ -51,6 +51,7 @@ You can use:
 for more info visit pylint doc
 """
 
+import validators
 import ast
 import itertools
 import os
@@ -58,8 +59,6 @@ import re
 from collections import Counter
 
 import astroid
-import rfc3986
-from six import string_types
 from pylint.checkers import utils
 from pylint.interfaces import IAstroidChecker
 
@@ -76,24 +75,9 @@ ODOO_MSGS = {
         'openerp-exception-warning',
         settings.DESC_DFLT
     ),
-    'W%d01' % settings.BASE_NOMODULE_ID: (
-        'Detected api.one and api.multi decorators together.',
-        'api-one-multi-together',
-        settings.DESC_DFLT
-    ),
-    'W%d02' % settings.BASE_NOMODULE_ID: (
-        'Missing api.one or api.multi in copy function.',
-        'copy-wo-api-one',
-        settings.DESC_DFLT
-    ),
     'W%d03' % settings.BASE_NOMODULE_ID: (
         'Translation method _("string") in fields is not necessary.',
         'translation-field',
-        settings.DESC_DFLT
-    ),
-    'W%d04' % settings.BASE_NOMODULE_ID: (
-        'api.one deprecated',
-        'api-one-deprecated',
         settings.DESC_DFLT
     ),
     'W%d05' % settings.BASE_NOMODULE_ID: (
@@ -137,13 +121,6 @@ ODOO_MSGS = {
     'E%d04' % settings.BASE_NOMODULE_ID: (
         'The maintainers key in the manifest file must be a list of strings',
         'manifest-maintainers-list',
-        settings.DESC_DFLT
-    ),
-    'E%d05' % settings.BASE_NOMODULE_ID: (
-        'Use of `str.format` method in a translated string. '
-        'Use `_("%(varname)s") % {"varname": value}` instead. '
-        'Be careful https://lucumr.pocoo.org/2016/12/29/careful-with-str-format',
-        'str-format-used',
         settings.DESC_DFLT
     ),
     'E%d06' % settings.BASE_NOMODULE_ID: (
@@ -209,11 +186,6 @@ ODOO_MSGS = {
         'Manifest key development_status "%s" not allowed. '
         'Use one of: %s.',
         'development-status-allowed',
-        settings.DESC_DFLT
-    ),
-    'R%d10' % settings.BASE_NOMODULE_ID: (
-        'Method defined with old api version 7',
-        'old-api7-method-defined',
         settings.DESC_DFLT
     ),
     'W%d11' % settings.BASE_NOMODULE_ID: (
@@ -484,7 +456,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
 
         :Example:
 
-        >>> self.colon_list_to_dict(['colon:list', 'empty_key:'])
+        self.colon_list_to_dict(['colon:list', 'empty_key:'])
         {'colon': 'list', 'empty_key': ''}
         """
         return dict(item.split(":") for item in colon_list)
@@ -640,7 +612,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                           'translation-required',
                           'translation-contains-variable',
                           'print-used', 'translation-positional-used',
-                          'str-format-used', 'context-overridden',
+                          'context-overridden',
                           'external-request-timeout',
                           )
     def visit_call(self, node):
@@ -673,7 +645,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                     deprecated = self.config.deprecated_field_parameters
                     if argument.arg in ['compute', 'search', 'inverse'] and \
                             isinstance(argument_aux, astroid.Const) and \
-                            isinstance(argument_aux.value, string_types) and \
+                            isinstance(argument_aux.value, str) and \
                             not argument_aux.value.startswith(
                                 '_' + argument.arg + '_'):
                         self.add_message('method-' + argument.arg,
@@ -774,7 +746,6 @@ class NoModuleChecker(misc.PylintOdooChecker):
                     and isinstance(arg.func, astroid.Attribute)
                     and isinstance(arg.func.expr, astroid.Const)
                     and arg.func.attrname == 'format'):
-                self.add_message('str-format-used', node=node)
                 wrong = arg.as_string()
                 params_as_string = ', '.join([
                     x.as_string()
@@ -842,7 +813,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
 
         # Check author is a string
         author = manifest_dict.get('author', '')
-        if not isinstance(author, string_types):
+        if not isinstance(author, str):
             self.add_message('manifest-author-string', node=node)
         else:
             # Check author required
@@ -905,11 +876,8 @@ class NoModuleChecker(misc.PylintOdooChecker):
 
         # Check if the website is valid URI
         website = manifest_dict.get('website', '')
-        uri = rfc3986.uri_reference(website)
-        if ((website and ',' not in website) and
-                (not uri.is_valid(require_scheme=True,
-                                  require_authority=True) or
-                 uri.scheme not in {"http", "https"})):
+        url_is_valid = bool(validators.url(website, public=True))
+        if website and ',' not in website and not url_is_valid:
             self.add_message('website-manifest-key-not-valid-uri',
                              node=node, args=(website))
 
@@ -928,9 +896,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
             self.add_message('manifest-maintainers-list',
                              node=node)
 
-    @utils.check_messages('api-one-multi-together',
-                          'copy-wo-api-one', 'api-one-deprecated',
-                          'method-required-super', 'old-api7-method-defined',
+    @utils.check_messages('method-required-super',
                           'missing-return',
                           )
     def visit_functiondef(self, node):
@@ -945,19 +911,6 @@ class NoModuleChecker(misc.PylintOdooChecker):
         decor_lastnames = [
             decor.split('.')[-1]
             for decor in decor_names]
-        if self.linter.is_message_enabled('api-one-multi-together'):
-            if 'one' in decor_lastnames \
-                    and 'multi' in decor_lastnames:
-                self.add_message('api-one-multi-together', node=node)
-
-        if self.linter.is_message_enabled('copy-wo-api-one'):
-            if 'copy' == node.name and ('one' not in decor_lastnames and
-                                        'multi' not in decor_lastnames):
-                self.add_message('copy-wo-api-one', node=node)
-
-        if self.linter.is_message_enabled('api-one-deprecated'):
-            if 'one' in decor_lastnames:
-                self.add_message('api-one-deprecated', node=node)
 
         if node.name in self.config.method_required_super:
             calls = [
@@ -967,13 +920,6 @@ class NoModuleChecker(misc.PylintOdooChecker):
             if 'super' not in calls:
                 self.add_message('method-required-super', node=node,
                                  args=(node.name))
-
-        if self.linter.is_message_enabled('old-api7-method-defined'):
-            first_args = [arg.name for arg in node.args.args][:3]
-            if len(first_args) == 3 and first_args[0] == 'self' and \
-               first_args[1] in ['cr', 'cursor'] and \
-               first_args[2] in ['uid', 'user', 'user_id']:
-                self.add_message('old-api7-method-defined', node=node)
 
         there_is_super = False
         for stmt in node.nodes_of_class(astroid.Call):

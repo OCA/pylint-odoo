@@ -1,20 +1,27 @@
-# Config file .coveragerc
+[paths]
+source = src
+
+[run]
+source = src
+parallel = true
+dynamic_context = test_function
+context = ${{COVERAGE_CONTEXT}}
 
 [report]
-include =
-    pylint_odoo/*
-
+show_missing = true
+precision = 2
+# fail_under = 98
 omit =
-    */test_repo/*
     *__init__.py
-    *__openerp__.py
+    */tests/*
+    *__main__.py
 
 # Regexes for lines to exclude from consideration
 exclude_lines =
+    # Have to re-enable the standard pragma
     pragma: no cover
-    # Don't complain about self-execute
-    if __name__ == '__main__':
-    # Don't complain about uninstalled packages
-    except OSError as oserr:
-    except NameError:
-    except SyntaxError:
+    # tests import the package instead
+    if __name__ == "__main__":
+
+[html]
+show_contexts=True

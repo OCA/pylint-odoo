@@ -226,9 +226,9 @@ This skip only work with the name of the check, not work with the name of check
 The position of the comment it is not relative to the line that throw the check
 
 
-.. |Build Status| image:: https://app.travis-ci.com/OCA/pylint-odoo.svg?branch=master
+.. |Build Status| image:: https://app.travis-ci.com/OCA/pylint-odoo.svg?branch=main
    :target: https://app.travis-ci.com/OCA/pylint-odoo
-.. |Coverage Status| image:: https://coveralls.io/repos/OCA/pylint-odoo/badge.svg?branch=master&service=github
-   :target: https://coveralls.io/github/OCA/pylint-odoo?branch=master
+.. |Coverage Status| image:: https://coveralls.io/repos/OCA/pylint-odoo/badge.svg?branch=main&service=github
+   :target: https://coveralls.io/github/OCA/pylint-odoo?branch=main
 .. |Pypi Package| image:: https://img.shields.io/pypi/v/pylint-odoo.svg
    :target: https://pypi.python.org/pypi/pylint-odoo
