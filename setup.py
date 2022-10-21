@@ -1,11 +1,13 @@
-from os.path import basename, dirname, join, splitext
 import re
-from setuptools import find_packages, setup
+from os.path import dirname, join
+
+from setuptools import setup
 
 try:
     from pbr import git
 except ImportError:
     git = None
+
 
 def generate_changelog():
     fname = "ChangeLog"
@@ -20,6 +22,7 @@ def generate_changelog():
     git.write_git_changelog(changelog=changelog)
     # git.generate_authors()
     return read(fname)
+
 
 def generate_dependencies():
     return read("requirements.txt").splitlines()

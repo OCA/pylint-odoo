@@ -11,7 +11,7 @@ exclude: |
   # Library files can have extraneous formatting (even minimized)
   /static/(src/)?lib/|
   # test_repo is expected to break lints
-  test_repo/|
+  testing/resources/|
   # Repos using Sphinx to generate docs don't need prettying
   ^docs/_templates/.*\.html$|
   # You don't usually want a bot to modify your legal texts

@@ -1,9 +1,7 @@
-
 import os
 
 from astroid import FunctionDef, Module
 from pylint.checkers.base import BasicChecker, NameChecker
-from pylint.checkers.imports import ImportsChecker
 from pylint.checkers.variables import VariablesChecker
 from pylint_plugin_utils import suppress_message
 
@@ -35,14 +33,18 @@ def is_migration_path(node):
     """
 
     # get 'migrations' from 'module/migrations/x.y.z/pre-migration.py'
-    if os.path.basename(os.path.dirname(os.path.dirname(
-            node.root().file))) != 'migrations':
+    if os.path.basename(os.path.dirname(os.path.dirname(node.root().file))) != "migrations":
         return False
 
     # pre-migration.py
-    if (isinstance(node, Module) and '-' in node.name or
-            # def migrate(cr, version):
-            isinstance(node, FunctionDef) and node.name == 'migrate'):
+    if (
+        isinstance(node, Module)
+        and "-" in node.name
+        or
+        # def migrate(cr, version):
+        isinstance(node, FunctionDef)
+        and node.name == "migrate"
+    ):
         return True
     return False
 
@@ -52,12 +54,10 @@ def apply_augmentations(linter):
 
     # W0104 - pointless-statement
     # manifest file have a valid pointless-statement dict
-    discard = hasattr(BasicChecker, 'visit_discard') and \
-        BasicChecker.visit_discard or BasicChecker.visit_expr
-    suppress_message(linter, discard, 'W0104', is_manifest_file)
+    discard = hasattr(BasicChecker, "visit_discard") and BasicChecker.visit_discard or BasicChecker.visit_expr
+    suppress_message(linter, discard, "W0104", is_manifest_file)
 
     # C0103 - invalid-name and W0613 - unused-argument for migrations/
-    suppress_message(linter, NameChecker.visit_module, 'C0103', is_migration_path)
-    suppress_message(linter, NameChecker.visit_functiondef, 'C0103', is_migration_path)
-    suppress_message(linter, VariablesChecker.leave_functiondef, 'W0613',
-                     is_migration_path)
+    suppress_message(linter, NameChecker.visit_module, "C0103", is_migration_path)
+    suppress_message(linter, NameChecker.visit_functiondef, "C0103", is_migration_path)
+    suppress_message(linter, VariablesChecker.leave_functiondef, "W0613", is_migration_path)
