@@ -305,6 +305,17 @@ def fstring_no_sqli(self):
             expected_errors = {expected_error_name: expected_error_value}
             self.assertDictEqual(real_errors, expected_errors)
 
+    def test_160_check_only_disabled_one_check(self):
+        """Checking -d all -e odoolint -d ONLY-ONE-CHECK"""
+        for expected_error_name, expected_error_value in EXPECTED_ERRORS.items():
+            expected_errors = self.expected_errors.copy()
+            enable = "--enable=%s" % expected_error_name
+            pylint_res = self.run_pylint(self.paths_modules, self.default_extra_params + [enable])
+            real_errors = pylint_res.linter.stats.by_msg
+            expected_errors.pop(expected_error_name)
+            import pdb;pdb.set_trace()
+            self.assertDictEqual(real_errors, expected_errors)
+
 
 if __name__ == "__main__":
     unittest.main()
