@@ -60,7 +60,6 @@ from collections import Counter
 import astroid
 import validators
 from pylint.checkers import utils
-from pylint.interfaces import IAstroidChecker
 
 from .. import misc, settings
 from .modules_odoo import DFTL_MANIFEST_DATA_KEYS
@@ -335,8 +334,6 @@ DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS = [
 
 class NoModuleChecker(misc.PylintOdooChecker):
 
-    __implements__ = IAstroidChecker
-
     _from_imports = None
     name = settings.CFG_SECTION
     msgs = ODOO_MSGS
@@ -508,7 +505,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
 
     def open(self):
         super().open()
-        self.config.deprecated_field_parameters = self.colon_list_to_dict(self.config.deprecated_field_parameters)
+        self.linter.config.deprecated_field_parameters = self.colon_list_to_dict(self.linter.config.deprecated_field_parameters)
 
     def colon_list_to_dict(self, colon_list):
         """Converts a colon list to a dictionary.
@@ -669,11 +666,11 @@ class NoModuleChecker(misc.PylintOdooChecker):
                     if assign_node.targets[0].as_string() == node.as_string():
                         yield assign_node.value
 
-    @utils.check_messages("print-used")
+    @utils.only_required_for_messages("print-used")
     def visit_print(self, node):
         self.add_message("print-used", node=node)
 
-    @utils.check_messages(
+    @utils.only_required_for_messages(
         "translation-field",
         "invalid-commit",
         "method-compute",
@@ -720,7 +717,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
                     self.add_message("attribute-string-redundant", node=node)
                 if isinstance(argument, astroid.Keyword):
                     argument_aux = argument.value
-                    deprecated = self.config.deprecated_field_parameters
+                    deprecated = self.linter.config.deprecated_field_parameters
                     if (
                         argument.arg in ["compute", "search", "inverse"]
                         and isinstance(argument_aux, astroid.Const)
@@ -752,7 +749,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
             isinstance(node, astroid.Call)
             and isinstance(node.func, astroid.Attribute)
             and node.func.attrname == "commit"
-            and self.get_cursor_name(node.func) in self.config.cursor_expr
+            and self.get_cursor_name(node.func) in self.linter.config.cursor_expr
         ):
             self.add_message("invalid-commit", node=node)
 
@@ -861,7 +858,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
             # If it using "from requests import request;request()"
             else self._from_imports.get(func_name)
         )
-        if lib_original_func_name in self.config.external_request_timeout_methods:
+        if lib_original_func_name in self.linter.config.external_request_timeout_methods:
             for argument in misc.join_node_args_kwargs(node):
                 if not isinstance(argument, astroid.Keyword):
                     continue
@@ -870,7 +867,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
             else:
                 self.add_message("external-request-timeout", node=node, args=(lib_original_func_name,))
 
-    @utils.check_messages(
+    @utils.only_required_for_messages(
         "license-allowed",
         "manifest-author-string",
         "manifest-deprecated-key",
@@ -898,11 +895,11 @@ class NoModuleChecker(misc.PylintOdooChecker):
             # Check author required
             authors = {auth.strip() for auth in author.split(",")}
 
-            if self.config.manifest_required_author:
+            if self.linter.config.manifest_required_author:
                 # Support compatibility for deprecated attribute
-                required_authors = {self.config.manifest_required_author}
+                required_authors = {self.linter.config.manifest_required_author}
             else:
-                required_authors = set(self.config.manifest_required_authors)
+                required_authors = set(self.linter.config.manifest_required_authors)
             if not authors & required_authors:
                 # None of the required authors is present in the manifest
                 # Authors will be printed as 'author1', 'author2', ...
@@ -910,20 +907,20 @@ class NoModuleChecker(misc.PylintOdooChecker):
                 self.add_message("manifest-required-author", node=node, args=(authors_str,))
 
         # Check keys required
-        required_keys = self.config.manifest_required_keys
+        required_keys = self.linter.config.manifest_required_keys
         for required_key in required_keys:
             if required_key not in manifest_dict:
                 self.add_message("manifest-required-key", node=node, args=(required_key,))
 
         # Check keys deprecated
-        deprecated_keys = self.config.manifest_deprecated_keys
+        deprecated_keys = self.linter.config.manifest_deprecated_keys
         for deprecated_key in deprecated_keys:
             if deprecated_key in manifest_dict:
                 self.add_message("manifest-deprecated-key", node=node, args=(deprecated_key,))
 
         # Check license allowed
         license_str = manifest_dict.get("license", None)
-        if license_str and license_str not in self.config.license_allowed:
+        if license_str and license_str not in self.linter.config.license_allowed:
             self.add_message("license-allowed", node=node, args=(license_str,))
 
         # Check version format
@@ -931,7 +928,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
         formatrgx = self.formatversion(version_format)
         if version_format and not formatrgx:
             self.add_message(
-                "manifest-version-format", node=node, args=(version_format, self.config.manifest_version_format_parsed)
+                "manifest-version-format", node=node, args=(version_format, self.linter.config.manifest_version_format_parsed)
             )
 
         # Check if resource exist
@@ -953,8 +950,8 @@ class NoModuleChecker(misc.PylintOdooChecker):
 
         # Check valid development_status values
         dev_status = manifest_dict.get("development_status")
-        if dev_status and dev_status not in self.config.development_status_allowed:
-            valid_status = ", ".join(self.config.development_status_allowed)
+        if dev_status and dev_status not in self.linter.config.development_status_allowed:
+            valid_status = ", ".join(self.linter.config.development_status_allowed)
             self.add_message("development-status-allowed", node=node, args=(dev_status, valid_status))
 
         # Check maintainers key is a list of strings
@@ -964,7 +961,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
         ):
             self.add_message("manifest-maintainers-list", node=node)
 
-    @utils.check_messages(
+    @utils.only_required_for_messages(
         "method-required-super",
         "missing-return",
     )
@@ -976,7 +973,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
         if not node.is_method():
             return
 
-        if node.name in self.config.method_required_super:
+        if node.name in self.linter.config.method_required_super:
             calls = [
                 call_func.func.name
                 for call_func in node.nodes_of_class((astroid.Call,))
@@ -997,15 +994,15 @@ class NoModuleChecker(misc.PylintOdooChecker):
             there_is_super
             and not there_is_return
             and not node.is_generator()
-            and node.name not in self.config.no_missing_return
+            and node.name not in self.linter.config.no_missing_return
         ):
             self.add_message("missing-return", node=node, args=(node.name))
 
-    @utils.check_messages("external-request-timeout")
+    @utils.only_required_for_messages("external-request-timeout")
     def visit_import(self, node):
         self._from_imports.update({alias or name: "%s" % name for name, alias in node.names})
 
-    @utils.check_messages("openerp-exception-warning", "external-request-timeout")
+    @utils.only_required_for_messages("openerp-exception-warning", "external-request-timeout")
     def visit_importfrom(self, node):
         if node.modname == "openerp.exceptions":
             for (import_name, import_as_name) in node.names:
@@ -1013,13 +1010,13 @@ class NoModuleChecker(misc.PylintOdooChecker):
                     self.add_message("openerp-exception-warning", node=node)
         self._from_imports.update({alias or name: "%s.%s" % (node.modname, name) for name, alias in node.names})
 
-    @utils.check_messages("class-camelcase")
+    @utils.only_required_for_messages("class-camelcase")
     def visit_classdef(self, node):
         camelized = self.camelize(node.name)
         if camelized != node.name:
             self.add_message("class-camelcase", node=node, args=(camelized, node.name))
 
-    @utils.check_messages("attribute-deprecated")
+    @utils.only_required_for_messages("attribute-deprecated")
     def visit_assign(self, node):
         node_left = node.targets[0]
         if (
@@ -1027,10 +1024,10 @@ class NoModuleChecker(misc.PylintOdooChecker):
             and isinstance(node_left, astroid.AssignName)
             and [1 for m in node.parent.basenames if "Model" in m]
         ):
-            if node_left.name in self.config.attribute_deprecated:
+            if node_left.name in self.linter.config.attribute_deprecated:
                 self.add_message("attribute-deprecated", node=node_left, args=(node_left.name,))
 
-    @utils.check_messages("eval-referenced")
+    @utils.only_required_for_messages("eval-referenced")
     def visit_name(self, node):
         """Detect when a "bad" built-in is referenced."""
         node_infer = utils.safe_infer(node)
@@ -1060,7 +1057,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
             return node.expr.name
         return ""
 
-    @utils.check_messages("translation-required")
+    @utils.only_required_for_messages("translation-required")
     def visit_raise(self, node):
         """Visit raise and search methods with a string parameter
         without a method.
@@ -1087,7 +1084,7 @@ class NoModuleChecker(misc.PylintOdooChecker):
         elif isinstance(argument, astroid.BinOp):
             argument = argument.left
 
-        if isinstance(argument, astroid.Const) and argument.name == "str" and func_name in self.config.odoo_exceptions:
+        if isinstance(argument, astroid.Const) and argument.name == "str" and func_name in self.linter.config.odoo_exceptions:
             self.add_message("translation-required", node=node, args=(func_name, "", argument.as_string()))
 
     def get_cursor_name(self, node):
