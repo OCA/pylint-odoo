@@ -2,16 +2,16 @@
 
 [![Build Status](https://github.com/OCA/pylint-odoo/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/OCA/pylint-odoo/actions/workflows/test.yml?query=branch%3Amain)
 [![codecov](https://codecov.io/gh/OCA/pylint-odoo/branch/main/graph/badge.svg)](https://codecov.io/gh/OCA/pylint-odoo)
-[![version](https://img.shields.io/pypi/v/oca-pylint-odoo.svg)](https://pypi.org/project/oca-pylint-odoo)
-[![wheel](https://img.shields.io/pypi/wheel/oca-pylint-odoo.svg)](https://pypi.org/project/oca-pylint-odoo)
-[![supported-versions](https://img.shields.io/pypi/pyversions/oca-pylint-odoo.svg)](https://pypi.org/project/oca-pylint-odoo)
+[![version](https://img.shields.io/pypi/v/pylint-odoo.svg)](https://pypi.org/project/pylint-odoo)
+[![wheel](https://img.shields.io/pypi/wheel/pylint-odoo.svg)](https://pypi.org/project/pylint-odoo)
+[![supported-versions](https://img.shields.io/pypi/pyversions/pylint-odoo.svg)](https://pypi.org/project/pylint-odoo)
 [![commits-since](https://img.shields.io/github/commits-since/OCA/pylint-odoo/v8.0.1.svg)](https://github.com/OCA/pylint-odoo/compare/v8.0.1...main)
 [![code-style-black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 [//]: # (end-badges)
 
 
-# Pylint Odoo plugin
+# Pylint Odoo plugin
 
 Enable custom checks for Odoo modules.
 
