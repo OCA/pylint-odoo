@@ -1,11 +1,13 @@
-from os.path import basename, dirname, join, splitext
 import re
-from setuptools import find_packages, setup
+from os.path import dirname, join
+
+from setuptools import setup
 
 try:
     from pbr import git
 except ImportError:
     git = None
+
 
 def generate_changelog():
     fname = "ChangeLog"
@@ -14,12 +16,12 @@ def generate_changelog():
         with open(fname, "w", encoding="UTF-8") as fchg:
             fchg.write(changelog_str)
         return changelog_str
-    # pylint: disable=protected-access
     changelog = git._iter_log_oneline()
     changelog = git._iter_changelog(changelog)
     git.write_git_changelog(changelog=changelog)
     # git.generate_authors()
     return read(fname)
+
 
 def generate_dependencies():
     return read("requirements.txt").splitlines()

@@ -1,4 +1,3 @@
-
 # pylint plugin global msg number for odoo modules msgs
 BASE_OMODULE_ID = 79
 
@@ -13,15 +12,17 @@ BASE_FORMAT_ID = 82
 
 # Manifest files of odoo
 MANIFEST_FILES = [
-    '__manifest__.py',
-    '__odoo__.py',
-    '__openerp__.py',
-    '__terp__.py',
+    "__manifest__.py",
+    "__odoo__.py",
+    "__openerp__.py",
+    "__terp__.py",
 ]
 
 # Message description default
-DESC_DFLT = 'You can review guidelines here: ' + \
-    'https://github.com/OCA/odoo-community.org/blob/master/website/' + \
-    'Contribution/CONTRIBUTING.rst'
+DESC_DFLT = (
+    "You can review guidelines here: "
+    + "https://github.com/OCA/odoo-community.org/blob/master/website/"
+    + "Contribution/CONTRIBUTING.rst"
+)
 
-CFG_SECTION = 'odoolint'
+CFG_SECTION = "odoolint"
