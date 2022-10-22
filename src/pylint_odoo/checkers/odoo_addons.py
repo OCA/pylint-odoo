@@ -705,9 +705,10 @@ class OdooAddons(BaseChecker):
         "external-request-timeout",
     )
     def visit_call(self, node):
-        infer_node = utils.safe_infer(node.func)
-        if utils.is_builtin_object(infer_node) and infer_node.name == "print":
-            self.add_message("print-used", node=node)
+        if self.linter.is_message_enabled("print-used", node.lineno):
+            infer_node = utils.safe_infer(node.func)
+            if utils.is_builtin_object(infer_node) and infer_node.name == "print":
+                self.add_message("print-used", node=node)
         if (
             "fields" == self.get_func_lib(node.func)
             and isinstance(node.parent, astroid.Assign)
@@ -1086,12 +1087,6 @@ class OdooAddons(BaseChecker):
 
     def camelize(self, string2camelize):
         return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string2camelize)
-
-    def get_decorators_names(self, decorators):
-        nodes = []
-        if decorators:
-            nodes = decorators.nodes
-        return [getattr(decorator, "attrname", "") for decorator in nodes if decorator is not None]
 
     def get_func_name(self, node):
         func_name = (
