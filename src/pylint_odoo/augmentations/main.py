@@ -5,14 +5,14 @@ from pylint.checkers.base import BasicChecker, NameChecker
 from pylint.checkers.variables import VariablesChecker
 from pylint_plugin_utils import suppress_message
 
-from .. import settings
+from .. import misc
 
 
 def is_manifest_file(node):
     """Verify if the node file is a manifest file
     :return: Boolean `True` if is manifest file else `False`"""
     filename = os.path.basename(node.root().file)
-    is_manifest = filename in settings.MANIFEST_FILES
+    is_manifest = filename in misc.MANIFEST_FILES
     return is_manifest
 
 

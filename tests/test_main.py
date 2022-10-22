@@ -1,6 +1,7 @@
 import os
 import sys
 import unittest
+from glob import glob
 from tempfile import NamedTemporaryFile, gettempdir
 
 from pylint.lint import Run
@@ -8,42 +9,42 @@ from pylint.lint import Run
 from pylint_odoo import misc
 
 EXPECTED_ERRORS = {
-    "website-manifest-key-not-valid-uri": 1,
-    "except-pass": 3,
-    "print-used": 1,
-    "test-folder-imported": 3,
-    "use-vim-comment": 1,
-    "openerp-exception-warning": 3,
+    "attribute-deprecated": 3,
+    "attribute-string-redundant": 31,
     "class-camelcase": 1,
-    "missing-return": 1,
-    "method-required-super": 8,
+    "consider-merging-classes-inherited": 2,
+    "context-overridden": 3,
+    "development-status-allowed": 1,
+    "eval-referenced": 5,
+    "except-pass": 3,
+    "external-request-timeout": 51,
+    "invalid-commit": 4,
+    "license-allowed": 1,
+    "manifest-author-string": 1,
+    "manifest-data-duplicated": 1,
+    "manifest-deprecated-key": 1,
+    "manifest-maintainers-list": 1,
     "manifest-required-author": 1,
     "manifest-required-key": 1,
-    "manifest-deprecated-key": 1,
     "manifest-version-format": 3,
+    "method-compute": 1,
+    "method-inverse": 1,
+    "method-required-super": 8,
+    "method-search": 1,
+    "missing-return": 1,
+    "odoo-addons-relative-import": 4,
+    "openerp-exception-warning": 3,
+    "print-used": 1,
+    "renamed-field-parameter": 2,
     "resource-not-exist": 4,
-    "manifest-data-duplicated": 1,
-    "odoo-addons-relative-import": 8,
-    "attribute-deprecated": 6,
-    "translation-field": 4,
-    "method-compute": 2,
-    "method-search": 2,
-    "method-inverse": 2,
-    "attribute-string-redundant": 62,
-    "context-overridden": 6,
-    "renamed-field-parameter": 4,
-    "translation-required": 30,
-    "translation-contains-variable": 20,
-    "translation-positional-used": 14,
-    "invalid-commit": 8,
-    "sql-injection": 42,
-    "external-request-timeout": 102,
-    "eval-referenced": 5,
-    "manifest-author-string": 1,
-    "manifest-maintainers-list": 1,
-    "license-allowed": 1,
-    "development-status-allowed": 1,
-    "consider-merging-classes-inherited": 5,
+    "sql-injection": 21,
+    "test-folder-imported": 3,
+    "translation-contains-variable": 10,
+    "translation-field": 2,
+    "translation-positional-used": 7,
+    "translation-required": 15,
+    "use-vim-comment": 1,
+    "website-manifest-key-not-valid-uri": 1,
 }
 
 
@@ -62,10 +63,8 @@ class MainTest(unittest.TestCase):
         path_modules = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "testing", "resources", "test_repo"
         )
-        self.paths_modules = []
-        for root, dirs, _ in os.walk(path_modules):
-            for path in dirs:
-                self.paths_modules.append(os.path.join(root, path))
+        # Similar to pre-commit way
+        self.paths_modules = glob(os.path.join(path_modules, "**", "*.py"), recursive=True)
         self.odoo_namespace_addons_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
             "testing",

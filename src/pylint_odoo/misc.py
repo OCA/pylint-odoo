@@ -1,11 +1,18 @@
-import ast
 import os
-import re
-import string
+import subprocess
+import sys
+from contextlib import contextmanager
+from functools import lru_cache
+from pathlib import Path
 
-from pylint.checkers import BaseChecker
+MANIFEST_DATA_KEYS = ["data", "demo", "demo_xml", "init_xml", "test", "update_xml"]
 
-from . import settings
+MANIFEST_FILES = [
+    "__manifest__.py",
+    "__odoo__.py",
+    "__openerp__.py",
+    "__terp__.py",
+]
 
 DFTL_VALID_ODOO_VERSIONS = [
     "4.2",
@@ -25,24 +32,6 @@ DFTL_VALID_ODOO_VERSIONS = [
 ]
 DFTL_MANIFEST_VERSION_FORMAT = r"({valid_odoo_versions})\.\d+\.\d+\.\d+$"
 
-# Regex used from https://github.com/translate/translate/blob/9de0d72437/translate/filters/checks.py#L50-L62  # noqa
-PRINTF_PATTERN = re.compile(
-    r"""
-        %(                          # initial %
-        (?P<boost_ord>\d+)%         # boost::format style variable order, like %1%
-        |
-              (?:(?P<ord>\d+)\$|    # variable order, like %1$s
-              \((?P<key>\w+)\))?    # Python style variables, like %(var)s
-        (?P<fullvar>
-            [+#-]*                  # flags
-            (?:\d+)?                # width
-            (?:\.\d+)?              # precision
-            (hh\|h\|l\|ll)?         # length formatting
-            (?P<type>[\w@]))        # type (%s, %d, etc.)
-        )""",
-    re.VERBOSE,
-)
-
 
 class StringParseError(TypeError):
     pass
@@ -54,191 +43,53 @@ def get_plugin_msgs(pylint_run_res):
     :return: List of strings with message name.
     """
 
-    def get_messages():
-        return pylint_run_res.linter.msgs_store._messages_definitions
-
-    messages = get_messages()
-
     all_plugin_msgs = []
-    for key in messages:
-        message = messages[key]
+    for key, message in pylint_run_res.linter.msgs_store._messages_definitions.items():
         checker_name = message.msgid
-        if checker_name == settings.CFG_SECTION:
+        if checker_name == "odoolint":
             all_plugin_msgs.append(key)
     return all_plugin_msgs
 
 
-def join_node_args_kwargs(node):
-    """Method to join args and keywords
-    :param node: node to get args and keywords
-    :return: List of args
+@contextmanager
+def chdir(directory):
+    """Change the current directory similar to command 'cd directory'
+    but remembering the previous value to be revert at final
+    Similar to run 'original_dir=$(pwd) && cd odoo && cd ${original_dir}'
     """
-    args = (getattr(node, "args", None) or []) + (getattr(node, "keywords", None) or [])
-    return args
+    original_dir = os.getcwd()
+    os.chdir(directory)
+    try:
+        yield
+    finally:
+        os.chdir(original_dir)
 
 
-class PylintOdooChecker(BaseChecker):
-
-    odoo_node = None
-    odoo_module_name = None
-    manifest_file = None
-    manifest_dict = {}
-
-    def formatversion(self, version_string):
-        valid_odoo_versions = self.linter.config.valid_odoo_versions
-        valid_odoo_versions = "|".join(map(re.escape, valid_odoo_versions))
-        manifest_version_format = self.linter.config.manifest_version_format
-        self.linter.config.manifest_version_format_parsed = manifest_version_format.format(
-            valid_odoo_versions=valid_odoo_versions
-        )
-        return re.match(self.linter.config.manifest_version_format_parsed, version_string)
-
-    def get_manifest_file(self, node):
-        """Get manifest file path
-        :param node_file: String with full path of a python module file.
-        :return: Full path of manifest file if exists else return None"""
-        if not node.file or not os.path.isfile(node.file):
-            return
-
-        # Get 'module' part from node.name 'module.models.file'
-        module_path = node.file
-        node_name = node.name
-        if "odoo.addons." in node_name:
-            # we are into a namespace package...
-            node_name = node_name.split("odoo.addons.")[1]
-        if os.path.basename(node.file) == "__init__.py":
-            node_name += ".__init__"
-        for _ in range(node_name.count(".")):
-            module_path = os.path.dirname(module_path)
-
-        for manifest_basename in settings.MANIFEST_FILES:
-            manifest_file = os.path.join(module_path, manifest_basename)
-            if os.path.isfile(manifest_file):
-                return manifest_file
-
-    def wrapper_visit_module(self, node):
-        """Call methods named with name-key from self.msgs
-        Method should be named with next standard:
-            def _check_{NAME_KEY}(self, module_path)
-        by example: def _check_missing_icon(self, module_path)
-                    to check missing-icon message name key
-            And should return True if all fine else False.
-        if a False is returned then add message of name-key.
-        Assign object variables to use in methods.
-        :param node: A astroid.scoped_nodes.Module
-        :return: None
-        """
-        manifest_file = self.get_manifest_file(node)
-        if manifest_file:
-            self.manifest_file = manifest_file
-            self.odoo_node = node
-            self.odoo_module_name = os.path.basename(os.path.dirname(manifest_file))
-            self.odoo_module_name_with_ns = "odoo.addons.{}".format(self.odoo_module_name)
-            with open(self.manifest_file, encoding="UTF-8") as f_manifest:
-                self.manifest_dict = ast.literal_eval(f_manifest.read())
-        elif self.odoo_node and os.path.commonprefix(
-            [os.path.dirname(self.odoo_node.file), os.path.dirname(node.file)]
-        ) != os.path.dirname(self.odoo_node.file):
-            # It's not a sub-module python of a odoo module and
-            #  it's not a odoo module
-            self.odoo_node = None
-            self.odoo_module_name = None
-            self.manifest_dict = {}
-            self.manifest_file = None
-        self.is_main_odoo_module = False
-        if (
-            self.manifest_file
-            and os.path.basename(node.file) == "__init__.py"
-            and (node.name.count(".") == 0 or node.name.endswith(self.odoo_module_name_with_ns))
-        ):
-            self.is_main_odoo_module = True
-        self.node = node
-        self.module_path = os.path.dirname(node.file)
-        self.module = os.path.basename(self.module_path)
-        for msg_code, msg_params in sorted(self.msgs.items()):
-            name_key = msg_params[1]
-            self.msg_code = msg_code
-            self.msg_name_key = name_key
-            self.msg_args = None
-            if not self.linter.is_message_enabled(msg_code):
-                continue
-            getattr(self, "_check_" + name_key.replace("-", "_"), None)
-
-    def visit_module(self, node):
-        self.wrapper_visit_module(node)
+@lru_cache(maxsize=256)
+def top_path(path):
+    """Get the top level path based on git
+    But if it is not a git repository so the top is the drive name
+    e.g. / or C:\\
+    It is using lru_cache in order to re-use top level path values
+    if multiple files are sharing the same path
+    """
+    try:
+        with chdir(path):
+            return subprocess.check_output(["git", "rev-parse", "--show-toplevel"]).decode(sys.stdout.encoding).strip()
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        path = Path(path)
+        return path.root or path.drive
 
 
-class WrapperModuleChecker(PylintOdooChecker):
-
-    node = None
-    module_path = None
-    msg_args = None
-    msg_code = None
-    msg_name_key = None
-    module = None
-    is_main_odoo_module = None
-
-    def open(self):
-        self.odoo_node = None
-
-    @staticmethod
-    def _get_format_str_args_kwargs(format_str):
-        """Get dummy args and kwargs of a format string
-        e.g. format_str = '{} {} {variable}'
-            dummy args = (0, 0)
-            kwargs = {'variable': 0}
-        return args, kwargs
-        Motivation to use format_str.format(*args, **kwargs)
-        and validate if it was parsed correctly
-        """
-        format_str_args = []
-        format_str_kwargs = {}
-        placeholders = []
-        for line in format_str.splitlines():
-            try:
-                placeholders.extend(name for _, name, _, _ in string.Formatter().parse(line) if name is not None)
-            except ValueError:
-                continue
-            for placeholder in placeholders:
-                if placeholder == "":
-                    # unnumbered "{} {}"
-                    # append 0 to use max(0, 0, ...) == 0
-                    # and identify that all args are unnumbered vs numbered
-                    format_str_args.append(0)
-                elif placeholder.isdigit():
-                    # numbered "{0} {1} {2} {0}"
-                    # append +1 to use max(1, 2) and know the quantity of args
-                    # and identify that the args are numbered
-                    format_str_args.append(int(placeholder) + 1)
-                else:
-                    # named "{var0} {var1} {var2} {var0}"
-                    format_str_kwargs[placeholder] = 0
-        if format_str_args:
-            format_str_args = range(len(format_str_args)) if max(format_str_args) == 0 else range(max(format_str_args))
-        return format_str_args, format_str_kwargs
-
-    @staticmethod
-    def _get_printf_str_args_kwargs(printf_str):
-        """Get dummy args and kwargs of a printf string
-        e.g. printf_str = '%s %d'
-            dummy args = ('', 0)
-        e.g. printf_str = '%(var1)s %(var2)d'
-            dummy kwargs = {'var1': '', 'var2': 0}
-        return args or kwargs
-        Motivation to use printf_str % (args or kwargs)
-        and validate if it was parsed correctly
-        """
-        args = []
-        kwargs = {}
-
-        # Remove all escaped %%
-        printf_str = re.sub("%%", "", printf_str)
-        for line in printf_str.splitlines():
-            for match in PRINTF_PATTERN.finditer(line):
-                match_items = match.groupdict()
-                var = "" if match_items["type"] == "s" else 0
-                if match_items["key"] is None:
-                    args.append(var)
-                else:
-                    kwargs[match_items["key"]] = var
-        return tuple(args) or kwargs
+@lru_cache(maxsize=256)
+def walk_up(path, filenames, top):
+    """Look for "filenames" walking up in parent paths of "path"
+    but limited only to "top" path
+    """
+    if path == top:
+        return None
+    for filename in filenames:
+        path_filename = os.path.join(path, filename)
+        if os.path.isfile(path_filename):
+            return path_filename
+    return walk_up(os.path.dirname(path), filenames, top)
