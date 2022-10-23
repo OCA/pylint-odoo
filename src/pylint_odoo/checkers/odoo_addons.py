@@ -174,6 +174,11 @@ ODOO_MSGS = {
         "development-status-allowed",
         CHECK_DESCRIPTION,
     ),
+    "C8112": (
+        "Missing ./README.rst file. Template here: %s",
+        "missing-readme",
+        CHECK_DESCRIPTION,
+    ),
     "W8111": (
         'Field parameter "%s" is no longer supported. Use "%s" instead.',
         "renamed-field-parameter",
@@ -420,6 +425,15 @@ class OdooAddons(BaseChecker):
                 "deprecated and it doesn't have a new alternative. "
                 '"deprecated_param:new_param" means that it was '
                 'deprecated and renamed as "new_param". ',
+            },
+        ),
+        (
+            "readme_template_url",
+            {
+                "type": "string",
+                "metavar": "<string>",
+                "default": misc.DFTL_README_TMPL_URL,
+                "help": "URL of README.rst template file",
             },
         ),
         (
@@ -898,6 +912,7 @@ class OdooAddons(BaseChecker):
         "development-status-allowed",
         "manifest-maintainers-list",
         "manifest-data-duplicated",
+        "missing-readme",
     )
     def visit_dict(self, node):
         if not os.path.basename(self.linter.current_file) in misc.MANIFEST_FILES or not isinstance(
@@ -958,6 +973,10 @@ class OdooAddons(BaseChecker):
                 if os.path.isfile(os.path.join(dirname, resource)):
                     continue
                 self.add_message("resource-not-exist", node=node, args=(key, resource))
+                # Check missing readme
+
+        if not any(os.path.isfile(os.path.join(dirname, readme)) for readme in misc.README_FILES):
+            self.add_message("missing-readme", args=(self.linter.config.readme_template_url,), node=node)
 
         # Check if the website is valid URI
         website = manifest_dict.get("website", "")

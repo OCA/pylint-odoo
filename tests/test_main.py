@@ -31,6 +31,7 @@ EXPECTED_ERRORS = {
     "method-inverse": 1,
     "method-required-super": 8,
     "method-search": 1,
+    "missing-readme": 1,
     "missing-return": 1,
     "odoo-addons-relative-import": 4,
     "openerp-exception-warning": 3,
