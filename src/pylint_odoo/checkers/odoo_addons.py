@@ -715,7 +715,11 @@ class OdooAddons(BaseChecker):
         "external-request-timeout",
     )
     def visit_call(self, node):
-        if self.linter.is_message_enabled("print-used", node.lineno):
+        if (
+            self.linter.is_message_enabled("print-used", node.lineno)
+            and isinstance(node.func, astroid.Name)
+            and node.func.name == "print"
+        ):
             infer_node = utils.safe_infer(node.func)
             if utils.is_builtin_object(infer_node) and infer_node.name == "print":
                 self.add_message("print-used", node=node)
