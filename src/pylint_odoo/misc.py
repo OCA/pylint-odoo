@@ -7,13 +7,15 @@ from pathlib import Path
 
 MANIFEST_DATA_KEYS = ["data", "demo", "demo_xml", "init_xml", "test", "update_xml"]
 
+README_FILES = ["README.rst", "README.md", "README.txt"]
+
 MANIFEST_FILES = [
     "__manifest__.py",
     "__odoo__.py",
     "__openerp__.py",
     "__terp__.py",
 ]
-
+DFTL_README_TMPL_URL = "https://github.com/OCA/maintainer-tools/blob/master/template/module/README.rst"
 DFTL_VALID_ODOO_VERSIONS = [
     "4.2",
     "5.0",
