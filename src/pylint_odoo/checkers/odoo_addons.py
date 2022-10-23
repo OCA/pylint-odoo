@@ -195,7 +195,6 @@ ODOO_MSGS = {
         "renamed-field-parameter",
         CHECK_DESCRIPTION,
     ),
-    "W8112": ('"eval" referenced detected.', "eval-referenced", CHECK_DESCRIPTION),
     "W8113": (
         "The attribute string is redundant. String parameter equal to name of variable",
         "attribute-string-redundant",
@@ -699,10 +698,6 @@ class OdooAddons(BaseChecker):
                     if assign_node.targets[0].as_string() == node.as_string():
                         yield assign_node.value
 
-    @utils.only_required_for_messages("print-used")
-    def visit_print(self, node):
-        self.add_message("print-used", node=node)
-
     @utils.only_required_for_messages(
         "translation-field",
         "invalid-commit",
@@ -1113,16 +1108,6 @@ class OdooAddons(BaseChecker):
             manifest_path = misc.walk_up(node_dirpath, tuple(misc.MANIFEST_FILES), misc.top_path(node_dirpath))
             if manifest_path:
                 self._odoo_inherit_items[(manifest_path, odoo_class_inherit)].add(node)
-
-    @utils.only_required_for_messages("eval-referenced")
-    def visit_name(self, node):
-        """Detect when a "bad" built-in is referenced."""
-        node_infer = utils.safe_infer(node)
-        if not utils.is_builtin_object(node_infer):
-            # Skip not builtin objects
-            return
-        if node_infer.name == "eval":
-            self.add_message("eval-referenced", node=node)
 
     def camelize(self, string2camelize):
         return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string2camelize)
