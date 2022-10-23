@@ -177,8 +177,9 @@ ODOO_MSGS = {
     "E8130": ("Test folder imported in module %s", "test-folder-imported", CHECK_DESCRIPTION),
     "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "R8101": (
-        "Import `Warning` should be renamed as UserError `from " "openerp.exceptions import Warning as UserError`",
-        "openerp-exception-warning",
+        "`odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` "
+        "use `from odoo.exceptions import UserError`",
+        "odoo-exception-warning",
         CHECK_DESCRIPTION,
     ),
     "R8180": (
@@ -233,7 +234,7 @@ ODOO_MSGS = {
         CHECK_DESCRIPTION,
     ),
     "W8150": (
-        'Same Odoo module absolute import. You should use relative import with "." instead of "openerp.addons.%s"',
+        'Same Odoo module absolute import. You should use relative import with "." instead of "odoo.addons.%s"',
         "odoo-addons-relative-import",
         CHECK_DESCRIPTION,
     ),
@@ -1062,13 +1063,13 @@ class OdooAddons(BaseChecker):
         self.check_folder_test_imported(node)
 
     @utils.only_required_for_messages(
-        "external-request-timeout", "odoo-addons-relative-import", "openerp-exception-warning", "test-folder-imported"
+        "external-request-timeout", "odoo-addons-relative-import", "odoo-exception-warning", "test-folder-imported"
     )
     def visit_importfrom(self, node):
-        if node.modname == "openerp.exceptions":
-            for (import_name, import_as_name) in node.names:
-                if import_name == "Warning" and import_as_name != "UserError":
-                    self.add_message("openerp-exception-warning", node=node)
+        if node.modname == "odoo.exceptions":
+            for import_name, _import_as_name in node.names:
+                if import_name == "Warning":
+                    self.add_message("odoo-exception-warning", node=node)
         self._from_imports.update({alias or name: "%s.%s" % (node.modname, name) for name, alias in node.names})
         self.check_odoo_relative_import(node)
         self.check_folder_test_imported(node)
@@ -1268,23 +1269,21 @@ class OdooAddons(BaseChecker):
                 # module and their external dependencies are installed.
                 return []
         odoo_module = []
-        if isinstance(node, astroid.ImportFrom) and (
-            "openerp.addons" in node.modname or "odoo.addons" in node.modname
-        ):
+        if isinstance(node, astroid.ImportFrom) and "odoo.addons" in node.modname:
             packages = node.modname.split(".")
             if len(packages) >= 3:
-                # from openerp.addons.odoo_module import models
+                # from odoo.addons.odoo_module import models
                 odoo_module.append(packages[2])
             else:
-                # from openerp.addons import odoo_module
+                # from odoo.addons import odoo_module
                 odoo_module.append(node.names[0][0])
         elif isinstance(node, astroid.Import):
             for name, _ in node.names:
-                if "openerp.addons" not in name and "odoo.addons" not in name:
+                if "odoo.addons" not in name and "odoo.addons" not in name:
                     continue
                 packages = name.split(".")
                 if len(packages) >= 3:
-                    # import openerp.addons.odoo_module
+                    # import odoo.addons.odoo_module
                     odoo_module.append(packages[2])
         return odoo_module
 

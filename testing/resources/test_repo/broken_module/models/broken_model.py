@@ -42,14 +42,14 @@ from ftplib import FTP
 from ftplib import FTP as ftp_r
 
 from openerp import fields, models, _
-from openerp.exceptions import Warning as UserError
+from odoo.exceptions import UserError
 from openerp import exceptions
 
 # Relatives import for odoo addons
-from openerp.addons.broken_module import broken_model as broken_model1
-from openerp.addons import broken_module as broken_module1
-import openerp.addons.broken_module as broken_module2
-import openerp.addons.broken_module.broken_model as broken_model2
+from odoo.addons.broken_module import broken_model as broken_model1
+from odoo.addons import broken_module as broken_module1
+import odoo.addons.broken_module as broken_module2
+import odoo.addons.broken_module.broken_model as broken_model2
 
 import odoo.addons.iap.models.iap.jsonrpc
 from odoo.addons.iap.models.iap import jsonrpc

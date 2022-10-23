@@ -33,7 +33,7 @@ EXPECTED_ERRORS = {
     "missing-readme": 1,
     "missing-return": 1,
     "odoo-addons-relative-import": 4,
-    "openerp-exception-warning": 3,
+    "odoo-exception-warning": 4,
     "print-used": 1,
     "renamed-field-parameter": 2,
     "resource-not-exist": 4,

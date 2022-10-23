@@ -5,12 +5,12 @@ import openerp
 from openerp import api
 from openerp.api import one, multi
 
-from openerp.exceptions import Warning as UserError  # pylint: disable=W0622
-from openerp.exceptions import Warning as OtherName  # pylint: disable=W0404
-from openerp.exceptions import Warning  # pylint: disable=W0404,W0622
-from openerp.exceptions import (AccessError as AE,  # pylint: disable=W0404
-                                ValidationError,
-                                Warning as UserError2)
+from odoo.exceptions import Warning as UserError  # pylint: disable=W0622
+from odoo.exceptions import Warning as OtherName  # pylint: disable=W0404
+from odoo.exceptions import Warning  # pylint: disable=W0404,W0622
+from odoo.exceptions import (AccessError as AE,  # pylint: disable=W0404
+                             ValidationError,
+                             Warning as UserError2)
 
 
 class snake_case(object):
