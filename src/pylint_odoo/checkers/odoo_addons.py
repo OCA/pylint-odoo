@@ -921,11 +921,14 @@ class OdooAddons(BaseChecker):
         ):
             return
         manifest_dict = ast.literal_eval(node.as_string())
+        manifest_keys_nodes = {
+            key_node.value: key_node for key_node, _value in node.items if isinstance(key_node, astroid.Const)
+        }
 
         # Check author is a string
         author = manifest_dict.get("author", "")
         if not isinstance(author, str):
-            self.add_message("manifest-author-string", node=node)
+            self.add_message("manifest-author-string", node=manifest_keys_nodes.get("author") or node)
         else:
             # Check author required
             authors = {auth.strip() for auth in author.split(",")}
@@ -935,7 +938,9 @@ class OdooAddons(BaseChecker):
                 # None of the required authors is present in the manifest
                 # Authors will be printed as 'author1', 'author2', ...
                 authors_str = ", ".join(["'%s'" % auth for auth in required_authors])
-                self.add_message("manifest-required-author", node=node, args=(authors_str,))
+                self.add_message(
+                    "manifest-required-author", node=manifest_keys_nodes.get("author") or node, args=(authors_str,)
+                )
 
         # Check keys required
         required_keys = self.linter.config.manifest_required_keys
@@ -947,12 +952,16 @@ class OdooAddons(BaseChecker):
         deprecated_keys = self.linter.config.manifest_deprecated_keys
         for deprecated_key in deprecated_keys:
             if deprecated_key in manifest_dict:
-                self.add_message("manifest-deprecated-key", node=node, args=(deprecated_key,))
+                self.add_message(
+                    "manifest-deprecated-key",
+                    node=manifest_keys_nodes.get(deprecated_key) or node,
+                    args=(deprecated_key,),
+                )
 
         # Check license allowed
         license_str = manifest_dict.get("license", None)
         if license_str and license_str not in self.linter.config.license_allowed:
-            self.add_message("license-allowed", node=node, args=(license_str,))
+            self.add_message("license-allowed", node=manifest_keys_nodes.get("license") or node, args=(license_str,))
 
         # Check version format
         version_format = manifest_dict.get("version", "")
@@ -960,7 +969,7 @@ class OdooAddons(BaseChecker):
         if version_format and not formatrgx:
             self.add_message(
                 "manifest-version-format",
-                node=node,
+                node=manifest_keys_nodes.get("version") or node,
                 args=(version_format, self.linter.config.manifest_version_format_parsed),
             )
 
@@ -970,10 +979,14 @@ class OdooAddons(BaseChecker):
         for key in misc.MANIFEST_DATA_KEYS:
             for resource, coincidences in Counter(manifest_dict.get(key) or []).items():
                 if coincidences >= 2:
-                    self.add_message("manifest-data-duplicated", node=node, args=(resource, coincidences, key))
+                    self.add_message(
+                        "manifest-data-duplicated",
+                        node=manifest_keys_nodes.get(key) or node,
+                        args=(resource, coincidences, key),
+                    )
                 if os.path.isfile(os.path.join(dirname, resource)):
                     continue
-                self.add_message("resource-not-exist", node=node, args=(key, resource))
+                self.add_message("resource-not-exist", node=manifest_keys_nodes.get(key) or node, args=(key, resource))
                 # Check missing readme
 
         if not any(os.path.isfile(os.path.join(dirname, readme)) for readme in misc.README_FILES):
@@ -983,20 +996,26 @@ class OdooAddons(BaseChecker):
         website = manifest_dict.get("website", "")
         url_is_valid = bool(validators.url(website, public=True))
         if website and "," not in website and not url_is_valid:
-            self.add_message("website-manifest-key-not-valid-uri", node=node, args=(website))
+            self.add_message(
+                "website-manifest-key-not-valid-uri", node=manifest_keys_nodes.get("website") or node, args=(website)
+            )
 
         # Check valid development_status values
         dev_status = manifest_dict.get("development_status")
         if dev_status and dev_status not in self.linter.config.development_status_allowed:
             valid_status = ", ".join(self.linter.config.development_status_allowed)
-            self.add_message("development-status-allowed", node=node, args=(dev_status, valid_status))
+            self.add_message(
+                "development-status-allowed",
+                node=manifest_keys_nodes.get("development_status") or node,
+                args=(dev_status, valid_status),
+            )
 
         # Check maintainers key is a list of strings
         maintainers = manifest_dict.get("maintainers")
         if maintainers and (
             not isinstance(maintainers, list) or any(not isinstance(item, str) for item in maintainers)
         ):
-            self.add_message("manifest-maintainers-list", node=node)
+            self.add_message("manifest-maintainers-list", node=manifest_keys_nodes.get("maintainers") or node)
 
     @utils.only_required_for_messages(
         "method-required-super",
