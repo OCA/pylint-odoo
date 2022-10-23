@@ -699,20 +699,20 @@ class OdooAddons(BaseChecker):
                         yield assign_node.value
 
     @utils.only_required_for_messages(
-        "translation-field",
-        "invalid-commit",
-        "method-compute",
-        "method-search",
-        "method-inverse",
-        "sql-injection",
         "attribute-string-redundant",
-        "renamed-field-parameter",
-        "translation-required",
-        "translation-contains-variable",
-        "print-used",
-        "translation-positional-used",
         "context-overridden",
         "external-request-timeout",
+        "invalid-commit",
+        "method-compute",
+        "method-inverse",
+        "method-search",
+        "print-used",
+        "renamed-field-parameter",
+        "sql-injection",
+        "translation-contains-variable",
+        "translation-field",
+        "translation-positional-used",
+        "translation-required",
     )
     def visit_call(self, node):
         if (
@@ -901,18 +901,18 @@ class OdooAddons(BaseChecker):
                 self.add_message("external-request-timeout", node=node, args=(lib_original_func_name,))
 
     @utils.only_required_for_messages(
+        "development-status-allowed",
         "license-allowed",
         "manifest-author-string",
+        "manifest-data-duplicated",
         "manifest-deprecated-key",
+        "manifest-maintainers-list",
         "manifest-required-author",
         "manifest-required-key",
         "manifest-version-format",
+        "missing-readme",
         "resource-not-exist",
         "website-manifest-key-not-valid-uri",
-        "development-status-allowed",
-        "manifest-maintainers-list",
-        "manifest-data-duplicated",
-        "missing-readme",
     )
     def visit_dict(self, node):
         if not os.path.basename(self.linter.current_file) in misc.MANIFEST_FILES or not isinstance(
@@ -1062,7 +1062,7 @@ class OdooAddons(BaseChecker):
         self.check_folder_test_imported(node)
 
     @utils.only_required_for_messages(
-        "openerp-exception-warning", "external-request-timeout", "odoo-addons-relative-import", "test-folder-imported"
+        "external-request-timeout", "odoo-addons-relative-import", "openerp-exception-warning", "test-folder-imported"
     )
     def visit_importfrom(self, node):
         if node.modname == "openerp.exceptions":
