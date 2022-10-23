@@ -125,12 +125,6 @@ ODOO_MSGS = {
     ),
     "C8102": ('Missing required key "%s" in manifest file', "manifest-required-key", CHECK_DESCRIPTION),
     "C8103": ('Deprecated key "%s" in manifest file', "manifest-deprecated-key", CHECK_DESCRIPTION),
-    "C8104": (
-        'Use `CamelCase` "%s" in class name "%s". You can use oca-autopep8 '
-        "of https://github.com/OCA/maintainer-tools to auto fix it.",
-        "class-camelcase",
-        CHECK_DESCRIPTION,
-    ),
     "C8105": ('License "%s" not allowed in manifest file.', "license-allowed", CHECK_DESCRIPTION),
     "C8106": (
         'Wrong Version Format "%s" in manifest file. Regex to match: "%s"',
@@ -1074,12 +1068,6 @@ class OdooAddons(BaseChecker):
         self.check_odoo_relative_import(node)
         self.check_folder_test_imported(node)
 
-    @utils.only_required_for_messages("class-camelcase")
-    def visit_classdef(self, node):
-        camelized = self.camelize(node.name)
-        if camelized != node.name:
-            self.add_message("class-camelcase", node=node, args=(camelized, node.name))
-
     @utils.only_required_for_messages("attribute-deprecated", "consider-merging-classes-inherited")
     def visit_assign(self, node):
         node_left = node.targets[0]
@@ -1113,9 +1101,6 @@ class OdooAddons(BaseChecker):
             manifest_path = misc.walk_up(node_dirpath, tuple(misc.MANIFEST_FILES), misc.top_path(node_dirpath))
             if manifest_path:
                 self._odoo_inherit_items[(manifest_path, odoo_class_inherit)].add(node)
-
-    def camelize(self, string2camelize):
-        return re.sub(r"(?:^|_)(.)", lambda m: m.group(1).upper(), string2camelize)
 
     def get_func_name(self, node):
         func_name = (

@@ -11,7 +11,6 @@ from pylint_odoo import misc
 EXPECTED_ERRORS = {
     "attribute-deprecated": 3,
     "attribute-string-redundant": 31,
-    "class-camelcase": 1,
     "consider-merging-classes-inherited": 2,
     "context-overridden": 3,
     "development-status-allowed": 1,
