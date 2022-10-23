@@ -1,53 +1,99 @@
 """Enable checkers to visit all nodes different to modules.
 You can use:
+    visit_annassign
+    visit_arg
     visit_arguments
-    visit_assattr
     visit_assert
     visit_assign
-    visit_assname
-    visit_backquote
+    visit_assignattr
+    visit_assignname
+    visit_asyncfor
+    visit_asyncfunctiondef
+    visit_asyncwith
+    visit_attribute
+    visit_augassign
+    visit_await
     visit_binop
     visit_boolop
     visit_break
     visit_call
+    visit_child
     visit_classdef
     visit_compare
+    visit_comprehension
+    visit_const
+    visit_constant
     visit_continue
-    visit_default
+    visit_decorators
     visit_delattr
+    visit_delete
     visit_delname
     visit_dict
     visit_dictcomp
+    visit_dictunpack
+    visit_ellipsis
+    visit_empty
+    visit_emptynode
+    visit_evaluatedobject
     visit_excepthandler
-    visit_exec
     visit_expr
     visit_extslice
     visit_for
-    visit_import
-    visit_importfrom
+    visit_formattedvalue
+    visit_frozenset
     visit_functiondef
-    visit_genexpr
-    visit_getattr
+    visit_generatorexp
     visit_global
     visit_if
     visit_ifexp
+    visit_import
+    visit_importfrom
     visit_index
+    visit_joinedstr
+    visit_keyword
     visit_lambda
+    visit_list
     visit_listcomp
+    visit_match
+    visit_matchas
+    visit_matchcase
+    visit_matchclass
+    visit_matchmapping
+    visit_matchor
+    visit_matchsequence
+    visit_matchsingleton
+    visit_matchstar
+    visit_matchvalue
+    visit_module
     visit_name
+    visit_nameconstant
+    visit_namedexpr
+    visit_nonlocal
+    visit_num
     visit_pass
-    visit_print
-    visit_project
+    visit_property
     visit_raise
+    visit_response
     visit_return
+    visit_set
     visit_setcomp
     visit_slice
+    visit_starred
+    visit_str
     visit_subscript
+    visit_super
+    visit_transforms
+    visit_try
     visit_tryexcept
     visit_tryfinally
+    visit_tuple
     visit_unaryop
+    visit_uninferable
+    visit_unknown
     visit_while
+    visit_with
     visit_yield
+    visit_yieldfrom
 for more info visit pylint doc
 """
 
@@ -72,42 +118,49 @@ CHECK_DESCRIPTION = (
 
 ODOO_MSGS = {
     # C->convention R->refactor W->warning E->error F->fatal
-    "R8101": (
-        "Import `Warning` should be renamed as UserError " "`from openerp.exceptions import Warning as UserError`",
-        "openerp-exception-warning",
+    "C8101": (
+        "One of the following authors must be present in manifest: %s",
+        "manifest-required-author",
         CHECK_DESCRIPTION,
     ),
-    "W8103": (
-        'Translation method _("string") in fields is not necessary.',
-        "translation-field",
+    "C8102": ('Missing required key "%s" in manifest file', "manifest-required-key", CHECK_DESCRIPTION),
+    "C8103": ('Deprecated key "%s" in manifest file', "manifest-deprecated-key", CHECK_DESCRIPTION),
+    "C8104": (
+        'Use `CamelCase` "%s" in class name "%s". You can use oca-autopep8 '
+        "of https://github.com/OCA/maintainer-tools to auto fix it.",
+        "class-camelcase",
         CHECK_DESCRIPTION,
     ),
-    "W8105": ('attribute "%s" deprecated', "attribute-deprecated", CHECK_DESCRIPTION),
-    "W8106": ('Missing `super` call in "%s" method.', "method-required-super", CHECK_DESCRIPTION),
-    "W8110": (
-        "Missing `return` (`super` is used) in method %s.",
-        "missing-return",
+    "C8105": ('License "%s" not allowed in manifest file.', "license-allowed", CHECK_DESCRIPTION),
+    "C8106": (
+        'Wrong Version Format "%s" in manifest file. Regex to match: "%s"',
+        "manifest-version-format",
         CHECK_DESCRIPTION,
     ),
+    "C8107": ('String parameter on "%s" requires translation. Use %s_(%s)', "translation-required", CHECK_DESCRIPTION),
+    "C8108": ('Name of compute method should start with "_compute_"', "method-compute", CHECK_DESCRIPTION),
+    "C8109": ('Name of search method should start with "_search_"', "method-search", CHECK_DESCRIPTION),
+    "C8110": ('Name of inverse method should start with "_inverse_"', "method-inverse", CHECK_DESCRIPTION),
+    "C8111": (
+        'Manifest key development_status "%s" not allowed. Use one of: %s.',
+        "development-status-allowed",
+        CHECK_DESCRIPTION,
+    ),
+    "C8112": ("Missing ./README.rst file. Template here: %s", "missing-readme", CHECK_DESCRIPTION),
     "E8101": (
-        "The author key in the manifest file must be a string " "(with comma separated values)",
+        "The author key in the manifest file must be a string (with comma separated values)",
         "manifest-author-string",
         CHECK_DESCRIPTION,
     ),
     "E8102": (
         "Use of cr.commit() directly - More info "
-        "https://github.com/OCA/odoo-community.org/blob/master/website/"
-        "Contribution/CONTRIBUTING.rst"
-        "#never-commit-the-transaction",
+        "https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction",  # noqa: B950
         "invalid-commit",
         CHECK_DESCRIPTION,
     ),
     "E8103": (
-        "SQL injection risk. "
-        "Use parameters if you can. - More info "
-        "https://github.com/OCA/odoo-community.org/blob/master/website/"
-        "Contribution/CONTRIBUTING.rst"
-        "#no-sql-injection",
+        "SQL injection risk. Use parameters if you can. - More info "
+        "https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection",
         "sql-injection",
         CHECK_DESCRIPTION,
     ),
@@ -117,68 +170,26 @@ ODOO_MSGS = {
         CHECK_DESCRIPTION,
     ),
     "E8106": (
-        "Use of external request method `%s` without timeout. " "It could wait for a long time",
+        "Use of external request method `%s` without timeout. It could wait for a long time",
         "external-request-timeout",
         CHECK_DESCRIPTION,
     ),
-    "C8101": (
-        "One of the following authors must be present in manifest: %s",
-        "manifest-required-author",
+    "E8130": ("Test folder imported in module %s", "test-folder-imported", CHECK_DESCRIPTION),
+    "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
+    "R8101": (
+        "Import `Warning` should be renamed as UserError `from " "openerp.exceptions import Warning as UserError`",
+        "openerp-exception-warning",
         CHECK_DESCRIPTION,
     ),
-    "C8102": (
-        'Missing required key "%s" in manifest file',
-        "manifest-required-key",
+    "R8180": (
+        'Consider merging classes inherited to "%s" from %s.',
+        "consider-merging-classes-inherited",
         CHECK_DESCRIPTION,
     ),
-    "C8103": (
-        'Deprecated key "%s" in manifest file',
-        "manifest-deprecated-key",
-        CHECK_DESCRIPTION,
-    ),
-    "C8104": (
-        'Use `CamelCase` "%s" in class name "%s". '
-        "You can use oca-autopep8 of https://github.com/OCA/maintainer-tools"
-        " to auto fix it.",
-        "class-camelcase",
-        CHECK_DESCRIPTION,
-    ),
-    "C8105": ('License "%s" not allowed in manifest file.', "license-allowed", CHECK_DESCRIPTION),
-    "C8106": (
-        'Wrong Version Format "%s" in manifest file. ' 'Regex to match: "%s"',
-        "manifest-version-format",
-        CHECK_DESCRIPTION,
-    ),
-    "C8107": (
-        'String parameter on "%s" requires translation. Use %s_(%s)',
-        "translation-required",
-        CHECK_DESCRIPTION,
-    ),
-    "C8108": (
-        'Name of compute method should start with "_compute_"',
-        "method-compute",
-        CHECK_DESCRIPTION,
-    ),
-    "C8109": (
-        'Name of search method should start with "_search_"',
-        "method-search",
-        CHECK_DESCRIPTION,
-    ),
-    "C8110": (
-        'Name of inverse method should start with "_inverse_"',
-        "method-inverse",
-        CHECK_DESCRIPTION,
-    ),
-    "C8111": (
-        'Manifest key development_status "%s" not allowed. ' "Use one of: %s.",
-        "development-status-allowed",
-        CHECK_DESCRIPTION,
-    ),
-    "C8112": (
-        "Missing ./README.rst file. Template here: %s",
-        "missing-readme",
-        CHECK_DESCRIPTION,
-    ),
+    "W8103": ('Translation method _("string") in fields is not necessary.', "translation-field", CHECK_DESCRIPTION),
+    "W8105": ('attribute "%s" deprecated', "attribute-deprecated", CHECK_DESCRIPTION),
+    "W8106": ('Missing `super` call in "%s" method.', "method-required-super", CHECK_DESCRIPTION),
+    "W8110": ("Missing `return` (`super` is used) in method %s.", "missing-return", CHECK_DESCRIPTION),
     "W8111": (
         'Field parameter "%s" is no longer supported. Use "%s" instead.',
         "renamed-field-parameter",
@@ -186,7 +197,7 @@ ODOO_MSGS = {
     ),
     "W8112": ('"eval" referenced detected.', "eval-referenced", CHECK_DESCRIPTION),
     "W8113": (
-        "The attribute string is redundant. " "String parameter equal to name of variable",
+        "The attribute string is redundant. String parameter equal to name of variable",
         "attribute-string-redundant",
         CHECK_DESCRIPTION,
     ),
@@ -202,13 +213,13 @@ ODOO_MSGS = {
     ),
     "W8116": ("Print used. Use `logger` instead.", "print-used", CHECK_DESCRIPTION),
     "W8120": (
-        "Translation method _(%s) is using positional string printf formatting. "
-        'Use named placeholder `_("%%(placeholder)s")` instead.',
+        "Translation method _(%s) is using positional string printf "
+        'formatting. Use named placeholder `_("%%(placeholder)s")` instead.',
         "translation-positional-used",
         CHECK_DESCRIPTION,
     ),
     "W8121": (
-        "Context overridden using dict. " "Better using kwargs `with_context(**%s)` or `with_context(key=value)`",
+        "Context overridden using dict. Better using kwargs `with_context(**%s)` or `with_context(key=value)`",
         "context-overridden",
         CHECK_DESCRIPTION,
     ),
@@ -217,22 +228,13 @@ ODOO_MSGS = {
         "manifest-data-duplicated",
         CHECK_DESCRIPTION,
     ),
-    "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "W8138": (
-        "pass into block except. " "If you really need to use the pass consider logging that exception",
+        "pass into block except. If you really need to use the pass consider logging that exception",
         "except-pass",
         CHECK_DESCRIPTION,
     ),
-    "R8180": (
-        'Consider merging classes inherited to "%s" from %s.',
-        "consider-merging-classes-inherited",
-        CHECK_DESCRIPTION,
-    ),
-    "E8130": ("Test folder imported in module %s", "test-folder-imported", CHECK_DESCRIPTION),
     "W8150": (
-        "Same Odoo module absolute import. You should use "
-        'relative import with "." '
-        'instead of "openerp.addons.%s"',
+        'Same Odoo module absolute import. You should use relative import with "." instead of "openerp.addons.%s"',
         "odoo-addons-relative-import",
         CHECK_DESCRIPTION,
     ),
@@ -243,20 +245,20 @@ DFTL_MANIFEST_REQUIRED_AUTHORS = ["Odoo Community Association (OCA)"]
 DFTL_MANIFEST_DEPRECATED_KEYS = ["description"]
 DFTL_LICENSE_ALLOWED = [
     "AGPL-3",
-    "GPL-2",
     "GPL-2 or any later version",
-    "GPL-3",
+    "GPL-2",
     "GPL-3 or any later version",
+    "GPL-3",
     "LGPL-3",
+    "OEEL-1",
     "Other OSI approved licence",
     "Other proprietary",
-    "OEEL-1",
 ]
 DFTL_DEVELOPMENT_STATUS_ALLOWED = [
     "Alpha",
     "Beta",
-    "Production/Stable",
     "Mature",
+    "Production/Stable",
 ]
 DFTL_ATTRIBUTE_DEPRECATED = [
     "_columns",
@@ -264,31 +266,30 @@ DFTL_ATTRIBUTE_DEPRECATED = [
     "length",
 ]
 DFTL_METHOD_REQUIRED_SUPER = [
-    "create",
-    "write",
-    "read",
-    "unlink",
     "copy",
+    "create",
+    "default_get",
+    "read",
     "setUp",
     "setUpClass",
     "tearDown",
     "tearDownClass",
-    "default_get",
+    "unlink",
+    "write",
 ]
 DFTL_CURSOR_EXPR = [
-    "self.env.cr",
+    "cr",  # old api
     "self._cr",  # new api
     "self.cr",  # controllers and test
-    "cr",  # old api
+    "self.env.cr",
 ]
 DFTL_ODOO_EXCEPTIONS = [
-    # Extracted from openerp/exceptions.py of 8.0 and master
+    # Extracted from odoo/exceptions.py of 16.0 and master
     "AccessDenied",
     "AccessError",
-    "DeferredException",
+    "CacheMiss",
     "except_orm",
     "MissingError",
-    "QWebException",
     "RedirectWarning",
     "UserError",
     "ValidationError",
@@ -296,11 +297,11 @@ DFTL_ODOO_EXCEPTIONS = [
 ]
 DFTL_NO_MISSING_RETURN = [
     "__init__",
+    "_register_hook",
     "setUp",
     "setUpClass",
     "tearDown",
     "tearDownClass",
-    "_register_hook",
 ]
 FIELDS_METHOD = {
     "Many2many": 4,
@@ -358,57 +359,21 @@ class OdooAddons(BaseChecker):
     msgs = ODOO_MSGS
     options = (
         (
-            "manifest_required_authors",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_MANIFEST_REQUIRED_AUTHORS,
-                "help": "Author names, at least one is required in manifest file.",
-            },
-        ),
-        (
-            "manifest_required_keys",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_MANIFEST_REQUIRED_KEYS,
-                "help": "List of keys required in manifest file, " + "separated by a comma.",
-            },
-        ),
-        (
-            "manifest_deprecated_keys",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_MANIFEST_DEPRECATED_KEYS,
-                "help": "List of keys deprecated in manifest file, " + "separated by a comma.",
-            },
-        ),
-        (
-            "license_allowed",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_LICENSE_ALLOWED,
-                "help": "List of license allowed in manifest file, " + "separated by a comma.",
-            },
-        ),
-        (
-            "development_status_allowed",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_DEVELOPMENT_STATUS_ALLOWED,
-                "help": "List of development status allowed in manifest file, " + "separated by a comma.",
-            },
-        ),
-        (
             "attribute_deprecated",
             {
                 "type": "csv",
                 "metavar": "<comma separated values>",
                 "default": DFTL_ATTRIBUTE_DEPRECATED,
                 "help": "List of attributes deprecated, " + "separated by a comma.",
+            },
+        ),
+        (
+            "cursor_expr",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_CURSOR_EXPR,
+                "help": "List of cursor expr separated by a comma.",
             },
         ),
         (
@@ -428,21 +393,59 @@ class OdooAddons(BaseChecker):
             },
         ),
         (
-            "readme_template_url",
-            {
-                "type": "string",
-                "metavar": "<string>",
-                "default": misc.DFTL_README_TMPL_URL,
-                "help": "URL of README.rst template file",
-            },
-        ),
-        (
-            "method_required_super",
+            "development_status_allowed",
             {
                 "type": "csv",
                 "metavar": "<comma separated values>",
-                "default": DFTL_METHOD_REQUIRED_SUPER,
-                "help": "List of methods where call to `super` is required." + "separated by a comma.",
+                "default": DFTL_DEVELOPMENT_STATUS_ALLOWED,
+                "help": "List of development status allowed in manifest file, " + "separated by a comma.",
+            },
+        ),
+        (
+            "external_request_timeout_methods",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS,
+                "help": "List of library.method that must have a timeout "
+                "parameter defined, separated by a comma. "
+                'e.g. "requests.get,requests.post"',
+            },
+        ),
+        (
+            "license_allowed",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_LICENSE_ALLOWED,
+                "help": "List of license allowed in manifest file, " + "separated by a comma.",
+            },
+        ),
+        (
+            "manifest_deprecated_keys",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_MANIFEST_DEPRECATED_KEYS,
+                "help": "List of keys deprecated in manifest file, " + "separated by a comma.",
+            },
+        ),
+        (
+            "manifest_required_authors",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_MANIFEST_REQUIRED_AUTHORS,
+                "help": "Author names, at least one is required in manifest file.",
+            },
+        ),
+        (
+            "manifest_required_keys",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_MANIFEST_REQUIRED_KEYS,
+                "help": "List of keys required in manifest file, " + "separated by a comma.",
             },
         ),
         (
@@ -457,30 +460,12 @@ class OdooAddons(BaseChecker):
             },
         ),
         (
-            "cursor_expr",
+            "method_required_super",
             {
                 "type": "csv",
                 "metavar": "<comma separated values>",
-                "default": DFTL_CURSOR_EXPR,
-                "help": "List of cursor expr separated by a comma.",
-            },
-        ),
-        (
-            "odoo_exceptions",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_ODOO_EXCEPTIONS,
-                "help": "List of odoo exceptions separated by a comma.",
-            },
-        ),
-        (
-            "valid_odoo_versions",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": misc.DFTL_VALID_ODOO_VERSIONS,
-                "help": "List of valid odoo versions separated by a comma.",
+                "default": DFTL_METHOD_REQUIRED_SUPER,
+                "help": "List of methods where call to `super` is required." + "separated by a comma.",
             },
         ),
         (
@@ -493,14 +478,30 @@ class OdooAddons(BaseChecker):
             },
         ),
         (
-            "external_request_timeout_methods",
+            "odoo_exceptions",
             {
                 "type": "csv",
                 "metavar": "<comma separated values>",
-                "default": DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS,
-                "help": "List of library.method that must have a timeout "
-                "parameter defined, separated by a comma. "
-                'e.g. "requests.get,requests.post"',
+                "default": DFTL_ODOO_EXCEPTIONS,
+                "help": "List of odoo exceptions separated by a comma.",
+            },
+        ),
+        (
+            "readme_template_url",
+            {
+                "type": "string",
+                "metavar": "<string>",
+                "default": misc.DFTL_README_TMPL_URL,
+                "help": "URL of README.rst template file",
+            },
+        ),
+        (
+            "valid_odoo_versions",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": misc.DFTL_VALID_ODOO_VERSIONS,
+                "help": "List of valid odoo versions separated by a comma.",
             },
         ),
     )
