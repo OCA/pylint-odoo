@@ -56,6 +56,7 @@ class MainTest(unittest.TestCase):
         self.default_options = [
             "--load-plugins=pylint_odoo",
             "--reports=no",
+            "--score=no",
             "--msg-template=" '"{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}"',
             "--output-format=colorized",
             "--rcfile=%s" % os.devnull,
