@@ -1,4 +1,4 @@
-__version__ = "8.0.2"
+__version__ = "8.0.3"
 
 from . import checkers
 from .augmentations.main import apply_augmentations
