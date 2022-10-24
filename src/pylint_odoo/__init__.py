@@ -4,6 +4,32 @@ from . import checkers
 from .augmentations.main import apply_augmentations
 
 
+def load_configuration(linter):
+    """Amend existing checker config."""
+    linter.config.good_names += (
+        "_",  # odoo.tools.translate._
+        "cr",  # odoo common use of cursor variable
+        "uid",  # odoo common use of user_id variable
+        "_logger",  # odoo common use of logging
+        "maxDiff",  # unittest variable
+    )
+
+    # for i in loop common variable names
+    linter.config.good_names += (
+        "o",
+        "e",
+        "i",
+        "k",
+        "v",
+    )
+
+    # TODO: Add module-naming-style=snake_case + pre-migration
+    # pre-migration.py:1: [C0103(invalid-name), ] Module name "pre-migration" doesn't conform to snake_case naming style
+    # linter.config.module_naming_style += ("(pre\-|post\)(migration)\.py")
+    # deprecate old odoo name
+    linter.config.deprecated_modules += ("openerp",)
+
+
 def register(linter):
     """Required method to auto register this checker"""
     linter.register_checker(checkers.odoo_addons.OdooAddons(linter))
@@ -11,6 +37,8 @@ def register(linter):
 
     # register any checking fiddlers
     apply_augmentations(linter)
+
+    load_configuration(linter)
 
 
 def get_all_messages():
