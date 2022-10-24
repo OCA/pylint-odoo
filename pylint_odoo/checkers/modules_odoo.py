@@ -777,10 +777,11 @@ class ModuleChecker(misc.WrapperModuleChecker):
             all_fields.setdefault(
                 (field_xml, field.attrib.get('context'),
                  field.attrib.get('filter_domain'),
+                 field.attrib.get('groups'),
                  field.getparent()), []).append(field)
         # Remove all keys which not duplicated by excluding them from the
-        return dict(((name, context, filter_domain, parent_node), nodes) for
-                    (name, context, filter_domain, parent_node), nodes in
+        return dict(((name, context, filter_domain, groups, parent_node), nodes) for
+                    (name, context, filter_domain, groups, parent_node), nodes in
                     all_fields.items() if len(nodes) >= 2)
 
     def _check_duplicate_xml_fields(self):
