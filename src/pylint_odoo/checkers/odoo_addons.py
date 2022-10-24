@@ -500,6 +500,27 @@ class OdooAddons(BaseChecker):
         ),
     )
 
+    checks_maxmin_odoo_version = {
+        #   check-code: {
+        #       "odoo_minversion": tuple(int, int),
+        #       "odoo_maxversion": tuple(int, int),
+        #   }
+        'consider-merging-classes-inherited': {
+            'odoo_minversion': (11, 0),
+            'odoo_maxversion': (13, 0),
+        },
+    }
+
+    # def add_message(self, msgid, *args, **kwargs):
+    #     if len(self.linter.config.valid_odoo_versions) == 1:
+    #         current_odoo_version = tuple(map(int, self.linter.config.valid_odoo_versions[0].split(".")))
+    #         required_odoo_versions = self.checks_maxmin_odoo_version.get(msgid)
+    #         odoo_minversion = required_odoo_versions.get("odoo_minversion")
+    #         odoo_maxversion = required_odoo_versions.get("odoo_maxversion")
+    #         if odoo_minversion and odoo_minversion >= current_odoo_version or odoo_maxversion and odoo_maxversion <= current_odoo_version:
+    #             return
+    #     return super().add_message(msgid, *args, **kwargs)
+
     def close(self):
         """Final process get all cached values and add messages"""
         for (manifest_path, odoo_class_inherit), nodes in self._odoo_inherit_items.items():

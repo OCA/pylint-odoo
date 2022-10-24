@@ -107,6 +107,7 @@ class MainTest(unittest.TestCase):
         self.assertEqual(self.expected_errors, real_errors)
 
     def test_25_checks_without_coverage(self):
+        # TODO: Fix this one
         """All odoolint errors vs found"""
         # Some messages can be excluded as they are only applied on certain
         # Odoo versions (not necessarily 8.0).

@@ -2,15 +2,39 @@ __version__ = "8.0.5"
 
 from . import checkers
 from .augmentations.main import apply_augmentations
+from pylint.lint.message_state_handler import _MessageStateHandler
+
+
+def is_odoo_message_enabled(odoo_version, msgcode):
+    required_odoo_versions = checkers.odoo_addons.OdooAddons.checks_maxmin_odoo_version.get(msgcode) or {}
+    odoo_minversion = required_odoo_versions.get("odoo_minversion")
+    odoo_maxversion = required_odoo_versions.get("odoo_maxversion")
+    if odoo_minversion and odoo_minversion >= odoo_version or odoo_maxversion and odoo_maxversion <= odoo_version:
+        return False
+    return True
+
+
+original_is_one_message_enabled = _MessageStateHandler._is_one_message_enabled
+def patched_is_one_message_enabled(self, msgid, *args, **kwargs):
+    odoo_enabled = True
+    valid_odoo_versions = self.linter.config.valid_odoo_versions
+    if len(valid_odoo_versions) == 1:
+        msgcode = self.linter.msgs_store.message_id_store.get_symbol(msgid)
+        try:
+            current_odoo_version = tuple(map(int, valid_odoo_versions[0].split(".")))
+            odoo_enabled = is_odoo_message_enabled(current_odoo_version, msgcode)
+        except ValueError:
+            pass
+    return odoo_enabled and original_is_one_message_enabled(self, msgid, *args, **kwargs)
 
 
 def register(linter):
     """Required method to auto register this checker"""
     linter.register_checker(checkers.odoo_addons.OdooAddons(linter))
     linter.register_checker(checkers.vim_comment.VimComment(linter))
-
     # register any checking fiddlers
     apply_augmentations(linter)
+    _MessageStateHandler._is_one_message_enabled = patched_is_one_message_enabled
 
 
 def get_all_messages():
