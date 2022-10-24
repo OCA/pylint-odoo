@@ -42,7 +42,13 @@ jobs:
             python: '3.10'
             toxpython: 'python3.10'
             python_arch: 'x64'
-            tox_env: 'py310,codecov,lint,build'
+            tox_env: 'py310,report,codecov,lint,build'
+            os: 'ubuntu-latest'
+          - name: 'py311-dev-cover (ubuntu)'
+            python: '3.11-dev'
+            toxpython: 'python3.11'
+            python_arch: 'x64'
+            tox_env: 'py311,report,codecov'
             os: 'ubuntu-latest'
 
           # windows
@@ -71,6 +77,12 @@ jobs:
             python_arch: 'x64'
             tox_env: 'py310,report,codecov'
             os: 'windows-latest'
+          - name: 'py311-dev-cover (windows)'
+            python: '3.11-dev'
+            toxpython: 'python3.11'
+            python_arch: 'x64'
+            tox_env: 'py311,report,codecov'
+            os: 'windows-latest'
 
           # macos
           - name: 'py37-cover (macos)'
@@ -96,6 +108,12 @@ jobs:
             toxpython: 'python3.10'
             python_arch: 'x64'
             tox_env: 'py310,report,codecov'
+            os: 'macos-latest'
+          - name: 'py311-dev-cover (macos)'
+            python: '3.11-dev'
+            toxpython: 'python3.11'
+            python_arch: 'x64'
+            tox_env: 'py311,report,codecov'
             os: 'macos-latest'
 
     steps:
