@@ -48,10 +48,9 @@ def apply_augmentations(linter):
 
     # W0104 - pointless-statement
     # manifest file have a valid pointless-statement dict
-    discard = BasicChecker.visit_discard if hasattr(BasicChecker, "visit_discard") else BasicChecker.visit_expr
-    suppress_message(linter, discard, "W0104", is_manifest_file)
+    suppress_message(linter, BasicChecker.visit_expr, "pointless-statement", is_manifest_file)
 
     # C0103 - invalid-name and W0613 - unused-argument for migrations/
-    suppress_message(linter, NameChecker.visit_module, "C0103", is_migration_path)
-    suppress_message(linter, NameChecker.visit_functiondef, "C0103", is_migration_path)
-    suppress_message(linter, VariablesChecker.leave_functiondef, "W0613", is_migration_path)
+    suppress_message(linter, NameChecker.visit_module, "invalid-name", is_migration_path)
+    suppress_message(linter, NameChecker.visit_functiondef, "invalid-name", is_migration_path)
+    suppress_message(linter, VariablesChecker.leave_functiondef, "unused-argument", is_migration_path)
