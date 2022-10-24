@@ -131,6 +131,9 @@
                         <tree>
                             <field name="name"/>
                             <field name="name"/>
+
+                            <field name="company_id" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
                         </tree>
                     </field>
                     <field name="value_ids">
