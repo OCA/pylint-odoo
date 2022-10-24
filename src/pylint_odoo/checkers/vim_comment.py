@@ -2,13 +2,15 @@ import tokenize
 
 from pylint.checkers import BaseTokenChecker
 
+from .odoo_base_checker import OdooBaseChecker
+
 ODOO_MSGS = {
     # C->convention R->refactor W->warning E->error F->fatal
     "W8202": ("Use of vim comment", "use-vim-comment", "Better using local vim configuration file"),
 }
 
 
-class VimComment(BaseTokenChecker):
+class VimComment(OdooBaseChecker, BaseTokenChecker):
 
     name = "odoolint"
     msgs = ODOO_MSGS

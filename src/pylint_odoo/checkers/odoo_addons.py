@@ -109,6 +109,7 @@ import validators
 from pylint.checkers import BaseChecker, utils
 
 from .. import misc
+from .odoo_base_checker import OdooBaseChecker
 
 CHECK_DESCRIPTION = (
     "You can review guidelines here: "
@@ -346,7 +347,7 @@ PRINTF_PATTERN = re.compile(
 )
 
 
-class OdooAddons(BaseChecker):
+class OdooAddons(OdooBaseChecker, BaseChecker):
 
     _from_imports = None
     name = "odoolint"
@@ -499,6 +500,13 @@ class OdooAddons(BaseChecker):
             },
         ),
     )
+
+    checks_maxmin_odoo_version = {
+        # For v14.0 use custom_logging.py checks e.g. "translation-not-lazy"
+        "translation-contains-variable": {
+            "odoo_maxversion": "13.0",
+        },
+    }
 
     def close(self):
         """Final process get all cached values and add messages"""

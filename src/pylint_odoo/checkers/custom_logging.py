@@ -5,6 +5,8 @@ from unittest.mock import patch
 import astroid
 from pylint.checkers import logging
 
+from .odoo_base_checker import OdooBaseChecker
+
 
 @contextmanager
 def config_logging_modules(linter, modules):
@@ -19,8 +21,21 @@ def config_logging_modules(linter, modules):
 BASE_CHECKS_ID = "83"
 
 
-class CustomLoggingChecker(logging.LoggingChecker):
+class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
     name = "odoolint"
+
+    def __init__(self, *args, **kwargs):
+        self.msgs = self.transform_msgs()
+        super().__init__(*args, **kwargs)
+        for msg_attrs in self.msgs.values():
+            # checks_maxmin_odoo_version = {
+            #   check-code: {
+            #       "odoo_minversion": tuple(int, int),
+            #       "odoo_maxversion": tuple(int, int),
+            #   }
+            self.checks_maxmin_odoo_version[msg_attrs[1]] = {
+                "odoo_minversion": "14.0",
+            }
 
     def transform_msgs(self):
         """Transform all the 'logging' messages and code to 'translation'
@@ -41,13 +56,11 @@ class CustomLoggingChecker(logging.LoggingChecker):
         return msgs
 
     def add_message(self, msgid, *args, **kwargs):
-        """Emit translation-not-lazy instead of logging-not-lazy"""
+        """Emit translation-* instead of logging-*
+        e.g. translation-not-lazy instead of logging-not-lazy
+        """
         msgid = msgid.replace("logging", "translation")
         return super().add_message(msgid, *args, **kwargs)
-
-    def __init__(self, *args, **kwargs):
-        self.msgs = self.transform_msgs()
-        super().__init__(*args, **kwargs)
 
     def visit_call(self, node):
         if not isinstance(node.func, astroid.Name):

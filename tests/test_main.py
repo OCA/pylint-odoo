@@ -6,8 +6,6 @@ from tempfile import NamedTemporaryFile, gettempdir
 
 from pylint.lint import Run
 
-from pylint_odoo import misc
-
 EXPECTED_ERRORS = {
     "attribute-deprecated": 3,
     "attribute-string-redundant": 31,
@@ -38,13 +36,13 @@ EXPECTED_ERRORS = {
     "resource-not-exist": 4,
     "sql-injection": 21,
     "test-folder-imported": 3,
-    "translation-contains-variable": 10,
+    "translation-contains-variable": 11,
     "translation-field": 2,
-    "translation-format-interpolation": 3,
+    "translation-format-interpolation": 4,
     "translation-format-truncated": 1,
     "translation-fstring-interpolation": 1,
     "translation-not-lazy": 21,
-    "translation-positional-used": 8,
+    "translation-positional-used": 10,
     "translation-required": 15,
     "translation-too-few-args": 1,
     "translation-too-many-args": 1,
@@ -113,22 +111,39 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats.by_msg
         self.assertEqual(self.expected_errors, real_errors)
 
-    def test_25_checks_without_coverage(self):
-        """All odoolint errors vs found"""
-        # Some messages can be excluded as they are only applied on certain
-        # Odoo versions (not necessarily 8.0).
+    def test_25_checks_excluding_by_odoo_version(self):
+        """All odoolint errors vs found but excluding based on Odoo version"""
         excluded_msgs = {
-            "unnecessary-utf8-coding-comment",
-            "xml-deprecated-qweb-directive",
+            "translation-format-interpolation",
+            "translation-format-truncated",
+            "translation-fstring-interpolation",
+            "translation-not-lazy",
+            "translation-too-few-args",
+            "translation-too-many-args",
+            "translation-unsupported-format",
         }
-        extra_params = ["--valid_odoo_versions=8.0"]
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
-        msgs_found = pylint_res.linter.stats.by_msg.keys()
-        plugin_msgs = set(misc.get_plugin_msgs(pylint_res)) - excluded_msgs
-        test_missed_msgs = sorted(list(plugin_msgs - set(msgs_found)))
-        self.assertFalse(
-            test_missed_msgs, "Checks without test case: {test_missed_msgs}".format(test_missed_msgs=test_missed_msgs)
-        )
+        self.default_extra_params += ["--valid_odoo_versions=13.0"]
+        pylint_res = self.run_pylint(self.paths_modules)
+        real_errors = pylint_res.linter.stats.by_msg
+        expected_errors = self.expected_errors.copy()
+        for excluded_msg in excluded_msgs:
+            expected_errors.pop(excluded_msg)
+        expected_errors.update({"manifest-version-format": 6})
+        self.assertEqual(expected_errors, real_errors)
+
+    def test_35_checks_emiting_by_odoo_version(self):
+        """All odoolint errors vs found but see if were not excluded for valid odoo version"""
+        self.default_extra_params += ["--valid_odoo_versions=14.0"]
+        pylint_res = self.run_pylint(self.paths_modules)
+        real_errors = pylint_res.linter.stats.by_msg
+        expected_errors = self.expected_errors.copy()
+        expected_errors.update({"manifest-version-format": 6})
+        excluded_msgs = {
+            "translation-contains-variable",
+        }
+        for excluded_msg in excluded_msgs:
+            expected_errors.pop(excluded_msg)
+        self.assertEqual(expected_errors, real_errors)
 
     def test_85_valid_odoo_version_format(self):
         """Test --manifest_version_format parameter"""
