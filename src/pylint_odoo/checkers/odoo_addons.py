@@ -1324,12 +1324,14 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 self.add_message("test-folder-imported", node=node, args=(node.parent.name,))
 
     def check_no_write_compute(self, node, method_name):
+        # TODO: Use a loop to lookup last level
+        # TODO: Use def open() to cache all visits to improve performance
         if not self.linter.is_message_enabled("no-write-in-compute", node.lineno) or not method_name:
             return
         class_node = node.scope()
         if not isinstance(class_node, astroid.ClassDef) or len(class_node.bases) != 1:
             return
-        # class_base_infer = utils.safe_infer(class_node.bases[0])
+        # class_base_infer = utils.safe_infer(class_node.bases[0])
         # if not self._get_packages(class_node.bases[0]):
         #     return
         # if not class_base_infer or class_base_infer.root().name != "odoo.models" or class_base_infer.name not in ["Model", "AbstractModel"]:
@@ -1344,11 +1346,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         class_inherited_name = class_node.bases[0].as_string().split(".")[-1]
         if "odoo" not in package_names or class_inherited_name not in ["Model", "AbstractModel"]:
             return
-        # if isinstance(imported_class, astroid.ImportFrom)
-        # import pdb;pdb.set_trace()
-        # TODO: Validate it is inherit from odoo.Models or Abstract
-        # TODO: Use def open() to cache all visits to improve performance
-        import pdb;pdb.set_trace()
         for node_function_def in class_node.nodes_of_class(astroid.FunctionDef):
             if node_function_def.name != method_name:
                 continue
@@ -1372,7 +1369,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         continue
                     last_lib_assignation2 = last_lib_assignation.lookup(last_lib_name)[1][0]
                     if isinstance(last_lib_assignation2.statement(), astroid.Assign):
-                        # TODO: Use a loop to lookup last level
                         last_lib_assignation2_assign = last_lib_assignation2.statement()
                         if isinstance(last_lib_assignation2_assign.value, astroid.Call):
                             last_lib_assignation2_assign_call = last_lib_assignation2_assign.value
@@ -1380,7 +1376,4 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                                 self.get_func_name(last_lib_assignation2_assign_call.func) == "browse"
                                 and self.get_func_lib(last_lib_assignation2_assign_call.func) == "self"
                             ):
-                                # users = self.env["res.users"].browse([1,2,3])
-                                # for user in users:
-                                #     user.write({"name": "moy6"})
                                 self.add_message("no-write-in-compute", node=node_compute_call)
