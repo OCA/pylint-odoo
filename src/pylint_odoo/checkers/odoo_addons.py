@@ -690,6 +690,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         return is_concatenation
 
     def _get_assignation_nodes(self, node):
+        # TODO: Improve using "node.lookup"
         if isinstance(node, (astroid.Name, astroid.Subscript)):
             # 1) look for parent method / controller
             current = node
@@ -786,14 +787,22 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                                 if node_function_def.name != method_name:
                                     continue
                                 for node_compute_call in node_function_def.nodes_of_class(astroid.Call):
-                                    # self.write cases
-                                    # import pdb;pdb.set_trace()
-                                    if (
-                                        self.get_func_name(node_compute_call.func) != "write"
-                                        or self.get_func_lib(node_compute_call.func) != "self"
-                                    ):
+                                    if self.get_func_name(node_compute_call.func) != "write":
                                         continue
-                                    self.add_message("compute-write", node=node_compute_call)
+                                    if self.get_func_lib(node_compute_call.func) == "self":
+                                        # self.write(...)
+                                        self.add_message("compute-write", node=node_compute_call)
+                                        continue
+                                    last_lib_assignation = node_compute_call.func.expr.lookup(node_compute_call.func.expr.name)[1][-1]
+                                    if isinstance(last_lib_assignation, astroid.AssignName) and isinstance(last_lib_assignation.statement(), astroid.For):
+                                        # for rec in self:
+                                        #   rec.write(...)
+                                        for_node = last_lib_assignation.statement()
+                                        last_lib_name = for_node.iter.name
+                                        if last_lib_name == "self":
+                                            self.add_message("compute-write", node=node_compute_call)
+                                            continue
+                                        # import pdb;pdb.set_trace()
 
                                 # import pdb;pdb.set_trace()
                                 # print(node_function_def.as_string())
