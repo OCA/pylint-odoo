@@ -12,7 +12,7 @@ from pylint_odoo import plugin
 EXPECTED_ERRORS = {
     "attribute-deprecated": 3,
     "attribute-string-redundant": 31,
-    "no-write-in-compute": 12,
+    "no-write-in-compute": 16,
     "consider-merging-classes-inherited": 2,
     "context-overridden": 3,
     "development-status-allowed": 1,
