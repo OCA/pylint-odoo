@@ -396,6 +396,10 @@ class TestModel(models.Model):
         _("format truncated %s%", 'param1')
         _("too many args %s", 'param1', 'param2')
 
+        _("multi-positional args without placeholders %s %s", 'param1', 'param2')
+
+        _("multi-positional args without placeholders {} {}".format('param1', 'param2'))
+
         _("String with correct args %s", "param1")
         _("String with correct kwargs %(param1)s", param1="hola")
 

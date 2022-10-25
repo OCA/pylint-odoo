@@ -95,6 +95,26 @@ Example to test just odoo-lint case:
 
 ``pylint --load-plugins=pylint_odoo -d all -e odoolint {ADDONS-PATH}``
 
+There are checks only valid for a particular Odoo version
+To know what version of odoo are you running pylint needs the parameter
+ - `pylint --load-plugins=pylint_odoo --valid_odoo_versions={YOUR_ODOO_VERSION}`
+
+with particular odoo version e.g. `"16.0"`
+
+Checks valid only for odoo >= 14.0
+
+    translation-format-interpolation
+    translation-format-truncated
+    translation-fstring-interpolation
+    translation-not-lazy
+    translation-too-few-args
+    translation-too-many-args
+    translation-unsupported-format
+
+Checks valid only for odoo <= 13.0
+
+    translation-contains-variable
+
 
 [//]: # (start-example)
 
