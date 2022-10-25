@@ -41,9 +41,9 @@ import ftplib as ftplib_r
 from ftplib import FTP
 from ftplib import FTP as ftp_r
 
-from openerp import fields, models, _
+from odoo import fields, models, _
 from odoo.exceptions import UserError
-from openerp import exceptions
+from odoo import exceptions
 
 # Relatives import for odoo addons
 from odoo.addons.broken_module import broken_model as broken_model1
@@ -387,6 +387,17 @@ class TestModel(models.Model):
             'String with params format %(p1)s') % {'p1': 'v1'})
         raise exceptions.Warning(_(
             'String with params format %(p1)s' % {'p1': 'v1'}))
+    
+    def my_method14(self):
+        _("String with missing args %s %s", "param1")
+        _("String with missing kwargs %(param1)s", param2="hola")
+        _(f"String with f-interpolation {self.param1}")
+        _("String unsupported character %y", "param1")
+        _("format truncated %s%", 'param1')
+        _("too many args %s", 'param1', 'param2')
+
+        _("String with correct args %s", "param1")
+        _("String with correct kwargs %(param1)s", param1="hola")
 
     def old_api_method_alias(self, cursor, user, ids, context=None):  # old api
         pass

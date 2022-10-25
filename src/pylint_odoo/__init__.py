@@ -8,6 +8,7 @@ def register(linter):
     """Required method to auto register this checker"""
     linter.register_checker(checkers.odoo_addons.OdooAddons(linter))
     linter.register_checker(checkers.vim_comment.VimComment(linter))
+    linter.register_checker(checkers.custom_logging.CustomLoggingChecker(linter))
 
     # register any checking fiddlers
     apply_augmentations(linter)
