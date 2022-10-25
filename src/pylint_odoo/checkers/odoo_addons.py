@@ -777,74 +777,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                             "renamed-field-parameter", node=node, args=(argument.arg, deprecated[argument.arg])
                         )
                     # no write in compute method
-                    if argument.arg == "compute":
-                        # method as string: compute="method"
-                        # if "_compute_with_method_def" in node.as_string():
-                        # import pdb;pdb.set_trace()
-
-                        if (
-                            isinstance(argument.value, astroid.Const) or isinstance(argument.value, astroid.Name)
-                        ) and isinstance(node.scope(), astroid.ClassDef):
-                            method_name = (
-                                argument.value.value
-                                if isinstance(argument.value, astroid.Const)
-                                else argument.value.name
-                                if isinstance(argument.value, astroid.Name)
-                                else None
-                            )
-                            class_node = node.scope()
-                            # TODO: Validate it is inherit from odoo.Models or Abstract
-                            for node_function_def in class_node.nodes_of_class(astroid.FunctionDef):
-                                if node_function_def.name != method_name:
-                                    continue
-                                for node_compute_call in node_function_def.nodes_of_class(astroid.Call):
-                                    if self.get_func_name(node_compute_call.func) != "write":
-                                        continue
-                                    if self.get_func_lib(node_compute_call.func) == "self":
-                                        # self.write(...)
-                                        self.add_message("no-write-in-compute", node=node_compute_call)
-                                        continue
-                                    last_lib_assignation = node_compute_call.func.expr.lookup(
-                                        node_compute_call.func.expr.name
-                                    )[1][-1]
-                                    if isinstance(last_lib_assignation, astroid.AssignName) and isinstance(
-                                        last_lib_assignation.statement(), astroid.For
-                                    ):
-                                        # for rec in self:
-                                        #   rec.write(...)
-                                        for_node = last_lib_assignation.statement()
-                                        last_lib_name = for_node.iter.name
-                                        if last_lib_name == "self":
-                                            self.add_message("no-write-in-compute", node=node_compute_call)
-                                            continue
-                                        last_lib_assignation2 = last_lib_assignation.lookup(last_lib_name)[1][0]
-                                        if isinstance(last_lib_assignation2.statement(), astroid.Assign):
-                                            # TODO: Use a loop to lookup last level
-                                            last_lib_assignation2_assign = last_lib_assignation2.statement()
-                                            if isinstance(last_lib_assignation2_assign.value, astroid.Call):
-                                                last_lib_assignation2_assign_call = last_lib_assignation2_assign.value
-                                                if (
-                                                    self.get_func_name(last_lib_assignation2_assign_call.func)
-                                                    == "browse"
-                                                    and self.get_func_lib(last_lib_assignation2_assign_call.func)
-                                                    == "self"
-                                                ):
-                                                    # if "user.write" in node_compute_call.as_string():
-                                                    # users = self.env["res.users"].browse([1,2,3])
-                                                    # for user in users:
-                                                    #     user.write({"name": "moy6"})
-                                                    self.add_message("no-write-in-compute", node=node_compute_call)
-                                                    # import pdb;pdb.set_trace()
-                                                    # print(last_lib_assignation2.as_string())
-
-                                # import pdb;pdb.set_trace()
-                                # print(node_function_def.as_string())
-                            # for node_call in node.nodes_of_class(astroid.FunctionDef):
-                            # node_call
-                            # nodes_of_class
-                            # class_node = node.parent.parent
-                            # import pdb;pdb.set_trace()
-                            # print(argument.as_string())
+                    if argument.arg == "compute" and (isinstance(argument.value, astroid.Const) or isinstance(argument.value, astroid.Name)):
+                        method_name = (
+                            argument.value.value
+                            if isinstance(argument.value, astroid.Const)
+                            else argument.value.name
+                            if isinstance(argument.value, astroid.Name)
+                            else None
+                        )
+                        self.check_no_write_compute(node, method_name)
                 if (
                     isinstance(argument_aux, astroid.Call)
                     and isinstance(argument_aux.func, astroid.Name)
@@ -1379,3 +1320,53 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 package_names = [name[0].split(".")[0] for name in node.names]
             if "tests" in package_names:
                 self.add_message("test-folder-imported", node=node, args=(node.parent.name,))
+
+    def check_no_write_compute(self, node, method_name):
+        if not self.linter.is_message_enabled("no-write-in-compute", node.lineno) or not method_name:
+            return
+        class_node = node.scope()
+        if not isinstance(class_node, astroid.ClassDef) or len(class_node.bases) != 1:
+            return
+        # imported_class = class_node.lookup(class_node.bases[0].as_string().split(".")[0])[1][-1]
+        # if isinstance(imported_class, astroid.ImportFrom)
+        # import pdb;pdb.set_trace()
+        # TODO: Validate it is inherit from odoo.Models or Abstract
+        for node_function_def in class_node.nodes_of_class(astroid.FunctionDef):
+            if node_function_def.name != method_name:
+                continue
+            for node_compute_call in node_function_def.nodes_of_class(astroid.Call):
+                if self.get_func_name(node_compute_call.func) != "write":
+                    continue
+                if self.get_func_lib(node_compute_call.func) == "self":
+                    # self.write(...)
+                    self.add_message("no-write-in-compute", node=node_compute_call)
+                    continue
+                last_lib_assignation = node_compute_call.func.expr.lookup(
+                    node_compute_call.func.expr.name
+                )[1][-1]
+                if isinstance(last_lib_assignation, astroid.AssignName) and isinstance(
+                    last_lib_assignation.statement(), astroid.For
+                ):
+                    # for rec in self:
+                    #   rec.write(...)
+                    for_node = last_lib_assignation.statement()
+                    last_lib_name = for_node.iter.name
+                    if last_lib_name == "self":
+                        self.add_message("no-write-in-compute", node=node_compute_call)
+                        continue
+                    last_lib_assignation2 = last_lib_assignation.lookup(last_lib_name)[1][0]
+                    if isinstance(last_lib_assignation2.statement(), astroid.Assign):
+                        # TODO: Use a loop to lookup last level
+                        last_lib_assignation2_assign = last_lib_assignation2.statement()
+                        if isinstance(last_lib_assignation2_assign.value, astroid.Call):
+                            last_lib_assignation2_assign_call = last_lib_assignation2_assign.value
+                            if (
+                                self.get_func_name(last_lib_assignation2_assign_call.func)
+                                == "browse"
+                                and self.get_func_lib(last_lib_assignation2_assign_call.func)
+                                == "self"
+                            ):
+                                # users = self.env["res.users"].browse([1,2,3])
+                                # for user in users:
+                                #     user.write({"name": "moy6"})
+                                self.add_message("no-write-in-compute", node=node_compute_call)
