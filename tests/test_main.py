@@ -1,10 +1,13 @@
 import os
+import re
 import sys
 import unittest
 from glob import glob
 from tempfile import NamedTemporaryFile, gettempdir
 
 from pylint.lint import Run
+
+from pylint_odoo import plugin
 
 EXPECTED_ERRORS = {
     "attribute-deprecated": 3,
@@ -336,6 +339,33 @@ def fstring_no_sqli(self):
             real_errors = pylint_res.linter.stats.by_msg
             expected_errors.pop(disable_error)
             self.assertDictEqual(real_errors, expected_errors)
+
+    @staticmethod
+    def re_replace(sub_start, sub_end, substitution, content):
+        re_sub = re.compile(rf"^{re.escape(sub_start)}$.*^{re.escape(sub_end)}$", re.M | re.S)
+        if not re_sub.findall(content):
+            raise UserWarning("No matched content")
+        new_content = re_sub.sub(f"{sub_start}\n\n{substitution}\n\n{sub_end}", content)
+        return new_content
+
+    @unittest.skipIf(not os.environ.get("BUILD_README"), "BUILD_README environment variable not enabled")
+    def test_build_docstring(self):
+        messages_content = plugin.messages2md()
+        readme_path = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "README.md")
+        with open(readme_path, encoding="UTF-8") as f_readme:
+            readme_content = f_readme.read()
+
+        new_readme = self.re_replace(
+            "[//]: # (start-checks)", "[//]: # (end-checks)", messages_content, readme_content
+        )
+
+        with open(readme_path, "w", encoding="UTF-8") as f_readme:
+            f_readme.write(new_readme)
+        self.assertEqual(
+            readme_content,
+            new_readme,
+            "The README was updated! Don't panic only failing for CI purposes. Run the same test again.",
+        )
 
 
 if __name__ == "__main__":
