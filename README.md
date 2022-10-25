@@ -21,7 +21,6 @@ Short Name | Description | Code
 --- | --- | ---
 attribute-deprecated | attribute "%s" deprecated | W8105
 attribute-string-redundant | The attribute string is redundant. String parameter equal to name of variable | W8113
-compute-write | Compute method calling `write`. Use `update` instead. | E8135
 consider-merging-classes-inherited | Consider merging classes inherited to "%s" from %s. | R8180
 context-overridden | Context overridden using dict. Better using kwargs `with_context(**%s)` or `with_context(key=value)` | W8121
 development-status-allowed | Manifest key development_status "%s" not allowed. Use one of: %s. | C8111
@@ -42,6 +41,7 @@ method-required-super | Missing `super` call in "%s" method. | W8106
 method-search | Name of search method should start with "_search_" | C8109
 missing-readme | Missing ./README.rst file. Template here: %s | C8112
 missing-return | Missing `return` (`super` is used) in method %s. | W8110
+no-write-in-compute | Compute method calling `write`. Use `update` instead. | E8135
 odoo-addons-relative-import | Same Odoo module absolute import. You should use relative import with "." instead of "odoo.addons.%s" | W8150
 odoo-exception-warning | `odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` use `from odoo.exceptions import UserError` | R8101
 print-used | Print used. Use `logger` instead. | W8116

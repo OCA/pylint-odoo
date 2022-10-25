@@ -170,7 +170,7 @@ ODOO_MSGS = {
         CHECK_DESCRIPTION,
     ),
     "E8130": ("Test folder imported in module %s", "test-folder-imported", CHECK_DESCRIPTION),
-    "E8135": ("Compute method calling `write`. Use `update` instead.", "compute-write", CHECK_DESCRIPTION),
+    "E8135": ("Compute method calling `write`. Use `update` instead.", "no-write-in-compute", CHECK_DESCRIPTION),
     "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "R8101": (
         "`odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` "
@@ -705,7 +705,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     @utils.only_required_for_messages(
         "attribute-string-redundant",
-        "compute-write",
+        "no-write-in-compute",
         "context-overridden",
         "external-request-timeout",
         "invalid-commit",
@@ -791,7 +791,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                                         continue
                                     if self.get_func_lib(node_compute_call.func) == "self":
                                         # self.write(...)
-                                        self.add_message("compute-write", node=node_compute_call)
+                                        self.add_message("no-write-in-compute", node=node_compute_call)
                                         continue
                                     last_lib_assignation = node_compute_call.func.expr.lookup(
                                         node_compute_call.func.expr.name
@@ -804,23 +804,27 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                                         for_node = last_lib_assignation.statement()
                                         last_lib_name = for_node.iter.name
                                         if last_lib_name == "self":
-                                            self.add_message("compute-write", node=node_compute_call)
+                                            self.add_message("no-write-in-compute", node=node_compute_call)
                                             continue
                                         last_lib_assignation2 = last_lib_assignation.lookup(last_lib_name)[1][0]
                                         if isinstance(last_lib_assignation2.statement(), astroid.Assign):
-                                            # TODO: Use a loop to lookup last level
+                                            # TODO: Use a loop to lookup last level
                                             last_lib_assignation2_assign = last_lib_assignation2.statement()
                                             if isinstance(last_lib_assignation2_assign.value, astroid.Call):
                                                 last_lib_assignation2_assign_call = last_lib_assignation2_assign.value
-                                                if self.get_func_name(last_lib_assignation2_assign_call.func) == "browse" and self.get_func_lib(last_lib_assignation2_assign_call.func) == "self":
-                                                # if "user.write" in node_compute_call.as_string():
-                                                    # users = self.env["res.users"].browse([1,2,3])
+                                                if (
+                                                    self.get_func_name(last_lib_assignation2_assign_call.func)
+                                                    == "browse"
+                                                    and self.get_func_lib(last_lib_assignation2_assign_call.func)
+                                                    == "self"
+                                                ):
+                                                    # if "user.write" in node_compute_call.as_string():
+                                                    # users = self.env["res.users"].browse([1,2,3])
                                                     # for user in users:
                                                     #     user.write({"name": "moy6"})
-                                                    self.add_message("compute-write", node=node_compute_call)
-                                                    # import pdb;pdb.set_trace()
-                                                    # print(last_lib_assignation2.as_string())
-
+                                                    self.add_message("no-write-in-compute", node=node_compute_call)
+                                                    # import pdb;pdb.set_trace()
+                                                    # print(last_lib_assignation2.as_string())
 
                                 # import pdb;pdb.set_trace()
                                 # print(node_function_def.as_string())
@@ -1178,7 +1182,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             if isinstance(node.expr, astroid.Name):
                 return node.expr.name
             elif isinstance(node.expr, astroid.Subscript):
-                # users = self.env["res.users"].browse([1,2,3])
+                # users = self.env["res.users"].browse([1,2,3])
                 return self.get_func_lib(node.expr.value)
         return ""
 
