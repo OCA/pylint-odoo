@@ -80,6 +80,10 @@ class TestModel(models.Model):
         users = self.env["res.users"].browse([1,2,3])
         for user in users:
             user.write({"name": "moy6"})
+        with open("file.txt", "w") as f_obj:
+            f_obj.write("write file allowed")
+        unknown_type_object = self._get_object()
+        unknown_type_object.write('write not self.browse allowed')
     
     def _compute_with_method_def(self):
         # Compute called from funct-def with write
@@ -89,6 +93,10 @@ class TestModel(models.Model):
         users = self.env["res.users"].browse([1,2,3])
         for user in users:
             user.write({"name": "moy6"})
+        with open("file.txt", "w") as f_obj:
+            f_obj.write("write file allowed")
+        unknown_type_object = self._get_object()
+        unknown_type_object.write('write not self.browse allowed')
 
     name = fields.Char(
         _(u"Näme"),  # Don't need translate
@@ -126,6 +134,10 @@ class TestModel(models.Model):
         users = self.env["res.users"].browse([1,2,3])
         for user in users:
             user.write({"name": "moy6"})
+        with open("file.txt", "w") as f_obj:
+            f_obj.write("write file allowed")
+        unknown_type_object = self._get_object()
+        unknown_type_object.write('write not self.browse allowed')
 
     # This is a inherit overwrite field then don't should show errors related
     # with creation of fields.
