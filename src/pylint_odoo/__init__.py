@@ -1,3 +1,3 @@
-__version__ = "8.0.6"
+__version__ = "8.0.7"
 
 from .plugin import register

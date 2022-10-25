@@ -5,7 +5,7 @@
 [![version](https://img.shields.io/pypi/v/pylint-odoo.svg)](https://pypi.org/project/pylint-odoo)
 [![wheel](https://img.shields.io/pypi/wheel/pylint-odoo.svg)](https://pypi.org/project/pylint-odoo)
 [![supported-versions](https://img.shields.io/pypi/pyversions/pylint-odoo.svg)](https://pypi.org/project/pylint-odoo)
-[![commits-since](https://img.shields.io/github/commits-since/OCA/pylint-odoo/v8.0.6.svg)](https://github.com/OCA/pylint-odoo/compare/v8.0.6...main)
+[![commits-since](https://img.shields.io/github/commits-since/OCA/pylint-odoo/v8.0.7.svg)](https://github.com/OCA/pylint-odoo/compare/v8.0.7...main)
 [![code-style-black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 [//]: # (end-badges)
@@ -87,7 +87,7 @@ Add to your ".pre-commit-config.yaml" configuration file the following input
 
 ```yaml
     - repo: https://github.com/OCA/pylint-odoo
-        rev: v8.0.6
+        rev: v8.0.7
         hooks:
         # Add to your .pylintrc file:
         # [MASTER]
