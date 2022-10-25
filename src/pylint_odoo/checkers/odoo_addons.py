@@ -787,8 +787,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                                     continue
                                 for node_compute_call in node_function_def.nodes_of_class(astroid.Call):
                                     # self.write cases
+                                    # import pdb;pdb.set_trace()
                                     if (
-                                        node_compute_call.func.attrname != "write"
+                                        self.get_func_name(node_compute_call.func) != "write"
                                         or self.get_func_lib(node_compute_call.func) != "self"
                                     ):
                                         continue
