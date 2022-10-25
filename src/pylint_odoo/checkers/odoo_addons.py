@@ -170,6 +170,7 @@ ODOO_MSGS = {
         CHECK_DESCRIPTION,
     ),
     "E8130": ("Test folder imported in module %s", "test-folder-imported", CHECK_DESCRIPTION),
+    "E8135": ("Compute method calling 'write' method", "compute-write", CHECK_DESCRIPTION),
     "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "R8101": (
         "`odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` "
@@ -773,6 +774,33 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         self.add_message(
                             "renamed-field-parameter", node=node, args=(argument.arg, deprecated[argument.arg])
                         )
+                    # no write in compute method
+                    if argument.arg == "compute":
+                        # method as string: compute="method"
+                        if isinstance(argument.value, astroid.Const) and isinstance(node.scope(), astroid.ClassDef):
+                            method_name = argument.value.value
+                            class_node = node.scope()
+                            # TODO: Validate it is inherit from odoo.Models or Abstract
+                            for node_function_def in class_node.nodes_of_class(astroid.FunctionDef):
+                                if node_function_def.name != method_name:
+                                    continue
+                                for node_compute_call in node_function_def.nodes_of_class(astroid.Call):
+                                    # self.write cases
+                                    if (
+                                        node_compute_call.func.attrname != "write"
+                                        or self.get_func_lib(node_compute_call.func) != "self"
+                                    ):
+                                        continue
+                                    self.add_message("compute-write", node=node_compute_call)
+
+                                # import pdb;pdb.set_trace()
+                                # print(node_function_def.as_string())
+                            # for node_call in node.nodes_of_class(astroid.FunctionDef):
+                            # node_call
+                            # nodes_of_class
+                            # class_node = node.parent.parent
+                            # import pdb;pdb.set_trace()
+                            # print(argument.as_string())
                 if (
                     isinstance(argument_aux, astroid.Call)
                     and isinstance(argument_aux.func, astroid.Name)

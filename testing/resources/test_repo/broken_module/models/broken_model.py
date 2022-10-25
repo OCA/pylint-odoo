@@ -72,6 +72,14 @@ class TestModel(models.Model):
     _defaults = {}  # deprecated defaults
     length = fields.Integer()  # Deprecated length by js errors
 
+    def _compute_name(self):
+        # Compute called from string with write defined before
+        self.write({"name": "hola"})
+    
+    def _compute_with_method_def(self):
+        # Compute called from funct-def with write
+        self.write({"name": "hola"})
+
     name = fields.Char(
         _(u"Näme"),  # Don't need translate
         help=u"My hëlp",
@@ -98,7 +106,11 @@ class TestModel(models.Model):
     field_related = fields.Char('Field Related', related='model_id.related_field')
     other_field_related = fields.Char(
         related='model_id.related_field', string='Other Field Related')
+    compute_with_method_def = fields.Char(compute=_compute_with_method_def)
 
+    def my_method_compute(self):
+        # Compute called from string with write defined after
+        self.write({"name": "hola"})
     # This is a inherit overwrite field then don't should show errors related
     # with creation of fields.
     def method_date(self):
