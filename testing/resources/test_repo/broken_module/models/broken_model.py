@@ -73,6 +73,7 @@ class TestModel2(odoo.models.Model):
         users = self.env["res.users"].browse([1,2,3])
         for user in users:
             user.write({"name": "moy6"})
+        users.write({"name": "moy8"})
         with open("file.txt", "w") as f_obj:
             f_obj.write("write file allowed")
         unknown_type_object = self._get_object()
@@ -97,6 +98,7 @@ class TestModel(models.Model):
         users = self.env["res.users"].browse([1,2,3])
         for user in users:
             user.write({"name": "moy6"})
+        users.write({"name": "moy8"})
         with open("file.txt", "w") as f_obj:
             f_obj.write("write file allowed")
         unknown_type_object = self._get_object()
@@ -112,6 +114,7 @@ class TestModel(models.Model):
             user.write({"name": "moy6"})
         with open("file.txt", "w") as f_obj:
             f_obj.write("write file allowed")
+        users.write({"name": "moy8"})
         unknown_type_object = self._get_object()
         unknown_type_object.write('write not self.browse allowed')
 
@@ -151,6 +154,7 @@ class TestModel(models.Model):
         users = self.env["res.users"].browse([1,2,3])
         for user in users:
             user.write({"name": "moy6"})
+        users.write({"name": "moy8"})
         with open("file.txt", "w") as f_obj:
             f_obj.write("write file allowed")
         unknown_type_object = self._get_object()

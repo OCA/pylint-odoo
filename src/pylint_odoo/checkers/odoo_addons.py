@@ -1357,19 +1357,23 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     self.add_message("no-write-in-compute", node=node_compute_call)
                     continue
                 last_lib_assignation = node_compute_call.func.expr.lookup(node_compute_call.func.expr.name)[1][-1]
+                # if "users.write" in node_compute_call.as_string():
+                #    import pdb;pdb.set_trace()
+                # if isinstance(last_lib_assignation, astroid.AssignName):
+
                 if isinstance(last_lib_assignation, astroid.AssignName) and isinstance(
-                    last_lib_assignation.statement(), astroid.For
+                    last_lib_assignation.parent, astroid.For
                 ):
                     # for rec in self:
                     #   rec.write(...)
-                    for_node = last_lib_assignation.statement()
+                    for_node = last_lib_assignation.parent
                     last_lib_name = for_node.iter.name
                     if last_lib_name == "self":
                         self.add_message("no-write-in-compute", node=node_compute_call)
                         continue
                     last_lib_assignation2 = last_lib_assignation.lookup(last_lib_name)[1][0]
-                    if isinstance(last_lib_assignation2.statement(), astroid.Assign):
-                        last_lib_assignation2_assign = last_lib_assignation2.statement()
+                    if isinstance(last_lib_assignation2.parent, astroid.Assign):
+                        last_lib_assignation2_assign = last_lib_assignation2.parent
                         if isinstance(last_lib_assignation2_assign.value, astroid.Call):
                             last_lib_assignation2_assign_call = last_lib_assignation2_assign.value
                             if (
