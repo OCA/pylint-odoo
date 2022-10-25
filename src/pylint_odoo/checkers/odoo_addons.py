@@ -793,9 +793,13 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                                         # self.write(...)
                                         self.add_message("compute-write", node=node_compute_call)
                                         continue
-                                    last_lib_assignation = node_compute_call.func.expr.lookup(node_compute_call.func.expr.name)[1][-1]
-                                    if isinstance(last_lib_assignation, astroid.AssignName) and isinstance(last_lib_assignation.statement(), astroid.For):
-                                        # for rec in self:
+                                    last_lib_assignation = node_compute_call.func.expr.lookup(
+                                        node_compute_call.func.expr.name
+                                    )[1][-1]
+                                    if isinstance(last_lib_assignation, astroid.AssignName) and isinstance(
+                                        last_lib_assignation.statement(), astroid.For
+                                    ):
+                                        # for rec in self:
                                         #   rec.write(...)
                                         for_node = last_lib_assignation.statement()
                                         last_lib_name = for_node.iter.name
