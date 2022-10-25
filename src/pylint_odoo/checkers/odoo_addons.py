@@ -583,12 +583,16 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         )
 
     def _is_psycopg2_sql(self, node):
+        return "psycopg2" in self._get_packages(node)
+
+    def _get_packages(self, node):
         if isinstance(node, astroid.Name):
             for assignation_node in self._get_assignation_nodes(node):
-                if self._is_psycopg2_sql(assignation_node):
-                    return True
+                package_names = self._get_packages(assignation_node)
+                if package_names:
+                    return package_names
         if not isinstance(node, astroid.Call) or not isinstance(node.func, (astroid.Attribute, astroid.Name)):
-            return False
+            return []
         imported_name = node.func.as_string().split(".")[0]
         imported_node = node.root().locals.get(imported_name)
         # "from psycopg2 import *" not considered since that it is hard
@@ -601,9 +605,11 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         elif isinstance(imported_node, astroid.Import):
             package_names = [name[0].split(".")[0] for name in imported_node.names]
         else:
-            return False
-        if "psycopg2" in package_names:
-            return True
+            return []
+        return package_names
+        # print(package, node, package_names)
+        # if package in package_names:
+        #     return True
 
     def _check_node_for_sqli_risk(self, node):
         if isinstance(node, astroid.BinOp) and node.op in ("%", "+"):
@@ -1329,10 +1335,26 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         class_node = node.scope()
         if not isinstance(class_node, astroid.ClassDef) or len(class_node.bases) != 1:
             return
-        # imported_class = class_node.lookup(class_node.bases[0].as_string().split(".")[0])[1][-1]
+        # class_base_infer = utils.safe_infer(class_node.bases[0])
+        # if not self._get_packages(class_node.bases[0]):
+        #     return
+        # if not class_base_infer or class_base_infer.root().name != "odoo.models" or class_base_infer.name not in ["Model", "AbstractModel"]:
+        #     return
+        class_inherited_lib = class_node.bases[0].expr.as_string().split(".")[0]
+        imported_class = class_node.lookup(class_inherited_lib)[1][-1]
+        package_names = []
+        if isinstance(imported_class, astroid.ImportFrom):
+            package_names = imported_class.modname.split(".")[:1]
+        elif isinstance(imported_class, astroid.Import):
+            package_names = [name[0].split(".")[0] for name in imported_class.names]
+        class_inherited_name = class_node.bases[0].as_string().split(".")[-1]
+        if "odoo" not in package_names or class_inherited_name not in ["Model", "AbstractModel"]:
+            return
         # if isinstance(imported_class, astroid.ImportFrom)
         # import pdb;pdb.set_trace()
         # TODO: Validate it is inherit from odoo.Models or Abstract
+        # TODO: Use def open() to cache all visits to improve performance
+        import pdb;pdb.set_trace()
         for node_function_def in class_node.nodes_of_class(astroid.FunctionDef):
             if node_function_def.name != method_name:
                 continue

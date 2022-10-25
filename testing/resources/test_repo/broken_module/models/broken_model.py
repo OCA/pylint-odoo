@@ -55,6 +55,7 @@ import odoo.addons.iap.models.iap.jsonrpc
 from odoo.addons.iap.models.iap import jsonrpc
 from odoo.addons.iap.models import iap
 
+import odoo.models
 
 other_field = fields.Char()
 
@@ -62,6 +63,22 @@ other_field = fields.Char()
 def function_no_method():
     return broken_model1, broken_module1, broken_module2, broken_model2
 
+
+class TestModel2(odoo.models.Model):
+    def _compute_name2(self):
+        # Compute called from string with write defined before
+        self.write({"name": "hello"})
+        for rec in self:
+            rec.write({"name": "world"})
+        users = self.env["res.users"].browse([1,2,3])
+        for user in users:
+            user.write({"name": "moy6"})
+        with open("file.txt", "w") as f_obj:
+            f_obj.write("write file allowed")
+        unknown_type_object = self._get_object()
+        unknown_type_object.write('write not self.browse allowed')
+    
+    name2 = fields.Char(compute='_compute_name2')
 
 class TestModel(models.Model):
     _name = 'test.model'
