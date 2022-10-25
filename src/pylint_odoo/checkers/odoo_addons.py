@@ -777,7 +777,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                             "renamed-field-parameter", node=node, args=(argument.arg, deprecated[argument.arg])
                         )
                     # no write in compute method
-                    if argument.arg == "compute" and (isinstance(argument.value, astroid.Const) or isinstance(argument.value, astroid.Name)):
+                    if argument.arg == "compute" and (
+                        isinstance(argument.value, astroid.Const) or isinstance(argument.value, astroid.Name)
+                    ):
                         method_name = (
                             argument.value.value
                             if isinstance(argument.value, astroid.Const)
@@ -1341,9 +1343,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     # self.write(...)
                     self.add_message("no-write-in-compute", node=node_compute_call)
                     continue
-                last_lib_assignation = node_compute_call.func.expr.lookup(
-                    node_compute_call.func.expr.name
-                )[1][-1]
+                last_lib_assignation = node_compute_call.func.expr.lookup(node_compute_call.func.expr.name)[1][-1]
                 if isinstance(last_lib_assignation, astroid.AssignName) and isinstance(
                     last_lib_assignation.statement(), astroid.For
                 ):
@@ -1361,10 +1361,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         if isinstance(last_lib_assignation2_assign.value, astroid.Call):
                             last_lib_assignation2_assign_call = last_lib_assignation2_assign.value
                             if (
-                                self.get_func_name(last_lib_assignation2_assign_call.func)
-                                == "browse"
-                                and self.get_func_lib(last_lib_assignation2_assign_call.func)
-                                == "self"
+                                self.get_func_name(last_lib_assignation2_assign_call.func) == "browse"
+                                and self.get_func_lib(last_lib_assignation2_assign_call.func) == "self"
                             ):
                                 # users = self.env["res.users"].browse([1,2,3])
                                 # for user in users:
