@@ -74,11 +74,15 @@ class TestModel(models.Model):
 
     def _compute_name(self):
         # Compute called from string with write defined before
-        self.write({"name": "hola"})
+        self.write({"name": "hello"})
+        for rec in self:
+            rec.write({"name": "world"})
     
     def _compute_with_method_def(self):
         # Compute called from funct-def with write
-        self.write({"name": "hola"})
+        self.write({"name": "hello"})
+        for rec in self:
+            rec.write({"name": "world"})
 
     name = fields.Char(
         _(u"Näme"),  # Don't need translate
@@ -110,7 +114,10 @@ class TestModel(models.Model):
 
     def my_method_compute(self):
         # Compute called from string with write defined after
-        self.write({"name": "hola"})
+        self.write({"name": "hello"})
+        for rec in self:
+            rec.write({"name": "world"})
+
     # This is a inherit overwrite field then don't should show errors related
     # with creation of fields.
     def method_date(self):

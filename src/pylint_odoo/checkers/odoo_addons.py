@@ -704,6 +704,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     @utils.only_required_for_messages(
         "attribute-string-redundant",
+        "compute-write",
         "context-overridden",
         "external-request-timeout",
         "invalid-commit",
