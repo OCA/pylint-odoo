@@ -806,7 +806,21 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                                         if last_lib_name == "self":
                                             self.add_message("compute-write", node=node_compute_call)
                                             continue
-                                        # import pdb;pdb.set_trace()
+                                        last_lib_assignation2 = last_lib_assignation.lookup(last_lib_name)[1][0]
+                                        if isinstance(last_lib_assignation2.statement(), astroid.Assign):
+                                            # TODO: Use a loop to lookup last level
+                                            last_lib_assignation2_assign = last_lib_assignation2.statement()
+                                            if isinstance(last_lib_assignation2_assign.value, astroid.Call):
+                                                last_lib_assignation2_assign_call = last_lib_assignation2_assign.value
+                                                if self.get_func_name(last_lib_assignation2_assign_call.func) == "browse" and self.get_func_lib(last_lib_assignation2_assign_call.func) == "self":
+                                                # if "user.write" in node_compute_call.as_string():
+                                                    # users = self.env["res.users"].browse([1,2,3])
+                                                    # for user in users:
+                                                    #     user.write({"name": "moy6"})
+                                                    self.add_message("compute-write", node=node_compute_call)
+                                                    # import pdb;pdb.set_trace()
+                                                    # print(last_lib_assignation2.as_string())
+
 
                                 # import pdb;pdb.set_trace()
                                 # print(node_function_def.as_string())
@@ -1160,8 +1174,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         return func_name
 
     def get_func_lib(self, node):
-        if isinstance(node, astroid.Attribute) and isinstance(node.expr, astroid.Name):
-            return node.expr.name
+        if isinstance(node, astroid.Attribute):
+            if isinstance(node.expr, astroid.Name):
+                return node.expr.name
+            elif isinstance(node.expr, astroid.Subscript):
+                # users = self.env["res.users"].browse([1,2,3])
+                return self.get_func_lib(node.expr.value)
         return ""
 
     @utils.only_required_for_messages("translation-required")

@@ -77,12 +77,18 @@ class TestModel(models.Model):
         self.write({"name": "hello"})
         for rec in self:
             rec.write({"name": "world"})
+        users = self.env["res.users"].browse([1,2,3])
+        for user in users:
+            user.write({"name": "moy6"})
     
     def _compute_with_method_def(self):
         # Compute called from funct-def with write
         self.write({"name": "hello"})
         for rec in self:
             rec.write({"name": "world"})
+        users = self.env["res.users"].browse([1,2,3])
+        for user in users:
+            user.write({"name": "moy6"})
 
     name = fields.Char(
         _(u"Näme"),  # Don't need translate
@@ -117,6 +123,9 @@ class TestModel(models.Model):
         self.write({"name": "hello"})
         for rec in self:
             rec.write({"name": "world"})
+        users = self.env["res.users"].browse([1,2,3])
+        for user in users:
+            user.write({"name": "moy6"})
 
     # This is a inherit overwrite field then don't should show errors related
     # with creation of fields.
