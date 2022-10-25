@@ -18,14 +18,35 @@ def config_logging_modules(linter, modules):
         linter.config.logging_modules = original_logging_modules
 
 
+def transform_msgs(msgs):
+    """Transform all the 'logging' messages and code to 'translation'
+    from:
+        - {'W1201': ('logging-*', 'logging ...', ...)}
+    to:
+        - {'W8301': ('translation-*', 'translation ...', ...)}
+    """
+    new_msgs = {}
+    for msgid, msgattrs in msgs.items():
+        msg_short, msg_code, msg_desc = msgattrs[:3]
+        if "logging" not in msg_code.lower():  # pragma: no cover
+            continue
+        msg_short = msg_short.replace("logging", "odoo._")
+        msgid = re.sub("12", BASE_CHECKS_ID, msgid, count=1)
+        msg_code = msg_code.replace("logging", "translation")
+        new_msgs[msgid] = (msg_short, msg_code, msg_desc) + msgattrs[3:]
+    return new_msgs
+
+
 BASE_CHECKS_ID = "83"
+
+ODOO_MSGS = transform_msgs(logging.MSGS)
 
 
 class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
     name = "odoolint"
+    msgs = ODOO_MSGS
 
     def __init__(self, *args, **kwargs):
-        self.msgs = self.transform_msgs()
         super().__init__(*args, **kwargs)
         for msg_attrs in self.msgs.values():
             # checks_maxmin_odoo_version = {
@@ -36,24 +57,6 @@ class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
             self.checks_maxmin_odoo_version[msg_attrs[1]] = {
                 "odoo_minversion": "14.0",
             }
-
-    def transform_msgs(self):
-        """Transform all the 'logging' messages and code to 'translation'
-        from:
-            - {'W1201': ('logging-*', 'logging ...', ...)}
-        to:
-            - {'W8301': ('translation-*', 'translation ...', ...)}
-        """
-        msgs = {}
-        for msgid, msgattrs in self.msgs.items():
-            msg_short, msg_code, msg_desc = msgattrs[:3]
-            if "logging" not in msg_code.lower():  # pragma: no cover
-                continue
-            msg_short = msg_short.replace("logging", "odoo._")
-            msgid = re.sub("12", BASE_CHECKS_ID, msgid, count=1)
-            msg_code = msg_code.replace("logging", "translation")
-            msgs[msgid] = (msg_short, msg_code, msg_desc) + msgattrs[3:]
-        return msgs
 
     def add_message(self, msgid, *args, **kwargs):
         """Emit translation-* instead of logging-*

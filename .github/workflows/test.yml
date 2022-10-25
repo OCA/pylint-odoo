@@ -42,7 +42,7 @@ jobs:
             python: '3.10'
             toxpython: 'python3.10'
             python_arch: 'x64'
-            tox_env: 'py310,report,codecov,lint,build'
+            tox_env: 'py310,update-readme,report,codecov,lint,build'
             os: 'ubuntu-latest'
           - name: 'py311-dev-cover (ubuntu)'
             python: '3.11-dev'
