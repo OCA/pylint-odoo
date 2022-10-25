@@ -583,16 +583,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         )
 
     def _is_psycopg2_sql(self, node):
-        return "psycopg2" in self._get_packages(node)
-
-    def _get_packages(self, node):
         if isinstance(node, astroid.Name):
             for assignation_node in self._get_assignation_nodes(node):
-                package_names = self._get_packages(assignation_node)
-                if package_names:
-                    return package_names
+                if self._is_psycopg2_sql(assignation_node):
+                    return True
         if not isinstance(node, astroid.Call) or not isinstance(node.func, (astroid.Attribute, astroid.Name)):
-            return []
+            return False
         imported_name = node.func.as_string().split(".")[0]
         imported_node = node.root().locals.get(imported_name)
         # "from psycopg2 import *" not considered since that it is hard
@@ -605,11 +601,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         elif isinstance(imported_node, astroid.Import):
             package_names = [name[0].split(".")[0] for name in imported_node.names]
         else:
-            return []
-        return package_names
-        # print(package, node, package_names)
-        # if package in package_names:
-        #     return True
+            return False
+        if "psycopg2" in package_names:
+            return True
 
     def _check_node_for_sqli_risk(self, node):
         if isinstance(node, astroid.BinOp) and node.op in ("%", "+"):
