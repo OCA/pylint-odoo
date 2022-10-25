@@ -170,7 +170,7 @@ ODOO_MSGS = {
         CHECK_DESCRIPTION,
     ),
     "E8130": ("Test folder imported in module %s", "test-folder-imported", CHECK_DESCRIPTION),
-    "E8135": ("Compute method calling 'write' method", "compute-write", CHECK_DESCRIPTION),
+    "E8135": ("Compute method calling `write`. Use `update` instead.", "compute-write", CHECK_DESCRIPTION),
     "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "R8101": (
         "`odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` "
