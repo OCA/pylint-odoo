@@ -779,8 +779,19 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     # no write in compute method
                     if argument.arg == "compute":
                         # method as string: compute="method"
-                        if isinstance(argument.value, astroid.Const) and isinstance(node.scope(), astroid.ClassDef):
-                            method_name = argument.value.value
+                        # if "_compute_with_method_def" in node.as_string():
+                        # import pdb;pdb.set_trace()
+
+                        if (
+                            isinstance(argument.value, astroid.Const) or isinstance(argument.value, astroid.Name)
+                        ) and isinstance(node.scope(), astroid.ClassDef):
+                            method_name = (
+                                argument.value.value
+                                if isinstance(argument.value, astroid.Const)
+                                else argument.value.name
+                                if isinstance(argument.value, astroid.Name)
+                                else None
+                            )
                             class_node = node.scope()
                             # TODO: Validate it is inherit from odoo.Models or Abstract
                             for node_function_def in class_node.nodes_of_class(astroid.FunctionDef):
