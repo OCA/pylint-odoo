@@ -125,7 +125,7 @@ class MainTest(unittest.TestCase):
             "translation-too-many-args",
             "translation-unsupported-format",
         }
-        self.default_extra_params += ["--valid_odoo_versions=13.0"]
+        self.default_extra_params += ["--valid-odoo-versions=13.0"]
         pylint_res = self.run_pylint(self.paths_modules)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = self.expected_errors.copy()
@@ -136,7 +136,7 @@ class MainTest(unittest.TestCase):
 
     def test_35_checks_emiting_by_odoo_version(self):
         """All odoolint errors vs found but see if were not excluded for valid odoo version"""
-        self.default_extra_params += ["--valid_odoo_versions=14.0"]
+        self.default_extra_params += ["--valid-odoo-versions=14.0"]
         pylint_res = self.run_pylint(self.paths_modules)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = self.expected_errors.copy()
@@ -149,10 +149,10 @@ class MainTest(unittest.TestCase):
         self.assertEqual(expected_errors, real_errors)
 
     def test_85_valid_odoo_version_format(self):
-        """Test --manifest_version_format parameter"""
+        """Test --manifest-version-format parameter"""
         # First, run Pylint for version 8.0
         extra_params = [
-            r'--manifest_version_format="8\.0\.\d+\.\d+.\d+$"' '--valid_odoo_versions=""',
+            r'--manifest-version-format="8\.0\.\d+\.\d+.\d+$"' '--valid-odoo-versions=""',
             "--disable=all",
             "--enable=manifest-version-format",
         ]
@@ -164,7 +164,7 @@ class MainTest(unittest.TestCase):
         self.assertDictEqual(real_errors, expected_errors)
 
         # Now for version 11.0
-        extra_params[0] = r'--manifest_version_format="11\.0\.\d+\.\d+.\d+$"'
+        extra_params[0] = r'--manifest-version-format="11\.0\.\d+\.\d+.\d+$"'
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
@@ -173,10 +173,10 @@ class MainTest(unittest.TestCase):
         self.assertDictEqual(real_errors, expected_errors)
 
     def test_90_valid_odoo_versions(self):
-        """Test --valid_odoo_versions parameter when it's '8.0' & '11.0'"""
+        """Test --valid-odoo-versions parameter when it's '8.0' & '11.0'"""
         # First, run Pylint for version 8.0
         extra_params = [
-            "--valid_odoo_versions=8.0",
+            "--valid-odoo-versions=8.0",
             "--disable=all",
             "--enable=manifest-version-format",
         ]
@@ -188,7 +188,7 @@ class MainTest(unittest.TestCase):
         self.assertDictEqual(real_errors, expected_errors)
 
         # Now for version 11.0
-        extra_params[0] = "--valid_odoo_versions=11.0"
+        extra_params[0] = "--valid-odoo-versions=11.0"
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
@@ -197,12 +197,12 @@ class MainTest(unittest.TestCase):
         self.assertDictEqual(real_errors, expected_errors)
 
     def test_110_manifest_required_authors(self):
-        """Test --manifest_required_authors using a different author and
+        """Test --manifest-required-authors using a different author and
         multiple authors separated by commas
         """
         # First, run Pylint using a different author
         extra_params = [
-            "--manifest_required_authors=Vauxoo",
+            "--manifest-required-authors=Vauxoo",
             "--disable=all",
             "--enable=manifest-required-author",
         ]
@@ -214,14 +214,14 @@ class MainTest(unittest.TestCase):
         self.assertDictEqual(real_errors, expected_errors)
 
         # Then, run it using multiple authors
-        extra_params[0] = "--manifest_required_authors=Vauxoo,Other"
+        extra_params[0] = "--manifest-required-authors=Vauxoo,Other"
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors["manifest-required-author"] = 3
         self.assertDictEqual(real_errors, expected_errors)
 
         # Testing deprecated attribute
-        extra_params[0] = "--manifest_required_author=" "Odoo Community Association (OCA)"
+        extra_params[0] = "--manifest-required-author=" "Odoo Community Association (OCA)"
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors_deprecated = {
