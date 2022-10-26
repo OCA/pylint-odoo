@@ -1356,8 +1356,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     # self.write(...)
                     self.add_message("no-write-in-compute", node=node_compute_call)
                     continue
-                _new_node, new_libname = self._get_root_method_assignation(node_compute_call)
-                if new_libname in ["self", "self.env"]:
+                _root_assignation_node, root_assignation_name = self._get_root_method_assignation(node_compute_call)
+                if root_assignation_name in ["self", "self.env"]:
                     self.add_message("no-write-in-compute", node=node_compute_call)
 
     def _get_root_method_assignation(self, node, libname=None):
