@@ -55,6 +55,7 @@ import odoo.addons.iap.models.iap.jsonrpc
 from odoo.addons.iap.models.iap import jsonrpc
 from odoo.addons.iap.models import iap
 
+import odoo.models
 
 other_field = fields.Char()
 
@@ -62,6 +63,23 @@ other_field = fields.Char()
 def function_no_method():
     return broken_model1, broken_module1, broken_module2, broken_model2
 
+
+class TestModel2(odoo.models.Model):
+    def _compute_name2(self):
+        # Compute called from string with write defined before
+        self.write({"name": "hello"})
+        for rec in self:
+            rec.write({"name": "world"})
+        users = self.env["res.users"].browse([1,2,3])
+        for user in users:
+            user.write({"name": "moy6"})
+        users.write({"name": "moy8"})
+        with open("file.txt", "w") as f_obj:
+            f_obj.write("write file allowed")
+        unknown_type_object = self._get_object()
+        unknown_type_object.write('write not self.browse allowed')
+    
+    name2 = fields.Char(compute='_compute_name2')
 
 class TestModel(models.Model):
     _name = 'test.model'
@@ -71,6 +89,36 @@ class TestModel(models.Model):
     _columns = {}  # deprecated columns
     _defaults = {}  # deprecated defaults
     length = fields.Integer()  # Deprecated length by js errors
+
+    def _compute_name(self):
+        # Compute called from string with write defined before
+        self.write({"name": "hello"})
+        for rec in self:
+            rec.write({"name": "world"})
+        users = self.env["res.users"].browse([1,2,3])
+        for user in users:
+            user.write({"name": "moy6"})
+        users.write({"name": "moy8"})
+        with open("file.txt", "w") as f_obj:
+            f_obj.write("write file allowed")
+        unknown_type_object = self._get_object()
+        unknown_type_object.write('write not self.browse allowed')
+        self.write({"name": "hello"})  # pylint: disable=no-write-in-compute
+    
+    def _compute_with_method_def(self):
+        # Compute called from funct-def with write
+        self.write({"name": "hello"})
+        for rec in self:
+            rec.write({"name": "world"})
+        users = self.env["res.users"].browse([1,2,3])
+        for user in users:
+            user.write({"name": "moy6"})
+        with open("file.txt", "w") as f_obj:
+            f_obj.write("write file allowed")
+        users.write({"name": "moy8"})
+        unknown_type_object = self._get_object()
+        unknown_type_object.write('write not self.browse allowed')
+        self.write({"name": "hello"})  # pylint: disable=no-write-in-compute
 
     name = fields.Char(
         _(u"Näme"),  # Don't need translate
@@ -98,6 +146,22 @@ class TestModel(models.Model):
     field_related = fields.Char('Field Related', related='model_id.related_field')
     other_field_related = fields.Char(
         related='model_id.related_field', string='Other Field Related')
+    compute_with_method_def = fields.Char(compute=_compute_with_method_def)
+
+    def my_method_compute(self):
+        # Compute called from string with write defined after
+        self.write({"name": "hello"})
+        for rec in self:
+            rec.write({"name": "world"})
+        users = self.env["res.users"].browse([1,2,3])
+        for user in users:
+            user.write({"name": "moy6"})
+        users.write({"name": "moy8"})
+        with open("file.txt", "w") as f_obj:
+            f_obj.write("write file allowed")
+        unknown_type_object = self._get_object()
+        unknown_type_object.write('write not self.browse allowed')
+        self.write({"name": "hello"})  # pylint: disable=no-write-in-compute
 
     # This is a inherit overwrite field then don't should show errors related
     # with creation of fields.

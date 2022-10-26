@@ -170,6 +170,7 @@ ODOO_MSGS = {
         CHECK_DESCRIPTION,
     ),
     "E8130": ("Test folder imported in module %s", "test-folder-imported", CHECK_DESCRIPTION),
+    "E8135": ("Compute method calling `write`. Use `update` instead.", "no-write-in-compute", CHECK_DESCRIPTION),
     "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "R8101": (
         "`odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` "
@@ -709,6 +710,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "method-compute",
         "method-inverse",
         "method-search",
+        "no-write-in-compute",
         "print-used",
         "renamed-field-parameter",
         "sql-injection",
@@ -773,6 +775,17 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         self.add_message(
                             "renamed-field-parameter", node=node, args=(argument.arg, deprecated[argument.arg])
                         )
+                    # no write in compute method
+                    if argument.arg == "compute" and isinstance(argument.value, (astroid.Const, astroid.Name)):
+                        method_name = (
+                            argument.value.value
+                            if isinstance(argument.value, astroid.Const)
+                            else argument.value.name
+                            if isinstance(argument.value, astroid.Name)
+                            else None
+                        )
+                        if method_name and self.is_class_odoo_models:
+                            self.odoo_computes.add(method_name)
                 if (
                     isinstance(argument_aux, astroid.Call)
                     and isinstance(argument_aux.func, astroid.Name)
@@ -1303,3 +1316,88 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 package_names = [name[0].split(".")[0] for name in node.names]
             if "tests" in package_names:
                 self.add_message("test-folder-imported", node=node, args=(node.parent.name,))
+
+    def check_no_write_compute(self, node, method_name):
+        for node_function_def in node.nodes_of_class(astroid.FunctionDef):
+            if node_function_def.name != method_name:
+                continue
+            for node_compute_call in node_function_def.nodes_of_class(astroid.Call):
+                if (
+                    not self.linter.is_message_enabled("no-write-in-compute", node_compute_call.lineno)
+                    or self.get_func_name(node_compute_call.func) != "write"
+                ):
+                    continue
+                if self.get_func_lib(node_compute_call.func) == "self":
+                    # self.write(...)
+                    self.add_message("no-write-in-compute", node=node_compute_call)
+                    continue
+                _root_assignation_node, root_assignation_name = self._get_root_method_assignation(node_compute_call)
+                # TODO: Support "browse(2) | browse(1)"
+                if root_assignation_name in [
+                    # All methods returning browseables
+                    "self.browse",
+                    "self.copy",
+                    "self.env",
+                    "self.filtered",
+                    "self.filtered_domain",
+                    "self.mapped",
+                    "self.search",
+                    "self.sorted",
+                    "self",
+                ] or root_assignation_name.startswith("self.with_"):
+                    self.add_message("no-write-in-compute", node=node_compute_call)
+
+    def _get_root_method_assignation(self, node, libname=None):
+        new_node = node
+        new_libname = libname
+        if isinstance(node, astroid.Call):
+            new_node = node.func
+        elif isinstance(node, astroid.Subscript):
+            new_node = node.value
+        elif isinstance(node, astroid.AssignName):
+            new_node = node.parent
+        elif isinstance(node, astroid.Assign):
+            new_node = node.value
+        elif isinstance(node, astroid.For):
+            new_node = node.iter
+            new_libname = node.iter.as_string()
+        elif isinstance(node, astroid.Attribute):
+            new_node = node.expr
+            new_libname = node.as_string()
+        elif isinstance(node, astroid.Name):
+            if node.name == "self":
+                return node, libname
+            new_node = node.lookup(node.name)[1][-1]
+        if new_node == node:
+            return new_node, new_libname
+        return self._get_root_method_assignation(new_node, new_libname)
+
+    def is_odoo_models_class(self, node):
+        for class_base in node.bases:
+            attr = class_base
+            while True:
+                if isinstance(attr, astroid.Attribute):
+                    attr = attr.expr
+                    continue
+                break
+            if not isinstance(attr, astroid.Name):
+                continue
+            imported_class = node.lookup(attr.name)[1][-1]
+            package_names = []
+            if isinstance(imported_class, astroid.ImportFrom):
+                package_names = imported_class.modname.split(".")[:1]
+            elif isinstance(imported_class, astroid.Import):
+                package_names = [name[0].split(".")[0] for name in imported_class.names]
+            if "odoo" in package_names and class_base.as_string().split(".")[-1] in ["Model", "AbstractModel"]:
+                return True
+
+    def visit_classdef(self, node):
+        self.is_class_odoo_models = self.is_odoo_models_class(node)
+        self.odoo_computes = set()
+
+    def leave_classdef(self, node):
+        if self.is_class_odoo_models:
+            for odoo_compute in self.odoo_computes:
+                self.check_no_write_compute(node, odoo_compute)
+        self.odoo_computes = set()
+        self.is_class_odoo_models = False
