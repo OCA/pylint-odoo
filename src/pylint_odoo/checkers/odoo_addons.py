@@ -99,7 +99,6 @@ for more info visit pylint doc
 
 import ast
 import itertools
-from multiprocessing import set_forkserver_preload
 import os
 import re
 import string
@@ -786,8 +785,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                             if isinstance(argument.value, astroid.Name)
                             else None
                         )
-                        # self.check_no_write_compute(node, method_name)
-                        # self.odoo_write_calls.update()
+                        # self.check_no_write_compute(node, method_name)
+                        # self.odoo_write_calls.update()
                         if method_name and self.is_class_odoo_models:
                             self.odoo_computes.add(method_name)
                 if (
@@ -1326,25 +1325,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 self.add_message("test-folder-imported", node=node, args=(node.parent.name,))
 
     def check_no_write_compute(self, node, method_name):
-        # TODO: Use def open() to cache all visits to improve performance
-        # TODO: Avoid adding the same message too many times
-        # e.g. https://github.com/odoo/odoo/blob/d8d47f9ff85/addons/product_margin/models/product_product.py#L179  # no-qa: B950
         if not self.linter.is_message_enabled("no-write-in-compute", node.lineno) or not method_name:
             return
-        class_node = node.scope()
-        if not isinstance(class_node, astroid.ClassDef) or len(class_node.bases) != 1:
-            return
-        class_inherited_lib = class_node.bases[0].expr.as_string().split(".")[0]
-        imported_class = class_node.lookup(class_inherited_lib)[1][-1]
-        package_names = []
-        if isinstance(imported_class, astroid.ImportFrom):
-            package_names = imported_class.modname.split(".")[:1]
-        elif isinstance(imported_class, astroid.Import):
-            package_names = [name[0].split(".")[0] for name in imported_class.names]
-        class_inherited_name = class_node.bases[0].as_string().split(".")[-1]
-        if "odoo" not in package_names or class_inherited_name not in ["Model", "AbstractModel"]:
-            return
-        for node_function_def in class_node.nodes_of_class(astroid.FunctionDef):
+        for node_function_def in node.nodes_of_class(astroid.FunctionDef):
             if node_function_def.name != method_name:
                 continue
             for node_compute_call in node_function_def.nodes_of_class(astroid.Call):
