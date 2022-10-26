@@ -2,12 +2,12 @@
 
 [![Build Status](https://github.com/OCA/pylint-odoo/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/OCA/pylint-odoo/actions/workflows/test.yml?query=branch%3Amain)
 [![codecov](https://codecov.io/gh/OCA/pylint-odoo/branch/main/graph/badge.svg)](https://codecov.io/gh/OCA/pylint-odoo)
-[![version](https://img.shields.io/pypi/v/pylint-odoo.svg)](https://pypi.org/project/pylint-odoo)
-[![wheel](https://img.shields.io/pypi/wheel/pylint-odoo.svg)](https://pypi.org/project/pylint-odoo)
-[![supported-versions](https://img.shields.io/pypi/pyversions/pylint-odoo.svg)](https://pypi.org/project/pylint-odoo)
-[![commits-since](https://img.shields.io/github/commits-since/OCA/pylint-odoo/v8.0.8.svg)](https://github.com/OCA/pylint-odoo/compare/v8.0.8...main)
 [![code-style-black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![version](https://img.shields.io/pypi/v/pylint-odoo.svg)](https://pypi.org/project/pylint-odoo)
 [![pypi-downloads-monthly](https://img.shields.io/pypi/dm/pylint-odoo.svg?style=flat)](https://pypi.python.org/pypi/pylint-odoo)
+[![supported-versions](https://img.shields.io/pypi/pyversions/pylint-odoo.svg)](https://pypi.org/project/pylint-odoo)
+[![wheel](https://img.shields.io/pypi/wheel/pylint-odoo.svg)](https://pypi.org/project/pylint-odoo)
+[![commits-since](https://img.shields.io/github/commits-since/OCA/pylint-odoo/v8.0.8.svg)](https://github.com/OCA/pylint-odoo/compare/v8.0.8...main)
 
 [//]: # (end-badges)
 
@@ -74,13 +74,7 @@ You do not need to install manually if you use pre-commit-config
 
 But if you even need to install it
 
-from github directly
-
-``# pip install --upgrade git+https://github.com/oca/pylint-odoo.git``
-
-Or
-
-``# pip install --upgrade pylint-odoo``
+    pip install pylint-odoo
 
 # Usage pre-commit-config.yaml
 
@@ -93,25 +87,31 @@ Add to your ".pre-commit-config.yaml" configuration file the following input
         hooks:
         # Add to your .pylintrc file:
         # [MASTER]
-        # load-plugins=pylint.extensions.docstyle, pylint.extensions.mccabe
+        # load-plugins=pylint_odoo
         - id: pylint
 ```
 
 # Usage
 
-``pylint --load-plugins=pylint_odoo -e odoolint path/to/test``
+    pylint --load-plugins=pylint_odoo -e odoolint path/to/test
 
-or use configuration file (find example configuration in https://github.com/OCA/pylint-odoo/tree/master/pylint_odoo/examples/.pylintrc):
+or use configuration file you can generate the OCA one using the following template repository:
 
-``pylint --rcfile=.pylintrc path/to/test``
+    https://github.com/OCA/oca-addons-repo-template
 
-Example to test just odoo-lint case:
+Then running
 
-``pylint --load-plugins=pylint_odoo -d all -e odoolint {ADDONS-PATH}/*``
+    pylint --rcfile=.pylintrc path/to/test
+
+
+Example to test only pylint_odoo checks:
+
+    pylint --load-plugins=pylint_odoo -d all -e odoolint {ADDONS-PATH}/*
 
 There are checks only valid for a particular Odoo version
 To know what version of odoo are you running pylint needs the parameter
- - `pylint --load-plugins=pylint_odoo --valid_odoo_versions={YOUR_ODOO_VERSION}`
+
+    pylint --load-plugins=pylint_odoo --valid_odoo_versions={YOUR_ODOO_VERSION}
 
 with particular odoo version e.g. `"16.0"`
 
