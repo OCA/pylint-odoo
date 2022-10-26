@@ -1130,12 +1130,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         return func_name
 
     def get_func_lib(self, node):
-        if isinstance(node, astroid.Attribute):
-            if isinstance(node.expr, astroid.Name):
-                return node.expr.name
-            if isinstance(node.expr, astroid.Subscript):
-                # users = self.env["res.users"].browse([1,2,3])
-                return self.get_func_lib(node.expr.value)
+        if isinstance(node, astroid.Attribute) and isinstance(node.expr, astroid.Name):
+            return node.expr.name
         return ""
 
     @utils.only_required_for_messages("translation-required")
