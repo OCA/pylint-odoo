@@ -1356,34 +1356,13 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     # self.write(...)
                     self.add_message("no-write-in-compute", node=node_compute_call)
                     continue
-                new_node = self._get_root_method_assignation(node_compute_call)
-                # if ".write" in node_compute_call.as_string():
-                #     import pdb;pdb.set_trace()
-                # if "unknown_type_object.write" in node_compute_call.as_string():
-                #     import pdb;pdb.set_trace()
-                entro = False
-                if isinstance(new_node, astroid.Name):
-                    if isinstance(new_node.parent, astroid.Attribute):
-                        if "browse" in new_node.parent.as_string() or "self.env" in new_node.parent.as_string():
-                            entro = True
-                            self.add_message("no-write-in-compute", node=node_compute_call)
-                    elif isinstance(new_node.parent, astroid.For):
-                        if new_node.parent.iter.name == "self":
-                            entro = True
-                            self.add_message("no-write-in-compute", node=node_compute_call)
-                elif "self" == new_node.as_string():
-                    entro = True
+                new_node, new_libname = self._get_root_method_assignation(node_compute_call)
+                if new_libname == "self" or "self.env" in new_libname or "self.browse" in new_libname:
                     self.add_message("no-write-in-compute", node=node_compute_call)
-                if not entro:
-                    import pdb;pdb.set_trace()
-                    print(new_node)
-                    # new_node.as_string()
-                    # import pdb;pdb.set_trace()
-                # if (isinstance(new_node, astroid.Name) and new_node.name == "self"):
-                #     self.add_message("no-write-in-compute", node=node_compute_call)
 
-    def _get_root_method_assignation(self, node):
+    def _get_root_method_assignation(self, node, libname=None):
         new_node = node
+        new_libname = libname
         if isinstance(node, astroid.Call):
             new_node = node.func
             # new_node = self._get_root_method_assignation(node.func)
@@ -1399,16 +1378,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         elif isinstance(node, astroid.For):
             # new_node = self._get_root_method_assignation(node.iter)
             new_node = node.iter
+            new_libname = node.iter.name
         elif isinstance(node, astroid.Attribute):
             # new_node = self._get_root_method_assignation(node.expr)
             new_node = node.expr
+            new_libname = node.as_string()
         elif isinstance(node, astroid.Name):
             if node.name == "self":
-                return node
+                return node, libname
             new_node = node.lookup(node.name)[1][-1]
-        # if isinstance(new_node, astroid.Arguments) or isinstance(node, astroid.Name) and node.name == "self":
-            # def meth(self)  # This argument is too far
-            # return node
         if new_node == node:
-            return new_node
-        return self._get_root_method_assignation(new_node)
+            return new_node, new_libname
+        return self._get_root_method_assignation(new_node, new_libname)
