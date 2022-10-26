@@ -1367,18 +1367,23 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     def _get_root_method_assignation(self, node):
         new_node = node
         if isinstance(node, astroid.Call):
-            new_node = self._get_root_method_assignation(node.func)
+            new_node = node.func
+            # new_node = self._get_root_method_assignation(node.func)
         elif isinstance(node, astroid.Subscript):
-            new_node = self._get_root_method_assignation(node.value)
+            # new_node = self._get_root_method_assignation(node.value)
+            new_node = node.value
         elif isinstance(node, astroid.AssignName):
-            node.parent
-            new_node = self._get_root_method_assignation(node.parent)
+            new_node = node.parent
+            # new_node = self._get_root_method_assignation(node.parent)
         elif isinstance(node, astroid.Assign):
-            new_node = self._get_root_method_assignation(node.value)
+            # new_node = self._get_root_method_assignation(node.value)
+            new_node = node.value
         elif isinstance(node, astroid.For):
-            new_node = self._get_root_method_assignation(node.iter)
+            # new_node = self._get_root_method_assignation(node.iter)
+            new_node = node.iter
         elif isinstance(node, astroid.Attribute):
-            new_node = self._get_root_method_assignation(node.expr)
+            # new_node = self._get_root_method_assignation(node.expr)
+            new_node = node.expr
         elif isinstance(node, astroid.Name):
             new_node = node.lookup(node.name)[1][-1]
         if isinstance(new_node, astroid.Arguments):
