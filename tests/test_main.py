@@ -329,6 +329,7 @@ def fstring_no_sqli(self):
             pylint_res = self.run_pylint(self.paths_modules, [disable, enable])
             real_errors = pylint_res.linter.stats.by_msg
             expected_errors = {expected_error_name: expected_error_value}
+            print(enable)
             self.assertDictEqual(real_errors, expected_errors)
 
     def test_160_check_only_disabled_one_check(self):

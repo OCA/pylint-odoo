@@ -1325,13 +1325,14 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 self.add_message("test-folder-imported", node=node, args=(node.parent.name,))
 
     def check_no_write_compute(self, node, method_name):
-        if not self.linter.is_message_enabled("no-write-in-compute", node.lineno) or not method_name:
-            return
         for node_function_def in node.nodes_of_class(astroid.FunctionDef):
             if node_function_def.name != method_name:
                 continue
             for node_compute_call in node_function_def.nodes_of_class(astroid.Call):
-                if self.get_func_name(node_compute_call.func) != "write":
+                if (
+                    not self.linter.is_message_enabled("no-write-in-compute", node.lineno)
+                    or self.get_func_name(node_compute_call.func) != "write"
+                ):
                     continue
                 if self.get_func_lib(node_compute_call.func) == "self":
                     # self.write(...)
@@ -1385,16 +1386,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             if "odoo" in package_names and class_base.as_string().split(".")[-1] in ["Model", "AbstractModel"]:
                 return True
 
-    @utils.only_required_for_messages(
-        "no-write-in-compute",
-    )
     def visit_classdef(self, node):
         self.is_class_odoo_models = self.is_odoo_models_class(node)
         self.odoo_computes = set()
 
-    @utils.only_required_for_messages(
-        "no-write-in-compute",
-    )
     def leave_classdef(self, node):
         if self.is_class_odoo_models:
             for odoo_compute in self.odoo_computes:
