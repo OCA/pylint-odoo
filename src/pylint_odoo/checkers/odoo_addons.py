@@ -1356,40 +1356,34 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     # self.write(...)
                     self.add_message("no-write-in-compute", node=node_compute_call)
                     continue
-                last_lib_assignation = node_compute_call.func.expr.lookup(node_compute_call.func.expr.name)[1][-1]
-                # if "users.write" in node_compute_call.as_string():
-                #     import pdb;pdb.set_trace()
-                # if isinstance(last_lib_assignation, astroid.AssignName):
+                new_node = self._get_root_method_assignation(node_compute_call)
+                if "unknown_type_object" in node_compute_call.as_string():
+                    import pdb;pdb.set_trace()
+                if isinstance(new_node, astroid.Name):
+                    import pdb;pdb.set_trace()
+                if (isinstance(new_node, astroid.Name) and new_node.name == "self"):
+                    self.add_message("no-write-in-compute", node=node_compute_call)
 
-                if isinstance(last_lib_assignation, astroid.AssignName):
-                    last_lib_assignation3 = last_lib_assignation.parent
-                    if isinstance(last_lib_assignation.parent, astroid.Assign):
-                        last_lib_assignation3 = last_lib_assignation3.value
-                    if isinstance(last_lib_assignation3, astroid.Call):
-                        if (
-                            self.get_func_name(last_lib_assignation3.func) == "browse"
-                            and self.get_func_lib(last_lib_assignation3.func) == "self"
-                        ):
-                            self.add_message("no-write-in-compute", node=node_compute_call)
-                            continue
-
-                if isinstance(last_lib_assignation, astroid.AssignName) and isinstance(
-                    last_lib_assignation.parent, astroid.For
-                ):
-                    # for rec in self:
-                    #   rec.write(...)
-                    for_node = last_lib_assignation.parent
-                    last_lib_name = for_node.iter.name
-                    if last_lib_name == "self":
-                        self.add_message("no-write-in-compute", node=node_compute_call)
-                        continue
-                    last_lib_assignation2 = last_lib_assignation.lookup(last_lib_name)[1][0]
-                    if isinstance(last_lib_assignation2.parent, astroid.Assign):
-                        last_lib_assignation2_assign = last_lib_assignation2.parent
-                        if isinstance(last_lib_assignation2_assign.value, astroid.Call):
-                            last_lib_assignation2_assign_call = last_lib_assignation2_assign.value
-                            if (
-                                self.get_func_name(last_lib_assignation2_assign_call.func) == "browse"
-                                and self.get_func_lib(last_lib_assignation2_assign_call.func) == "self"
-                            ):
-                                self.add_message("no-write-in-compute", node=node_compute_call)
+    def _get_root_method_assignation(self, node):
+        new_node = node
+        if isinstance(node, astroid.Call):
+            new_node = self._get_root_method_assignation(node.func)
+        elif isinstance(node, astroid.Subscript):
+            new_node = self._get_root_method_assignation(node.value)
+        elif isinstance(node, astroid.AssignName):
+            node.parent
+            new_node = self._get_root_method_assignation(node.parent)
+        elif isinstance(node, astroid.Assign):
+            new_node = self._get_root_method_assignation(node.value)
+        elif isinstance(node, astroid.For):
+            new_node = self._get_root_method_assignation(node.iter)
+        elif isinstance(node, astroid.Attribute):
+            new_node = self._get_root_method_assignation(node.expr)
+        elif isinstance(node, astroid.Name):
+            new_node = node.lookup(node.name)[1][-1]
+        if isinstance(new_node, astroid.Arguments):
+            # def meth(self)  # This argument is too far
+            return node
+        if new_node == node:
+            return new_node
+        return self._get_root_method_assignation(new_node)
