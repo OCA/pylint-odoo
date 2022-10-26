@@ -690,7 +690,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         return is_concatenation
 
     def _get_assignation_nodes(self, node):
-        # TODO: Improve using "node.lookup"
         if isinstance(node, (astroid.Name, astroid.Subscript)):
             # 1) look for parent method / controller
             current = node
