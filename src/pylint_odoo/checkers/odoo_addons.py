@@ -1332,7 +1332,19 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     self.add_message("no-write-in-compute", node=node_compute_call)
                     continue
                 _root_assignation_node, root_assignation_name = self._get_root_method_assignation(node_compute_call)
-                if root_assignation_name in ["self", "self.env", "self.filtered", "self.search", "self.browse"]:
+                # TODO: Support "browse(2) | browse(1)"
+                if root_assignation_name in [
+                    # All methods returning browseables
+                    "self.browse",
+                    "self.copy",
+                    "self.env",
+                    "self.filtered",
+                    "self.filtered_domain",
+                    "self.mapped",
+                    "self.search",
+                    "self.sorted",
+                    "self",
+                ] or root_assignation_name.startswith("self.with_"):
                     self.add_message("no-write-in-compute", node=node_compute_call)
 
     def _get_root_method_assignation(self, node, libname=None):
