@@ -7,6 +7,7 @@
 [![supported-versions](https://img.shields.io/pypi/pyversions/pylint-odoo.svg)](https://pypi.org/project/pylint-odoo)
 [![commits-since](https://img.shields.io/github/commits-since/OCA/pylint-odoo/v8.0.8.svg)](https://github.com/OCA/pylint-odoo/compare/v8.0.8...main)
 [![code-style-black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![pypi-downloads-monthly](https://img.shields.io/pypi/dm/pylint-odoo.svg?style=flat)](https://pypi.python.org/pypi/pylint-odoo)
 
 [//]: # (end-badges)
 
