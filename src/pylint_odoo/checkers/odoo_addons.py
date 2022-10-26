@@ -1323,7 +1323,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 continue
             for node_compute_call in node_function_def.nodes_of_class(astroid.Call):
                 if (
-                    not self.linter.is_message_enabled("no-write-in-compute", node.lineno)
+                    not self.linter.is_message_enabled("no-write-in-compute", node_compute_call.lineno)
                     or self.get_func_name(node_compute_call.func) != "write"
                 ):
                     continue
