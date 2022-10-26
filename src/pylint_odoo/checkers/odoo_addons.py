@@ -784,8 +784,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                             if isinstance(argument.value, astroid.Name)
                             else None
                         )
-                        # self.check_no_write_compute(node, method_name)
-                        # self.odoo_write_calls.update()
                         if method_name and self.is_class_odoo_models:
                             self.odoo_computes.add(method_name)
                 if (
