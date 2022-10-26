@@ -1,6 +1,6 @@
 import os
 
-from astroid import FunctionDef, Module
+from astroid import nodes
 from pylint.checkers.base import BasicChecker, NameChecker
 from pylint.checkers.variables import VariablesChecker
 from pylint_plugin_utils import suppress_message
@@ -38,7 +38,12 @@ def is_migration_path(node):
 
     # pre-migration.py
     # def migrate(cr, version):
-    if isinstance(node, Module) and "-" in node.name or isinstance(node, FunctionDef) and node.name == "migrate":
+    if (
+        isinstance(node, nodes.Module)
+        and "-" in node.name
+        or isinstance(node, nodes.FunctionDef)
+        and node.name == "migrate"
+    ):
         return True
     return False
 

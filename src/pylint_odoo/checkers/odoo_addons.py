@@ -104,8 +104,8 @@ import re
 import string
 from collections import Counter, defaultdict
 
-import astroid
 import validators
+from astroid import nodes
 from pylint.checkers import BaseChecker, utils
 
 from .. import misc
@@ -511,12 +511,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     def close(self):
         """Final process get all cached values and add messages"""
-        for (manifest_path, odoo_class_inherit), nodes in self._odoo_inherit_items.items():
-            if len(nodes) <= 1:
+        for (manifest_path, odoo_class_inherit), inh_nodes in self._odoo_inherit_items.items():
+            if len(inh_nodes) <= 1:
                 continue
             path_nodes = []
-            first_node = nodes.pop()
-            for node in nodes:
+            first_node = inh_nodes.pop()
+            for node in inh_nodes:
                 relpath = os.path.relpath(node.root().file, os.path.dirname(manifest_path))
                 path_nodes.append("%s:%d" % (relpath, node.lineno))
             self.add_message(
@@ -564,30 +564,30 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         # sql.SQL or sql.Identifier is OK
         if self._is_psycopg2_sql(node):
             return True
-        if isinstance(node, astroid.FormattedValue):
+        if isinstance(node, nodes.FormattedValue):
             if hasattr(node, "value"):
                 return self._sqli_allowable(node.value)
             if hasattr(node, "values"):
                 return all(self._sqli_allowable(v) for v in node.values)
-        if isinstance(node, astroid.Call):
+        if isinstance(node, nodes.Call):
             node = node.func
         # self._thing is OK (mostly self._table), self._thing() also because
         # it's a common pattern of reports (self._select, self._group_by, ...)
         return (
-            isinstance(node, astroid.Attribute)
-            and isinstance(node.expr, astroid.Name)
+            isinstance(node, nodes.Attribute)
+            and isinstance(node.expr, nodes.Name)
             and node.attrname.startswith("_")
             # cr.execute('SELECT * FROM %s' % 'table') is OK
             # since that is a constant and constant can not be injected
-            or isinstance(node, astroid.Const)
+            or isinstance(node, nodes.Const)
         )
 
     def _is_psycopg2_sql(self, node):
-        if isinstance(node, astroid.Name):
+        if isinstance(node, nodes.Name):
             for assignation_node in self._get_assignation_nodes(node):
                 if self._is_psycopg2_sql(assignation_node):
                     return True
-        if not isinstance(node, astroid.Call) or not isinstance(node.func, (astroid.Attribute, astroid.Name)):
+        if not isinstance(node, nodes.Call) or not isinstance(node.func, (nodes.Attribute, nodes.Name)):
             return False
         imported_name = node.func.as_string().split(".")[0]
         imported_node = node.root().locals.get(imported_name)
@@ -596,9 +596,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         if not imported_node:
             return None
         imported_node = imported_node[0]
-        if isinstance(imported_node, astroid.ImportFrom):
+        if isinstance(imported_node, nodes.ImportFrom):
             package_names = imported_node.modname.split(".")[:1]
-        elif isinstance(imported_node, astroid.Import):
+        elif isinstance(imported_node, nodes.Import):
             package_names = [name[0].split(".")[0] for name in imported_node.names]
         else:
             return False
@@ -606,12 +606,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             return True
 
     def _check_node_for_sqli_risk(self, node):
-        if isinstance(node, astroid.BinOp) and node.op in ("%", "+"):
-            if isinstance(node.right, astroid.Tuple):
+        if isinstance(node, nodes.BinOp) and node.op in ("%", "+"):
+            if isinstance(node.right, nodes.Tuple):
                 # execute("..." % (self._table, thing))
                 if not all(map(self._sqli_allowable, node.right.elts)):
                     return True
-            elif isinstance(node.right, astroid.Dict):
+            elif isinstance(node.right, nodes.Dict):
                 # execute("..." % {'table': self._table}
                 if not all(self._sqli_allowable(v) for _, v in node.right.items):
                     return True
@@ -636,11 +636,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
         # check execute("...".format(self._table, table=self._table))
         # ignore sql.SQL().format
-        if (
-            isinstance(node, astroid.Call)
-            and isinstance(node.func, astroid.Attribute)
-            and node.func.attrname == "format"
-        ):
+        if isinstance(node, nodes.Call) and isinstance(node.func, nodes.Attribute) and node.func.attrname == "format":
 
             if not all(map(self._sqli_allowable, node.args or [])):
                 return True
@@ -649,7 +645,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 return True
 
         # Check fstrings (PEP 498). Only Python >= 3.6
-        if isinstance(node, astroid.JoinedStr):
+        if isinstance(node, nodes.JoinedStr):
             if hasattr(node, "value"):
                 return self._sqli_allowable(node.value)
             if hasattr(node, "values"):
@@ -663,9 +659,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         current_file_bname = os.path.basename(self.linter.current_file)
         if not (
             # .execute() or .executemany()
-            isinstance(node, astroid.Call)
+            isinstance(node, nodes.Call)
             and node.args
-            and isinstance(node.func, astroid.Attribute)
+            and isinstance(node.func, nodes.Attribute)
             and node.func.attrname in ("execute", "executemany")
             and
             # cursor expr (see above)
@@ -690,15 +686,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         return is_concatenation
 
     def _get_assignation_nodes(self, node):
-        if isinstance(node, (astroid.Name, astroid.Subscript)):
+        if isinstance(node, (nodes.Name, nodes.Subscript)):
             # 1) look for parent method / controller
             current = node
-            while current and not isinstance(current.parent, astroid.FunctionDef):
+            while current and not isinstance(current.parent, nodes.FunctionDef):
                 current = current.parent
             if current:
                 parent = current.parent
                 # 2) check how was the variable built
-                for assign_node in parent.nodes_of_class(astroid.Assign):
+                for assign_node in parent.nodes_of_class(nodes.Assign):
                     if assign_node.targets[0].as_string() == node.as_string():
                         yield assign_node.value
 
@@ -722,7 +718,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     def visit_call(self, node):
         if (
             self.linter.is_message_enabled("print-used", node.lineno)
-            and isinstance(node.func, astroid.Name)
+            and isinstance(node.func, nodes.Name)
             and node.func.name == "print"
         ):
             infer_node = utils.safe_infer(node.func)
@@ -730,16 +726,16 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 self.add_message("print-used", node=node)
         if (
             "fields" == self.get_func_lib(node.func)
-            and isinstance(node.parent, astroid.Assign)
-            and isinstance(node.parent.parent, astroid.ClassDef)
+            and isinstance(node.parent, nodes.Assign)
+            and isinstance(node.parent.parent, nodes.ClassDef)
         ):
             args = self.join_node_args_kwargs(node)
             index = 0
             field_name = ""
             if (
-                isinstance(node.parent, astroid.Assign)
+                isinstance(node.parent, nodes.Assign)
                 and node.parent.targets
-                and isinstance(node.parent.targets[0], astroid.AssignName)
+                and isinstance(node.parent.targets[0], nodes.AssignName)
             ):
                 field_name = node.parent.targets[0].name.replace("_", " ")
             is_related = bool([1 for kw in node.keywords or [] if kw.arg == "related"])
@@ -748,17 +744,17 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 # Check this 'name = fields.Char("name")'
                 if (
                     not is_related
-                    and isinstance(argument, astroid.Const)
+                    and isinstance(argument, nodes.Const)
                     and (index == FIELDS_METHOD.get(argument.parent.func.attrname, 0))
                     and (argument.value == field_name.title())
                 ):
                     self.add_message("attribute-string-redundant", node=node)
-                if isinstance(argument, astroid.Keyword):
+                if isinstance(argument, nodes.Keyword):
                     argument_aux = argument.value
                     deprecated = self.linter.config.deprecated_field_parameters
                     if (
                         argument.arg in ["compute", "search", "inverse"]
-                        and isinstance(argument_aux, astroid.Const)
+                        and isinstance(argument_aux, nodes.Const)
                         and isinstance(argument_aux.value, str)
                         and not argument_aux.value.startswith("_" + argument.arg + "_")
                     ):
@@ -768,7 +764,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     elif (
                         not is_related
                         and argument.arg == "string"
-                        and (isinstance(argument_aux, astroid.Const) and argument_aux.value == field_name.title())
+                        and (isinstance(argument_aux, nodes.Const) and argument_aux.value == field_name.title())
                     ):
                         self.add_message("attribute-string-redundant", node=node)
                     elif argument.arg in deprecated:
@@ -776,35 +772,35 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                             "renamed-field-parameter", node=node, args=(argument.arg, deprecated[argument.arg])
                         )
                     # no write in compute method
-                    if argument.arg == "compute" and isinstance(argument.value, (astroid.Const, astroid.Name)):
+                    if argument.arg == "compute" and isinstance(argument.value, (nodes.Const, nodes.Name)):
                         method_name = (
                             argument.value.value
-                            if isinstance(argument.value, astroid.Const)
+                            if isinstance(argument.value, nodes.Const)
                             else argument.value.name
-                            if isinstance(argument.value, astroid.Name)
+                            if isinstance(argument.value, nodes.Name)
                             else None
                         )
                         if method_name and self.is_class_odoo_models:
                             self.odoo_computes.add(method_name)
                 if (
-                    isinstance(argument_aux, astroid.Call)
-                    and isinstance(argument_aux.func, astroid.Name)
+                    isinstance(argument_aux, nodes.Call)
+                    and isinstance(argument_aux.func, nodes.Name)
                     and argument_aux.func.name == "_"
                 ):
                     self.add_message("translation-field", node=argument_aux)
                 index += 1
         # Check cr.commit()
         if (
-            isinstance(node, astroid.Call)
-            and isinstance(node.func, astroid.Attribute)
+            isinstance(node, nodes.Call)
+            and isinstance(node.func, nodes.Attribute)
             and node.func.attrname == "commit"
             and self.get_cursor_name(node.func) in self.linter.config.cursor_expr
         ):
             self.add_message("invalid-commit", node=node)
 
         if (
-            isinstance(node, astroid.Call)
-            and isinstance(node.func, astroid.Attribute)
+            isinstance(node, nodes.Call)
+            and isinstance(node.func, nodes.Attribute)
             and node.func.attrname == "with_context"
             and not node.keywords
             and node.args
@@ -817,12 +813,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         base_dirname = os.path.basename(os.path.normpath(os.path.dirname(self.linter.current_file)))
         if (
             base_dirname != "tests"
-            and isinstance(node, astroid.Call)
-            and isinstance(node.func, astroid.Attribute)
+            and isinstance(node, nodes.Call)
+            and isinstance(node.func, nodes.Attribute)
             and node.func.attrname == "message_post"
         ):
             for arg in itertools.chain(node.args, node.keywords or []):
-                if isinstance(arg, astroid.Keyword):
+                if isinstance(arg, nodes.Keyword):
                     keyword = arg.arg
                     value = arg.value
                 else:
@@ -832,26 +828,26 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     continue
                 as_string = ""
                 # case: message_post(body='String')
-                if isinstance(value, astroid.Const):
+                if isinstance(value, nodes.Const):
                     as_string = value.as_string()
                 # case: message_post(body='String %s' % (...))
                 elif (
-                    isinstance(value, astroid.BinOp)
+                    isinstance(value, nodes.BinOp)
                     and value.op == "%"
-                    and isinstance(value.left, astroid.Const)
+                    and isinstance(value.left, nodes.Const)
                     # The right part is translatable only if it's a
                     # function or a list of functions
                     and not (
-                        isinstance(value.right, (astroid.Call, astroid.Tuple, astroid.List))
-                        and all(isinstance(child, astroid.Call) for child in getattr(value.right, "elts", []))
+                        isinstance(value.right, (nodes.Call, nodes.Tuple, nodes.List))
+                        and all(isinstance(child, nodes.Call) for child in getattr(value.right, "elts", []))
                     )
                 ):
                     as_string = value.left.as_string()
                 # case: message_post(body='String {...}'.format(...))
                 elif (
-                    isinstance(value, astroid.Call)
-                    and isinstance(value.func, astroid.Attribute)
-                    and isinstance(value.func.expr, astroid.Const)
+                    isinstance(value, nodes.Call)
+                    and isinstance(value.func, nodes.Attribute)
+                    and isinstance(value.func.expr, nodes.Const)
                     and value.func.attrname == "format"
                 ):
                     as_string = value.func.expr.as_string()
@@ -860,19 +856,19 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     self.add_message("translation-required", node=node, args=("message_post", keyword, as_string))
 
         # Call _(...) with variables into the term to be translated
-        if isinstance(node.func, astroid.Name) and node.func.name == "_" and node.args:
+        if isinstance(node.func, nodes.Name) and node.func.name == "_" and node.args:
             wrong = ""
             right = ""
             arg = node.args[0]
             # case: _('...' % (variables))
-            if isinstance(arg, astroid.BinOp) and arg.op == "%":
+            if isinstance(arg, nodes.BinOp) and arg.op == "%":
                 wrong = "%s %% %s" % (arg.left.as_string(), arg.right.as_string())
                 right = "_(%s) %% %s" % (arg.left.as_string(), arg.right.as_string())
             # Case: _('...'.format(variables))
             elif (
-                isinstance(arg, astroid.Call)
-                and isinstance(arg.func, astroid.Attribute)
-                and isinstance(arg.func.expr, astroid.Const)
+                isinstance(arg, nodes.Call)
+                and isinstance(arg.func, nodes.Attribute)
+                and isinstance(arg.func.expr, nodes.Const)
                 and arg.func.attrname == "format"
             ):
                 wrong = arg.as_string()
@@ -909,7 +905,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         )
         if lib_original_func_name in self.linter.config.external_request_timeout_methods:
             for argument in self.join_node_args_kwargs(node):
-                if not isinstance(argument, astroid.Keyword):
+                if not isinstance(argument, nodes.Keyword):
                     continue
                 if argument.arg == "timeout":
                     break
@@ -932,12 +928,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     )
     def visit_dict(self, node):
         if not os.path.basename(self.linter.current_file) in misc.MANIFEST_FILES or not isinstance(
-            node.parent, astroid.Expr
+            node.parent, nodes.Expr
         ):
             return
         manifest_dict = ast.literal_eval(node.as_string())
         manifest_keys_nodes = {
-            key_node.value: key_node for key_node, _value in node.items if isinstance(key_node, astroid.Const)
+            key_node.value: key_node for key_node, _value in node.items if isinstance(key_node, nodes.Const)
         }
 
         # Check author is a string
@@ -1047,20 +1043,20 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         if node.name in self.linter.config.method_required_super:
             calls = [
                 call_func.func.name
-                for call_func in node.nodes_of_class((astroid.Call,))
-                if isinstance(call_func.func, astroid.Name)
+                for call_func in node.nodes_of_class((nodes.Call,))
+                if isinstance(call_func.func, nodes.Name)
             ]
             if "super" not in calls:
                 self.add_message("method-required-super", node=node, args=(node.name))
 
         there_is_super = False
-        for stmt in node.nodes_of_class(astroid.Call):
+        for stmt in node.nodes_of_class(nodes.Call):
             func = stmt.func
-            if isinstance(func, astroid.Name) and func.name == "super":
+            if isinstance(func, nodes.Name) and func.name == "super":
                 there_is_super = True
                 break
 
-        there_is_return = any(node.nodes_of_class(astroid.Return, skip_klass=(astroid.FunctionDef, astroid.ClassDef)))
+        there_is_return = any(node.nodes_of_class(nodes.Return, skip_klass=(nodes.FunctionDef, nodes.ClassDef)))
         if (
             there_is_super
             and not there_is_return
@@ -1094,8 +1090,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         node_left = node.targets[0]
         if (
             self.linter.is_message_enabled("attribute-deprecated", node.lineno)
-            and isinstance(node.parent, astroid.ClassDef)
-            and isinstance(node_left, astroid.AssignName)
+            and isinstance(node.parent, nodes.ClassDef)
+            and isinstance(node_left, nodes.AssignName)
             and [1 for m in node.parent.basenames if "Model" in m]
         ):
             if node_left.name in self.linter.config.attribute_deprecated:
@@ -1103,10 +1099,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         if self.linter.is_message_enabled("consider-merging-classes-inherited", node.lineno):
             node_left = node.targets[0]
             if (
-                not isinstance(node_left, astroid.node_classes.AssignName)
+                not isinstance(node_left, nodes.node_classes.AssignName)
                 or node_left.name not in ("_inherit", "_name")
-                or not isinstance(node.value, astroid.node_classes.Const)
-                or not isinstance(node.parent, astroid.ClassDef)
+                or not isinstance(node.value, nodes.node_classes.Const)
+                or not isinstance(node.parent, nodes.ClassDef)
             ):
                 return
             if node_left.name == "_name":
@@ -1125,12 +1121,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     def get_func_name(self, node):
         func_name = (
-            isinstance(node, astroid.Name) and node.name or isinstance(node, astroid.Attribute) and node.attrname or ""
+            isinstance(node, nodes.Name) and node.name or isinstance(node, nodes.Attribute) and node.attrname or ""
         )
         return func_name
 
     def get_func_lib(self, node):
-        if isinstance(node, astroid.Attribute) and isinstance(node.expr, astroid.Name):
+        if isinstance(node, nodes.Attribute) and isinstance(node.expr, nodes.Name):
             return node.expr.name
         return ""
 
@@ -1148,7 +1144,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             # ignore empty raise
             return
         expr = node.exc
-        if not isinstance(expr, astroid.Call):
+        if not isinstance(expr, nodes.Call):
             # ignore raise without a call
             return
         if not expr.args:
@@ -1156,13 +1152,13 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         func_name = self.get_func_name(expr.func)
 
         argument = expr.args[0]
-        if isinstance(argument, astroid.Call) and "format" == self.get_func_name(argument.func):
+        if isinstance(argument, nodes.Call) and "format" == self.get_func_name(argument.func):
             argument = argument.func.expr
-        elif isinstance(argument, astroid.BinOp):
+        elif isinstance(argument, nodes.BinOp):
             argument = argument.left
 
         if (
-            isinstance(argument, astroid.Const)
+            isinstance(argument, nodes.Const)
             and argument.name == "str"
             and func_name in self.linter.config.odoo_exceptions
         ):
@@ -1171,10 +1167,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     def get_cursor_name(self, node):
         expr_list = []
         node_expr = node.expr
-        while isinstance(node_expr, astroid.Attribute):
+        while isinstance(node_expr, nodes.Attribute):
             expr_list.insert(0, node_expr.attrname)
             node_expr = node_expr.expr
-        if isinstance(node_expr, astroid.Name):
+        if isinstance(node_expr, nodes.Name):
             expr_list.insert(0, node_expr.name)
         cursor_name = ".".join(expr_list)
         return cursor_name
@@ -1262,7 +1258,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     def visit_tryexcept(self, node):
         """Visit block try except"""
         for handler in node.handlers:
-            if not handler.name and len(handler.body) == 1 and isinstance(handler.body[0], astroid.node_classes.Pass):
+            if not handler.name and len(handler.body) == 1 and isinstance(handler.body[0], nodes.node_classes.Pass):
                 self.add_message("except-pass", node=handler)
 
     def _get_odoo_module_imported(self, node, manifest_path):
@@ -1275,7 +1271,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 # module and their external dependencies are installed.
                 return []
         odoo_module = []
-        if isinstance(node, astroid.ImportFrom) and "odoo.addons" in node.modname:
+        if isinstance(node, nodes.ImportFrom) and "odoo.addons" in node.modname:
             packages = node.modname.split(".")
             if len(packages) >= 3:
                 # from odoo.addons.odoo_module import models
@@ -1283,7 +1279,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             else:
                 # from odoo.addons import odoo_module
                 odoo_module.append(node.names[0][0])
-        elif isinstance(node, astroid.Import):
+        elif isinstance(node, nodes.Import):
             for name, _ in node.names:
                 if "odoo.addons" not in name and "odoo.addons" not in name:
                     continue
@@ -1305,23 +1301,23 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     def check_folder_test_imported(self, node):
         if hasattr(node.parent, "file") and os.path.basename(node.parent.file) == "__init__.py":
             package_names = []
-            if isinstance(node, astroid.ImportFrom):
+            if isinstance(node, nodes.ImportFrom):
                 if node.modname:
                     # from .tests import test_file
                     package_names = node.modname.split(".")[:1]
                 else:
                     # from . import tests
                     package_names = [name for name, alias in node.names]
-            elif isinstance(node, astroid.Import):
+            elif isinstance(node, nodes.Import):
                 package_names = [name[0].split(".")[0] for name in node.names]
             if "tests" in package_names:
                 self.add_message("test-folder-imported", node=node, args=(node.parent.name,))
 
     def check_no_write_compute(self, node, method_name):
-        for node_function_def in node.nodes_of_class(astroid.FunctionDef):
+        for node_function_def in node.nodes_of_class(nodes.FunctionDef):
             if node_function_def.name != method_name:
                 continue
-            for node_compute_call in node_function_def.nodes_of_class(astroid.Call):
+            for node_compute_call in node_function_def.nodes_of_class(nodes.Call):
                 if (
                     not self.linter.is_message_enabled("no-write-in-compute", node_compute_call.lineno)
                     or self.get_func_name(node_compute_call.func) != "write"
@@ -1350,21 +1346,21 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     def _get_root_method_assignation(self, node, libname=None):
         new_node = node
         new_libname = libname
-        if isinstance(node, astroid.Call):
+        if isinstance(node, nodes.Call):
             new_node = node.func
-        elif isinstance(node, astroid.Subscript):
+        elif isinstance(node, nodes.Subscript):
             new_node = node.value
-        elif isinstance(node, astroid.AssignName):
+        elif isinstance(node, nodes.AssignName):
             new_node = node.parent
-        elif isinstance(node, astroid.Assign):
+        elif isinstance(node, nodes.Assign):
             new_node = node.value
-        elif isinstance(node, astroid.For):
+        elif isinstance(node, nodes.For):
             new_node = node.iter
             new_libname = node.iter.as_string()
-        elif isinstance(node, astroid.Attribute):
+        elif isinstance(node, nodes.Attribute):
             new_node = node.expr
             new_libname = node.as_string()
-        elif isinstance(node, astroid.Name):
+        elif isinstance(node, nodes.Name):
             if node.name == "self":
                 return node, libname
             new_node = node.lookup(node.name)[1][-1]
@@ -1376,17 +1372,17 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         for class_base in node.bases:
             attr = class_base
             while True:
-                if isinstance(attr, astroid.Attribute):
+                if isinstance(attr, nodes.Attribute):
                     attr = attr.expr
                     continue
                 break
-            if not isinstance(attr, astroid.Name):
+            if not isinstance(attr, nodes.Name):
                 continue
             imported_class = node.lookup(attr.name)[1][-1]
             package_names = []
-            if isinstance(imported_class, astroid.ImportFrom):
+            if isinstance(imported_class, nodes.ImportFrom):
                 package_names = imported_class.modname.split(".")[:1]
-            elif isinstance(imported_class, astroid.Import):
+            elif isinstance(imported_class, nodes.Import):
                 package_names = [name[0].split(".")[0] for name in imported_class.names]
             if "odoo" in package_names and class_base.as_string().split(".")[-1] in ["Model", "AbstractModel"]:
                 return True

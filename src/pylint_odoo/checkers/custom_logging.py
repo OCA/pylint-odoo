@@ -2,7 +2,7 @@ import re
 from contextlib import contextmanager
 from unittest.mock import patch
 
-import astroid
+from astroid import builder, nodes
 from pylint.checkers import logging
 
 from .odoo_base_checker import OdooBaseChecker
@@ -66,7 +66,7 @@ class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
         return super().add_message(msgid, *args, **kwargs)
 
     def visit_call(self, node):
-        if not isinstance(node.func, astroid.Name):
+        if not isinstance(node.func, nodes.Name):
             return
         name = node.func.name
         with config_logging_modules(self.linter, ("odoo",)):
@@ -79,14 +79,14 @@ class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
            _("lazy detectable: %s" % es_err.error)
         """
         new_code = f"{node.left.as_string()[:-1]} % {node.right.as_string()})"
-        new_node = astroid.builder.extract_node(new_code)
+        new_node = builder.extract_node(new_code)
         node_attrs = ["lineno", "col_offset", "parent", "end_lineno", "end_col_offset", "position", "fromlineno"]
         for node_attr in node_attrs:
             setattr(new_node, node_attr, getattr(node, node_attr, None))
         return new_node
 
     def visit_binop(self, node):
-        if not isinstance(node.left, astroid.Call):
+        if not isinstance(node.left, nodes.Call):
             return
         self.visit_call(self.transform_binop2call(node))
 
