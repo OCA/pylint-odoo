@@ -777,9 +777,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                             "renamed-field-parameter", node=node, args=(argument.arg, deprecated[argument.arg])
                         )
                     # no write in compute method
-                    if argument.arg == "compute" and (
-                        isinstance(argument.value, astroid.Const) or isinstance(argument.value, astroid.Name)
-                    ):
+                    if argument.arg == "compute" and isinstance(argument.value, (astroid.Const, astroid.Name)):
                         method_name = (
                             argument.value.value
                             if isinstance(argument.value, astroid.Const)
@@ -1135,7 +1133,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         if isinstance(node, astroid.Attribute):
             if isinstance(node.expr, astroid.Name):
                 return node.expr.name
-            elif isinstance(node.expr, astroid.Subscript):
+            if isinstance(node.expr, astroid.Subscript):
                 # users = self.env["res.users"].browse([1,2,3])
                 return self.get_func_lib(node.expr.value)
         return ""
@@ -1326,17 +1324,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     def check_no_write_compute(self, node, method_name):
         # TODO: Use def open() to cache all visits to improve performance
         # TODO: Avoid adding the same message too many times
-        # e.g. https://github.com/odoo/odoo/blob/d8d47f9ff8554f4b39487fd2f13c153c7d6f958d/addons/product_margin/models/product_product.py#L179
+        # e.g. https://github.com/odoo/odoo/blob/d8d47f9ff85/addons/product_margin/models/product_product.py#L179  # no-qa: B950
         if not self.linter.is_message_enabled("no-write-in-compute", node.lineno) or not method_name:
             return
         class_node = node.scope()
         if not isinstance(class_node, astroid.ClassDef) or len(class_node.bases) != 1:
             return
-        # class_base_infer = utils.safe_infer(class_node.bases[0])
-        # if not self._get_packages(class_node.bases[0]):
-        #     return
-        # if not class_base_infer or class_base_infer.root().name != "odoo.models" or class_base_infer.name not in ["Model", "AbstractModel"]:
-        #     return
         class_inherited_lib = class_node.bases[0].expr.as_string().split(".")[0]
         imported_class = class_node.lookup(class_inherited_lib)[1][-1]
         package_names = []
