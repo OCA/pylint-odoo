@@ -1324,8 +1324,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 self.add_message("test-folder-imported", node=node, args=(node.parent.name,))
 
     def check_no_write_compute(self, node, method_name):
-        # TODO: Use a loop to lookup last level
         # TODO: Use def open() to cache all visits to improve performance
+        # TODO: Avoid adding the same message too many times
+        # e.g. https://github.com/odoo/odoo/blob/d8d47f9ff8554f4b39487fd2f13c153c7d6f958d/addons/product_margin/models/product_product.py#L179
         if not self.linter.is_message_enabled("no-write-in-compute", node.lineno) or not method_name:
             return
         class_node = node.scope()
