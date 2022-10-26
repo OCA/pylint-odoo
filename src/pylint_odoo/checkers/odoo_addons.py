@@ -99,6 +99,7 @@ for more info visit pylint doc
 
 import ast
 import itertools
+from multiprocessing import set_forkserver_preload
 import os
 import re
 import string
@@ -705,13 +706,13 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     @utils.only_required_for_messages(
         "attribute-string-redundant",
-        "no-write-in-compute",
         "context-overridden",
         "external-request-timeout",
         "invalid-commit",
         "method-compute",
         "method-inverse",
         "method-search",
+        "no-write-in-compute",
         "print-used",
         "renamed-field-parameter",
         "sql-injection",
@@ -785,7 +786,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                             if isinstance(argument.value, astroid.Name)
                             else None
                         )
-                        self.check_no_write_compute(node, method_name)
+                        # self.check_no_write_compute(node, method_name)
+                        # self.odoo_write_calls.update()
+                        if method_name and self.is_class_odoo_models:
+                            self.odoo_computes.add(method_name)
                 if (
                     isinstance(argument_aux, astroid.Call)
                     and isinstance(argument_aux.func, astroid.Name)
@@ -1378,3 +1382,39 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         if new_node == node:
             return new_node, new_libname
         return self._get_root_method_assignation(new_node, new_libname)
+
+    def is_odoo_models_class(self, node):
+        for class_base in node.bases:
+            attr = class_base
+            while True:
+                if isinstance(attr, astroid.Attribute):
+                    attr = attr.expr
+                    continue
+                break
+            if not isinstance(attr, astroid.Name):
+                continue
+            imported_class = node.lookup(attr.name)[1][-1]
+            package_names = []
+            if isinstance(imported_class, astroid.ImportFrom):
+                package_names = imported_class.modname.split(".")[:1]
+            elif isinstance(imported_class, astroid.Import):
+                package_names = [name[0].split(".")[0] for name in imported_class.names]
+            if "odoo" in package_names and class_base.as_string().split(".")[-1] in ["Model", "AbstractModel"]:
+                return True
+
+    @utils.only_required_for_messages(
+        "no-write-in-compute",
+    )
+    def visit_classdef(self, node):
+        self.is_class_odoo_models = self.is_odoo_models_class(node)
+        self.odoo_computes = set()
+
+    @utils.only_required_for_messages(
+        "no-write-in-compute",
+    )
+    def leave_classdef(self, node):
+        if self.is_class_odoo_models:
+            for odoo_compute in self.odoo_computes:
+                self.check_no_write_compute(node, odoo_compute)
+        self.odoo_computes = set()
+        self.is_class_odoo_models = False
