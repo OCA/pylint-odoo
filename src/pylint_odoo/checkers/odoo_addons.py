@@ -1358,6 +1358,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     continue
                 new_node, new_libname = self._get_root_method_assignation(node_compute_call)
                 if new_libname == "self" or "self.env" in new_libname or "self.browse" in new_libname:
+                    import pdb;pdb.set_trace()
                     self.add_message("no-write-in-compute", node=node_compute_call)
 
     def _get_root_method_assignation(self, node, libname=None):
