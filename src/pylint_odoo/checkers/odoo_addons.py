@@ -1365,22 +1365,16 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         new_libname = libname
         if isinstance(node, astroid.Call):
             new_node = node.func
-            # new_node = self._get_root_method_assignation(node.func)
         elif isinstance(node, astroid.Subscript):
-            # new_node = self._get_root_method_assignation(node.value)
             new_node = node.value
         elif isinstance(node, astroid.AssignName):
             new_node = node.parent
-            # new_node = self._get_root_method_assignation(node.parent)
         elif isinstance(node, astroid.Assign):
-            # new_node = self._get_root_method_assignation(node.value)
             new_node = node.value
         elif isinstance(node, astroid.For):
-            # new_node = self._get_root_method_assignation(node.iter)
             new_node = node.iter
             new_libname = node.iter.name
         elif isinstance(node, astroid.Attribute):
-            # new_node = self._get_root_method_assignation(node.expr)
             new_node = node.expr
             new_libname = node.as_string()
         elif isinstance(node, astroid.Name):
