@@ -39,6 +39,10 @@ class StringParseError(TypeError):
     pass
 
 
+def version_parse(version_str):
+    return tuple(map(int, version_str.split(".")))
+
+
 def get_plugin_msgs(pylint_run_res):
     """Get all message of this pylint plugin.
     :param pylint_run_res: Object returned by pylint.run method.

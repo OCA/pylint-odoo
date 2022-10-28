@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pylint
-from packaging import version
 from pylint.checkers import BaseChecker
 
 from .. import misc
@@ -34,7 +33,11 @@ class OdooBaseChecker(BaseChecker):
         required_odoo_versions = self.checks_maxmin_odoo_version.get(msg_symbol) or {}
         odoo_minversion = required_odoo_versions.get("odoo_minversion") or misc.DFTL_VALID_ODOO_VERSIONS[0]
         odoo_maxversion = required_odoo_versions.get("odoo_maxversion") or misc.DFTL_VALID_ODOO_VERSIONS[-1]
-        return version.parse(odoo_minversion) <= version.parse(odoo_version) <= version.parse(odoo_maxversion)
+        return (
+            misc.version_parse(odoo_minversion)
+            <= misc.version_parse(odoo_version)
+            <= misc.version_parse(odoo_maxversion)
+        )
 
     def add_message(self, msgid, *args, **kwargs):
         """Emit translation-not-lazy instead of logging-not-lazy"""
