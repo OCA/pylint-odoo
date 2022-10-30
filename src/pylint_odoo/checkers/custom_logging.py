@@ -78,7 +78,7 @@ class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
         To detectable one:
            _("lazy detectable: %s" % es_err.error)
         """
-        new_code = f"{node.left.as_string()[:-1]} % {node.right.as_string()})"
+        new_code = f"{node.left.as_string()[:-1]} {node.op} {node.right.as_string()})"
         new_node = builder.extract_node(new_code)
         node_attrs = ["lineno", "col_offset", "parent", "end_lineno", "end_col_offset", "position", "fromlineno"]
         for node_attr in node_attrs:
