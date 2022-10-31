@@ -512,6 +512,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     def close(self):
         """Final process get all cached values and add messages"""
         for (manifest_path, odoo_class_inherit), inh_nodes in self._odoo_inherit_items.items():
+            # Skip _inherit='other.model' _name='model.name' because is valid
+            inh_nodes = {
+                inh_node for inh_node in inh_nodes if not getattr(inh_node.parent, "odoo_attribute_name", None)
+            }
             if len(inh_nodes) <= 1:
                 continue
             path_nodes = []
@@ -1122,7 +1126,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             odoo_class_inherit = node.value.value
             if odoo_class_name and odoo_class_name != odoo_class_inherit:
                 # Skip _name='model.name' _inherit='other.model' because is valid
-                # TODO: Consider case where _inherit is assigned before to _name
                 return
             node_dirpath = os.path.dirname(node.root().file)
             manifest_path = misc.walk_up(node_dirpath, tuple(misc.MANIFEST_FILES), misc.top_path(node_dirpath))
