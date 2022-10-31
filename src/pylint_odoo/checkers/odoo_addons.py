@@ -511,7 +511,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     def close(self):
         """Final process get all cached values and add messages"""
-        for (manifest_path, odoo_class_inherit), inh_nodes in self._odoo_inherit_items.items():
+        for (_manifest_path, odoo_class_inherit), inh_nodes in self._odoo_inherit_items.items():
             # Skip _inherit='other.model' _name='model.name' because is valid
             inh_nodes = {
                 inh_node for inh_node in inh_nodes if not getattr(inh_node.parent, "odoo_attribute_name", None)
@@ -521,8 +521,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             path_nodes = []
             first_node = inh_nodes.pop()
             for node in inh_nodes:
-                relpath = os.path.relpath(node.root().file, os.path.dirname(manifest_path))
-                path_nodes.append("%s:%d" % (relpath, node.lineno))
+                relpath = os.path.relpath(node.root().file, os.getcwd())
+                path_nodes.append("%s:%d:%d" % (relpath, node.lineno, node.col_offset))
             self.add_message(
                 "consider-merging-classes-inherited", node=first_node, args=(odoo_class_inherit, ", ".join(path_nodes))
             )
