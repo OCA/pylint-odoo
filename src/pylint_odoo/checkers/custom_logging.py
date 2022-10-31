@@ -86,7 +86,7 @@ class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
         return new_node
 
     def visit_binop(self, node):
-        if not isinstance(node.left, nodes.Call):
+        if not isinstance(node.left, nodes.Call) or node.op != "%":
             return
         self.visit_call(self.transform_binop2call(node))
 
