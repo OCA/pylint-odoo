@@ -36,6 +36,9 @@ class TestModel7(models.Model):
     _name = 'valid.duplicated.2'
     _inherit = 'valid.duplicated'
 
+class TestModel75(models.Model):
+    _inherit = 'valid.duplicated'
+    _name = 'valid.duplicated.2'
 
 class TestModel8(models.Model):
     _inherit = ['valid.duplicated', 'valid.duplicated2']
