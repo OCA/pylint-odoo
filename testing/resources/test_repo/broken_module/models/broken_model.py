@@ -807,6 +807,18 @@ class TestModel3(
     pass
 
 
+class TestModel4(
+    odoo.models.TransientModel):
+    # Valid no-wizard-in-model
+    _inherit = "res.config.settings"
+
+
+class TestModel5(
+    odoo.models.TransientModel):  # pylint: disable=no-wizard-in-models
+    # Valid no-wizard-in-model
+    _inherit = "my.transient.model"
+
+
 class NoOdoo(object):
     length = 0
 

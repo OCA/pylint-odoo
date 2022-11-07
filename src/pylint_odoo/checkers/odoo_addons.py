@@ -1109,7 +1109,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         self.check_odoo_relative_import(node)
         self.check_folder_test_imported(node)
 
-    @utils.only_required_for_messages("attribute-deprecated", "consider-merging-classes-inherited")
+    @utils.only_required_for_messages(
+        "attribute-deprecated", "consider-merging-classes-inherited", "no-wizard-in-models"
+    )
     def visit_assign(self, node):
         node_left = node.targets[0]
         if (
@@ -1120,7 +1122,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         ):
             if node_left.name in self.linter.config.attribute_deprecated:
                 self.add_message("attribute-deprecated", node=node_left, args=(node_left.name,))
-        if self.linter.is_message_enabled("consider-merging-classes-inherited", node.lineno):
+        if self.linter.is_message_enabled(
+            "consider-merging-classes-inherited", node.lineno
+        ) or self.linter.is_message_enabled("no-wizard-in-models"):
             node_left = node.targets[0]
             if (
                 not isinstance(node_left, nodes.node_classes.AssignName)
@@ -1134,8 +1138,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 return
             odoo_class_name = getattr(node.parent, "odoo_attribute_name", None)
             odoo_class_inherit = node.value.value
-            if odoo_class_name and odoo_class_name != odoo_class_inherit:
+            # Used in no-wizard-in-models check
+            node.parent.odoo_attribute_inherit = odoo_class_inherit
+            if (
+                not self.linter.is_message_enabled("consider-merging-classes-inherited", node.lineno)
+                or odoo_class_name
+                and odoo_class_name != odoo_class_inherit
+            ):
                 # Skip _name='model.name' _inherit='other.model' because is valid
+                # Skip pylint magic disable comment for consider-merging-classes-inherited
                 return
             node_dirpath = os.path.dirname(node.root().file)
             manifest_path = misc.walk_up(node_dirpath, tuple(misc.MANIFEST_FILES), misc.top_path(node_dirpath))
@@ -1416,18 +1427,18 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     def visit_classdef(self, node):
         self.class_odoo_models = self.get_odoo_models_class(node)
         self.odoo_computes = set()
-        if (
-            self.linter.is_message_enabled("no-wizard-in-models", node.lineno)
-            and self.class_odoo_models
-            and self.class_odoo_models[0] == "TransientModel"
-            and os.path.basename(os.path.dirname(node.root().file)).startswith("model")
-        ):
-            self.add_message("no-wizard-in-models", node=self.class_odoo_models[1])
 
-    @utils.only_required_for_messages("no-write-in-compute")
+    @utils.only_required_for_messages("no-write-in-compute", "no-wizard-in-models")
     def leave_classdef(self, node):
         if self.class_odoo_models:
             for odoo_compute in self.odoo_computes:
                 self.check_no_write_compute(node, odoo_compute)
+            if (
+                self.linter.is_message_enabled("no-wizard-in-models", self.class_odoo_models[1].lineno)
+                and self.class_odoo_models[0] == "TransientModel"
+                and os.path.basename(os.path.dirname(node.root().file)).startswith("model")
+                and not getattr(node, "odoo_attribute_inherit", "").startswith("res.config")
+            ):
+                self.add_message("no-wizard-in-models", node=self.class_odoo_models[1])
         self.odoo_computes = set()
         self.class_odoo_models = False
