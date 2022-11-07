@@ -142,6 +142,12 @@ ODOO_MSGS = {
         CHECK_DESCRIPTION,
     ),
     "C8112": ("Missing ./README.rst file. Template here: %s", "missing-readme", CHECK_DESCRIPTION),
+    "C8113": (
+        "No wizard class for model directory. See the complete structure "
+        "https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#complete-structure",
+        "no-wizard-in-models",
+        CHECK_DESCRIPTION,
+    ),
     "E8101": (
         "The author key in the manifest file must be a string (with comma separated values)",
         "manifest-author-string",
@@ -776,7 +782,11 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                             "renamed-field-parameter", node=node, args=(argument.arg, deprecated[argument.arg])
                         )
                     # no write in compute method
-                    if argument.arg == "compute" and isinstance(argument.value, (nodes.Const, nodes.Name)):
+                    if (
+                        self.linter.is_message_enabled("no-write-in-compute", argument.lineno)
+                        and argument.arg == "compute"
+                        and isinstance(argument.value, (nodes.Const, nodes.Name))
+                    ):
                         method_name = (
                             argument.value.value
                             if isinstance(argument.value, nodes.Const)
@@ -784,7 +794,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                             if isinstance(argument.value, nodes.Name)
                             else None
                         )
-                        if method_name and self.is_class_odoo_models:
+                        if method_name and self.class_odoo_models:
                             self.odoo_computes.add(method_name)
                 if (
                     isinstance(argument_aux, nodes.Call)
@@ -1381,7 +1391,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             return new_node, new_libname
         return self._get_root_method_assignation(new_node, new_libname)
 
-    def is_odoo_models_class(self, node):
+    def get_odoo_models_class(self, node):
         for class_base in node.bases:
             attr = class_base
             while True:
@@ -1397,16 +1407,27 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 package_names = imported_class.modname.split(".")[:1]
             elif isinstance(imported_class, nodes.Import):
                 package_names = [name[0].split(".")[0] for name in imported_class.names]
-            if "odoo" in package_names and class_base.as_string().split(".")[-1] in ["Model", "AbstractModel"]:
-                return True
+            if "odoo" in package_names:
+                class_base_name = class_base.as_string().split(".")[-1]
+                if class_base_name in ["Model", "AbstractModel", "TransientModel"]:
+                    return (class_base_name, class_base)
 
+    @utils.only_required_for_messages("no-write-in-compute", "no-wizard-in-models")
     def visit_classdef(self, node):
-        self.is_class_odoo_models = self.is_odoo_models_class(node)
+        self.class_odoo_models = self.get_odoo_models_class(node)
         self.odoo_computes = set()
+        if (
+            self.linter.is_message_enabled("no-wizard-in-models", node.lineno)
+            and self.class_odoo_models
+            and self.class_odoo_models[0] == "TransientModel"
+            and os.path.basename(os.path.dirname(node.root().file)).startswith("model")
+        ):
+            self.add_message("no-wizard-in-models", node=self.class_odoo_models[1])
 
+    @utils.only_required_for_messages("no-write-in-compute")
     def leave_classdef(self, node):
-        if self.is_class_odoo_models:
+        if self.class_odoo_models:
             for odoo_compute in self.odoo_computes:
                 self.check_no_write_compute(node, odoo_compute)
         self.odoo_computes = set()
-        self.is_class_odoo_models = False
+        self.class_odoo_models = False
