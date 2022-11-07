@@ -12,7 +12,6 @@ from pylint_odoo import plugin
 EXPECTED_ERRORS = {
     "attribute-deprecated": 3,
     "attribute-string-redundant": 31,
-    "no-write-in-compute": 16,
     "consider-merging-classes-inherited": 2,
     "context-overridden": 3,
     "development-status-allowed": 1,
@@ -33,6 +32,8 @@ EXPECTED_ERRORS = {
     "method-search": 1,
     "missing-readme": 1,
     "missing-return": 1,
+    "no-wizard-in-models": 1,
+    "no-write-in-compute": 16,
     "odoo-addons-relative-import": 4,
     "odoo-exception-warning": 4,
     "print-used": 1,

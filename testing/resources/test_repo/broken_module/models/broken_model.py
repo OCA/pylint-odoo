@@ -801,6 +801,12 @@ class TestModel(models.Model):
         ftp_r('localhost', timeout=10)
 
 
+class TestModel3(
+    odoo.models.TransientModel):
+    # no-wizard-in-model
+    pass
+
+
 class NoOdoo(object):
     length = 0
 
