@@ -56,6 +56,10 @@ from odoo.addons.iap.models.iap import jsonrpc
 from odoo.addons.iap.models import iap
 
 import odoo.models
+from odoo import tools
+
+import itertools
+from itertools import groupby
 
 other_field = fields.Char()
 
@@ -91,6 +95,9 @@ class TestModel(models.Model):
     length = fields.Integer()  # Deprecated length by js errors
 
     def _compute_name(self):
+        var = itertools.groupby([(1,2,3), (3,4,5)], key=lambda x: x[0])
+        var2 = groupby([(1,2,3), (3,4,5)], key=lambda x: x[0])
+        var3 = tools.groupby([(1,2,3), (3,4,5)], key=lambda x: x[0])
         # Compute called from string with write defined before
         self.write({"name": "hello"})
         for rec in self:
