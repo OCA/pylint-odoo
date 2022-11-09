@@ -22,6 +22,7 @@ Short Name | Description | Code
 --- | --- | ---
 attribute-deprecated | attribute "%s" deprecated | W8105
 attribute-string-redundant | The attribute string is redundant. String parameter equal to name of variable | W8113
+bad-builtin-groupby | Used builtin function `itertools.groupby`. Prefer `odoo.tools.groupby` instead. More info about https://github.com/odoo/odoo/issues/105376 | W8155
 consider-merging-classes-inherited | Consider merging classes inherited to "%s" from %s. | R8180
 context-overridden | Context overridden using dict. Better using kwargs `with_context(**%s)` or `with_context(key=value)` | W8121
 development-status-allowed | Manifest key development_status "%s" not allowed. Use one of: %s. | C8111

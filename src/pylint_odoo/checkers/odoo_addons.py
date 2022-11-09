@@ -240,6 +240,12 @@ ODOO_MSGS = {
         "odoo-addons-relative-import",
         CHECK_DESCRIPTION,
     ),
+    "W8155": (
+        "Used builtin function `itertools.groupby`. Prefer `odoo.tools.groupby` instead. "
+        "More info about https://github.com/odoo/odoo/issues/105376",
+        "bad-builtin-groupby",
+        CHECK_DESCRIPTION,
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
@@ -710,6 +716,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     @utils.only_required_for_messages(
         "attribute-string-redundant",
+        "bad-builtin-groupby",
         "context-overridden",
         "external-request-timeout",
         "invalid-commit",
@@ -925,6 +932,16 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     break
             else:
                 self.add_message("external-request-timeout", node=node, args=(lib_original_func_name,))
+        if self.linter.is_message_enabled("bad-builtin-groupby", node.lineno) and node.func.as_string().endswith(
+            "groupby"
+        ):
+            if node.func.as_string() == "itertools.groupby":
+                self.add_message("bad-builtin-groupby", node=node)
+            elif not node.func.as_string().endswith("tools.groupby"):
+                # infer node is heavy so discarding cases early to improve perf
+                infer_node = utils.safe_infer(node.func)
+                if infer_node and infer_node.qname() == "itertools.groupby":
+                    self.add_message("bad-builtin-groupby", node=node)
 
     @utils.only_required_for_messages(
         "development-status-allowed",
