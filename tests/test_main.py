@@ -2,12 +2,20 @@ import os
 import re
 import sys
 import unittest
+import warnings
+from collections import defaultdict
 from glob import glob
-from tempfile import NamedTemporaryFile, gettempdir
+from io import StringIO
+from tempfile import NamedTemporaryFile
 
-from pylint.lint import Run
+import pytest
+from pylint.reporters.text import TextReporter
+from pylint.testutils._run import _add_rcfile_default_pylintrc, _Run as Run
+from pylint.testutils.utils import _patch_streams
 
-from pylint_odoo import plugin
+from pylint_odoo import __version__ as version, plugin
+
+RE_CHECK_OUTPUT = re.compile(r"\- \[(?P<check>[\w|-]+)\]")
 
 EXPECTED_ERRORS = {
     "attribute-deprecated": 3,
@@ -60,15 +68,11 @@ EXPECTED_ERRORS = {
 
 class MainTest(unittest.TestCase):
     def setUp(self):
-        dummy_cfg = os.path.join(gettempdir(), "nousedft.cfg")
-        with open(dummy_cfg, "w", encoding="UTF-8") as f_dummy:
-            f_dummy.write("")
         self.default_options = [
             "--load-plugins=pylint_odoo",
             "--reports=no",
             "--score=no",
-            "--msg-template=" '"{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}"',
-            "--output-format=colorized",
+            "--msg-template={path}:{line} {msg} - [{symbol}]",
             "--rcfile=%s" % os.devnull,
         ]
         path_modules = os.path.join(
@@ -94,7 +98,7 @@ class MainTest(unittest.TestCase):
     def tearDown(self):
         sys.path = list(self.sys_path_origin)
 
-    def run_pylint(self, paths, extra_params=None):
+    def run_pylint(self, paths, extra_params=None, verbose=False):
         for path in paths:
             if not os.path.exists(path):
                 raise OSError('Path "{path}" not found.'.format(path=path))
@@ -102,8 +106,24 @@ class MainTest(unittest.TestCase):
             extra_params = self.default_extra_params
         sys.path.extend(paths)
         cmd = self.default_options + extra_params + paths
-        res = Run(cmd, exit=False)
-        return res
+        reporter = TextReporter(StringIO())
+        with open(os.devnull, "w", encoding="UTF-8") as f_dummy:
+            self._run_pylint(cmd, f_dummy, reporter=reporter)
+        if verbose:
+            reporter.out.seek(0)
+            print(reporter.out.read())
+        return reporter
+
+    @staticmethod
+    def _run_pylint(args, out, reporter):
+        # copied directly from pylint tests/test_self.py
+        args = _add_rcfile_default_pylintrc(args + ["--persistent=no"])
+        with _patch_streams(out):
+            with pytest.raises(SystemExit) as ctx_mgr:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    Run(args, reporter=reporter)
+            return int(ctx_mgr.value.code)
 
     def test_10_path_dont_exist(self):
         """test if path don't exist"""
@@ -113,7 +133,7 @@ class MainTest(unittest.TestCase):
 
     def test_20_expected_errors(self):
         """Expected vs found errors"""
-        pylint_res = self.run_pylint(self.paths_modules)
+        pylint_res = self.run_pylint(self.paths_modules, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
         self.assertEqual(self.expected_errors, real_errors)
 
@@ -348,6 +368,7 @@ def fstring_no_sqli(self):
         re_sub = re.compile(rf"^{re.escape(sub_start)}$.*^{re.escape(sub_end)}$", re.M | re.S)
         if not re_sub.findall(content):
             raise UserWarning("No matched content")
+        substitution = substitution.replace("\\", "\\\\")
         new_content = re_sub.sub(f"{sub_start}\n\n{substitution}\n\n{sub_end}", content)
         return new_content
 
@@ -360,6 +381,26 @@ def fstring_no_sqli(self):
 
         new_readme = self.re_replace(
             "[//]: # (start-checks)", "[//]: # (end-checks)", messages_content, readme_content
+        )
+
+        pylint_res = self.run_pylint(self.paths_modules, verbose=True)
+        pylint_res.out.seek(0)
+        all_check_errors_merged = defaultdict(list)
+        for line in pylint_res.out:
+            checks_found = RE_CHECK_OUTPUT.findall(line)
+            if not checks_found:
+                continue
+            line = RE_CHECK_OUTPUT.sub("", line).strip()
+            all_check_errors_merged[checks_found[0]].append(line)
+        check_example_content = ""
+        for check_error, msgs in sorted(all_check_errors_merged.items(), key=lambda a: a[0]):
+            check_example_content += f"\n\n * {check_error}\n"
+            for msg in sorted(msgs)[:3]:
+                msg = msg.replace(":", "#L", 1)
+                check_example_content += f"\n    - https://github.com/OCA/pylint-odoo/blob/v{version}/{msg}"
+        check_example_content = f"# Examples\n{check_example_content}"
+        new_readme = self.re_replace(
+            "[//]: # (start-example)", "[//]: # (end-example)", check_example_content, new_readme
         )
 
         with open(readme_path, "w", encoding="UTF-8") as f_readme:
