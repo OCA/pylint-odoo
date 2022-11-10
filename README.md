@@ -136,7 +136,7 @@ Checks valid only for odoo <= 13.0
 
 [//]: # (end-example)
 
-# Development
+# Development
 
 To run all the tests run:
 
