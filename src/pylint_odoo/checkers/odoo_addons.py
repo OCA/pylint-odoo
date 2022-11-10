@@ -531,6 +531,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             if len(inh_nodes) <= 1:
                 continue
             path_nodes = []
+            # deterministic order of the output
+            inh_nodes = sorted(inh_nodes, key=lambda node: (node.root().file, node.lineno))
             first_node = inh_nodes.pop()
             for node in inh_nodes:
                 relpath = os.path.relpath(node.root().file, os.getcwd())
