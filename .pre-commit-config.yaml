@@ -20,15 +20,6 @@ default_language_version:
   python: python3
   node: "16.17.0"
 repos:
-  - repo: local
-    hooks:
-      # These files are most likely copier diff rejection junks; if found,
-      # review them manually, fix the problem (if needed) and remove them
-      - id: forbidden-files
-        name: forbidden files
-        entry: found forbidden files; remove them
-        language: fail
-        files: "\\.rej$"
   - repo: https://github.com/myint/autoflake
     rev: v1.7.6
     hooks:
@@ -55,14 +46,6 @@ repos:
         args:
           - --plugin=@prettier/plugin-xml
         files: \.(css|htm|html|js|json|jsx|less|md|scss|toml|ts|xml|yaml|yml)$
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.25.0
-    hooks:
-      - id: eslint
-        verbose: true
-        args:
-          - --color
-          - --fix
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.3.0
     hooks:
