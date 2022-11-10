@@ -136,6 +136,26 @@ Checks valid only for odoo <= 13.0
 
 [//]: # (end-example)
 
+# Development
+
+To run all the tests run:
+
+    tox
+
+Use extra parameters to change the test behaviour
+
+e.g. particular python version
+
+    tox -e py310
+
+e.g. particular unittest method
+
+    tox -e py310 -- -k test_20_expected_errors
+
+e.g. all the tests at the same time in parallel
+
+    tox -p auto
+
 ## Licenses
 
 This repository is licensed under [AGPL-3.0](LICENSE).
