@@ -428,6 +428,11 @@ def fstring_no_sqli(self):
             pylint_res.linter.stats.by_msg["deprecated-odoo-model-method"],
         )
 
+    def test_175_unused_module(self):
+        extra_params = ["--disable=all", "--enable=unused-module"]
+        pylint_res = self.run_pylint([os.path.join(self.root_path_modules, "unused_module")], extra_params)
+        self.assertDictEqual(pylint_res.linter.stats.by_msg, {"unused-module": 4})
+
     @staticmethod
     def re_replace(sub_start, sub_end, substitution, content):
         re_sub = re.compile(rf"^{re.escape(sub_start)}$.*^{re.escape(sub_end)}$", re.M | re.S)

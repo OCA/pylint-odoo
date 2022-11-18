@@ -7,6 +7,7 @@ def register(linter):
     linter.register_checker(checkers.odoo_addons.OdooAddons(linter))
     linter.register_checker(checkers.vim_comment.VimComment(linter))
     linter.register_checker(checkers.custom_logging.CustomLoggingChecker(linter))
+    linter.register_checker(checkers.import_checker.ImportChecker(linter))
 
     # register any checking fiddlers
     apply_augmentations(linter)
@@ -18,6 +19,7 @@ def get_all_messages():
     all_msgs.update(checkers.odoo_addons.ODOO_MSGS)
     all_msgs.update(checkers.vim_comment.ODOO_MSGS)
     all_msgs.update(checkers.custom_logging.ODOO_MSGS)
+    all_msgs.update(checkers.import_checker.ODOO_MSGS)
     return all_msgs
 
 

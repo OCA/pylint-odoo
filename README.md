@@ -67,6 +67,7 @@ translation-required | String parameter on "%s" requires translation. Use %s_(%s
 translation-too-few-args | Not enough arguments for odoo._ format string | E8306
 translation-too-many-args | Too many arguments for odoo._ format string | E8305
 translation-unsupported-format | Unsupported odoo._ format character %r (%#02x) at index %d | E8300
+unused-module | This python module is not imported and has no effect | E8401
 use-vim-comment | Use of vim comment | W8202
 website-manifest-key-not-valid-uri | Website "%s" in manifest key is not a valid URI | W8114
 
@@ -257,6 +258,7 @@ Checks valid only for odoo <= 13.0
  * missing-readme
 
     - https://github.com/OCA/pylint-odoo/blob/v9.0.5/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing ./README.rst file. Template here: https://github.com/OCA/maintainer-tools/blob/master/template/module/README.rst
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.5/testing/resources/test_repo/unused_module/__manifest__.py#L1 Missing ./README.rst file. Template here: https://github.com/OCA/maintainer-tools/blob/master/template/module/README.rst
 
  * missing-return
 
@@ -292,6 +294,7 @@ Checks valid only for odoo <= 13.0
  * print-used
 
     - https://github.com/OCA/pylint-odoo/blob/v9.0.5/testing/resources/test_repo/test_module/except_pass.py#L20 Print used. Use `logger` instead.
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.5/testing/resources/test_repo/unused_module/migrations/11.0.1.0.1/pre-migration.py#L1 Print used. Use `logger` instead.
 
  * renamed-field-parameter
 
@@ -370,6 +373,12 @@ Checks valid only for odoo <= 13.0
  * translation-unsupported-format
 
     - https://github.com/OCA/pylint-odoo/blob/v9.0.5/testing/resources/test_repo/broken_module/models/broken_model.py#L478 Unsupported odoo._ format character 'y' (0x79) at index 30
+
+ * unused-module
+
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.5/testing/resources/test_repo/broken_module/coding_latin.py#L1 This python module is not imported and has no effect
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.5/testing/resources/test_repo/broken_module/encoding_utf8.py#L1 This python module is not imported and has no effect
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.5/testing/resources/test_repo/broken_module/interpreter_wox.py#L1 This python module is not imported and has no effect
 
  * use-vim-comment
 
