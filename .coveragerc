@@ -1,8 +1,8 @@
 [paths]
-source = src
+source = pylint_odoo
 
 [run]
-source = src
+source = pylint_odoo
 parallel = true
 dynamic_context = test_function
 context = ${{COVERAGE_CONTEXT}}
