@@ -113,7 +113,7 @@ Example to test only pylint_odoo checks:
 There are checks only valid for a particular Odoo version
 To know what version of odoo are you running pylint needs the parameter
 
-    pylint --load-plugins=pylint_odoo --valid_odoo_versions={YOUR_ODOO_VERSION}
+    pylint --load-plugins=pylint_odoo --valid-odoo-versions={YOUR_ODOO_VERSION}
 
 with particular odoo version e.g. `"16.0"`
 
