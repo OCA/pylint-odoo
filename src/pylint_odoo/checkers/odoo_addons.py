@@ -105,8 +105,9 @@ import string
 from collections import Counter, defaultdict
 
 import validators
-from astroid import nodes
+from astroid import Const, nodes
 from pylint.checkers import BaseChecker, utils
+from pylint.lint import PyLinter
 
 from .. import misc
 from .odoo_base_checker import OdooBaseChecker
@@ -361,7 +362,6 @@ PRINTF_PATTERN = re.compile(
 
 
 class OdooAddons(OdooBaseChecker, BaseChecker):
-
     _from_imports = None
     name = "odoolint"
     msgs = ODOO_MSGS
@@ -521,8 +521,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         },
     }
 
+    def __init__(self, linter: PyLinter):
+        super().__init__(linter)
+        self._odoo_inherit_items = None
+        self._compute_method_names = set()
+
     def close(self):
-        """Final process get all cached values and add messages"""
+        """Final process: cleanup, get all cached values and add messages"""
+        self._compute_method_names.clear()
+
         for (_manifest_path, odoo_class_inherit), inh_nodes in self._odoo_inherit_items.items():
             # Skip _inherit='other.model' _name='model.name' because is valid
             inh_nodes = {
@@ -733,8 +740,16 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "translation-field",
         "translation-positional-used",
         "translation-required",
+        "missing-return",
     )
     def visit_call(self, node):
+        # compute method names must be stored to avoid false positives if super is called inside them
+        if self.linter.is_message_enabled("missing-return"):
+            for keyword in getattr(node, "keywords", []):
+                if keyword.arg == "compute" and isinstance(keyword.value, Const):
+                    self._compute_method_names.add(keyword.value.value)
+                    break
+
         if (
             self.linter.is_message_enabled("print-used", node.lineno)
             and isinstance(node.func, nodes.Name)
@@ -1099,14 +1114,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 there_is_super = True
                 break
 
-        there_is_return = any(node.nodes_of_class(nodes.Return, skip_klass=(nodes.FunctionDef, nodes.ClassDef)))
-        if (
-            there_is_super
-            and not there_is_return
-            and not node.is_generator()
-            and node.name not in self.linter.config.no_missing_return
-        ):
-            self.add_message("missing-return", node=node, args=(node.name))
+        if self.linter.is_message_enabled("missing-return") and node.name not in self._compute_method_names:
+            there_is_return = any(node.nodes_of_class(nodes.Return, skip_klass=(nodes.FunctionDef, nodes.ClassDef)))
+            if (
+                there_is_super
+                and not there_is_return
+                and not node.is_generator()
+                and node.name not in self.linter.config.no_missing_return
+            ):
+                self.add_message("missing-return", node=node, args=(node.name))
 
     @utils.only_required_for_messages(
         "external-request-timeout", "odoo-addons-relative-import", "test-folder-imported"
