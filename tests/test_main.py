@@ -381,6 +381,21 @@ def fstring_no_sqli(self):
         extra_params.append("--valid-odoo-versions=14.0")
         self.assertFalse(self.run_pylint([test_repo], extra_params).linter.stats.by_msg)
 
+    # Test category-allowed with and without error
+    def test_170_category_allowed(self):
+        extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed=Category 00"]
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats.by_msg
+        expected_errors = {
+            "category-allowed": 1,
+        }
+        self.assertDictEqual(real_errors, expected_errors)
+
+        extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed=Category 01"]
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats.by_msg
+        self.assertFalse(real_errors)
+
     def test_option_odoo_deprecated_model_method(self):
         pylint_res = self.run_pylint(
             self.paths_modules,
