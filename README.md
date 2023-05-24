@@ -43,6 +43,7 @@ method-required-super | Missing `super` call in "%s" method. | W8106
 method-search | Name of search method should start with "_search_" | C8109
 missing-readme | Missing ./README.rst file. Template here: %s | C8112
 missing-return | Missing `return` (`super` is used) in method %s. | W8110
+no-raise-unlink | No exceptions should be raised inside unlink() functions | E8140
 no-wizard-in-models | No wizard class for model directory. See the complete structure https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#complete-structure | C8113
 no-write-in-compute | Compute method calling `write`. Use `update` instead. | E8135
 odoo-addons-relative-import | Same Odoo module absolute import. You should use relative import with "." instead of "odoo.addons.%s" | W8150
@@ -246,6 +247,11 @@ Checks valid only for odoo <= 13.0
  * missing-return
 
     - https://github.com/OCA/pylint-odoo/blob/v8.0.19/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L24 Missing `return` (`super` is used) in method inherited_method.
+
+ * no-raise-unlink
+
+    - https://github.com/OCA/pylint-odoo/blob/v8.0.19/testing/resources/test_repo/test_module/res_partner_unlink.py#L9 No exceptions should be raised inside unlink() functions
+    - https://github.com/OCA/pylint-odoo/blob/v8.0.19/testing/resources/test_repo/test_module/sale_order_unlink.py#L14 No exceptions should be raised inside unlink() functions
 
  * no-wizard-in-models
 

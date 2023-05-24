@@ -105,7 +105,7 @@ import string
 from collections import Counter, defaultdict
 
 import validators
-from astroid import nodes
+from astroid import ClassDef, FunctionDef, NodeNG, nodes
 from pylint.checkers import BaseChecker, utils
 
 from .. import misc
@@ -177,6 +177,11 @@ ODOO_MSGS = {
     ),
     "E8130": ("Test folder imported in module %s", "test-folder-imported", CHECK_DESCRIPTION),
     "E8135": ("Compute method calling `write`. Use `update` instead.", "no-write-in-compute", CHECK_DESCRIPTION),
+    "E8140": (
+        "No exceptions should be raised inside unlink() functions",
+        "no-raise-unlink",
+        "Use @api.ondelete to add any constraints instead",
+    ),
     "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "R8101": (
         "`odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` "
@@ -519,6 +524,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "translation-contains-variable": {
             "odoo_maxversion": "13.0",
         },
+        "no-raise-unlink": {"odoo_minversion": "15.0"},
     }
 
     def close(self):
@@ -1183,16 +1189,33 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             return node.expr.name
         return ""
 
-    @utils.only_required_for_messages("translation-required")
-    def visit_raise(self, node):
-        """Visit raise and search methods with a string parameter
-        without a method.
-        Example wrong: raise UserError('My String')
-        Example done: raise UserError(_('My String'))
-        TODO: Consider the case where is used a variable with string value
-              my_string = 'My String'  # wrong
-              raise UserError(my_string)  # Detect variable string here
+    @staticmethod
+    def _is_unlink(node: FunctionDef) -> bool:
+        parent = getattr(node, "parent", False)
+        return (
+            isinstance(parent, ClassDef)
+            and ("_name" in parent.locals or "_inherit" in parent.locals)
+            and node.name == "unlink"
+        )
+
+    @staticmethod
+    def get_enclosing_function(node: NodeNG, depth=10):
+        parent = getattr(node, "parent", False)
+        for _i in range(depth):
+            if not parent or isinstance(parent, FunctionDef):
+                break
+            parent = parent.parent
+
+        return parent
+
+    def check_translation_required(self, node):
+        """Search methods with an untranslated string parameter.
+        Wrong:  ``raise UserError('My String')``
+        Correct: ``raise UserError(_('My String'))``
         """
+        # TODO: Consider the case where a string variable is used
+        # my_string = 'My String'  # wrong
+        # raise UserError(my_string)  # Detect variable string here
         if node.exc is None:
             # ignore empty raise
             return
@@ -1216,6 +1239,16 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             and func_name in self.linter.config.odoo_exceptions
         ):
             self.add_message("translation-required", node=node, args=(func_name, "", argument.as_string()))
+
+    @utils.only_required_for_messages("translation-required", "no-raise-unlink")
+    def visit_raise(self, node):
+        if self.linter.is_message_enabled("no-raise-unlink"):
+            function = self.get_enclosing_function(node)
+            if self._is_unlink(function):
+                self.add_message("no-raise-unlink", node=node)
+
+        if self.linter.is_message_enabled("translation-required"):
+            self.check_translation_required(node)
 
     def get_cursor_name(self, node):
         expr_list = []
