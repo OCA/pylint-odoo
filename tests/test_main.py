@@ -70,6 +70,20 @@ EXPECTED_ERRORS = {
     "manifest-behind-migrations": 3,
 }
 
+# These form part of the original test repos. New messages should each have separate test sources, don't use these
+FROZEN_TEST_REPOS = [
+    "broken_module",
+    "broken_module2",
+    "broken_module3",
+    "eleven_module",
+    "no_odoo_module",
+    "pylint_deprecated_modules",
+    "test_module",
+    "twelve_module",
+    "womanifest_module",
+]
+FROZEN_MESSAGES = ",".join(EXPECTED_ERRORS.keys())
+
 
 class MainTest(unittest.TestCase):
     def setUp(self):
@@ -84,7 +98,11 @@ class MainTest(unittest.TestCase):
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "testing", "resources", "test_repo"
         )
         # Similar to pre-commit way
-        self.paths_modules = glob(os.path.join(self.root_path_modules, "**", "*.py"), recursive=True)
+        self.frozen_paths_modules = []
+        for path in FROZEN_TEST_REPOS:
+            self.frozen_paths_modules += glob(os.path.join(self.root_path_modules, path, "**", "*.py"), recursive=True)
+
+        self.test_sources = glob(os.path.join(self.root_path_modules, "**", "*.py"), recursive=True)
         self.odoo_namespace_addons_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
             "testing",
@@ -94,7 +112,7 @@ class MainTest(unittest.TestCase):
         )
         self.default_extra_params = [
             "--disable=all",
-            "--enable=odoolint,pointless-statement,trailing-newlines",
+            f"--enable={FROZEN_MESSAGES},pointless-statement,trailing-newlines",
         ]
         self.sys_path_origin = list(sys.path)
         self.maxDiff = None
@@ -140,7 +158,7 @@ class MainTest(unittest.TestCase):
 
     def test_20_expected_errors(self):
         """Expected vs found errors"""
-        pylint_res = self.run_pylint(self.paths_modules, verbose=True)
+        pylint_res = self.run_pylint(self.frozen_paths_modules, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
         self.assertEqual(self.expected_errors, real_errors)
 
@@ -158,7 +176,7 @@ class MainTest(unittest.TestCase):
             "deprecated-odoo-model-method",
         }
         self.default_extra_params += ["--valid-odoo-versions=13.0"]
-        pylint_res = self.run_pylint(self.paths_modules)
+        pylint_res = self.run_pylint(self.frozen_paths_modules)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = self.expected_errors.copy()
         for excluded_msg in excluded_msgs:
@@ -169,7 +187,7 @@ class MainTest(unittest.TestCase):
     def test_35_checks_emiting_by_odoo_version(self):
         """All odoolint errors vs found but see if were not excluded for valid odoo version"""
         self.default_extra_params += ["--valid-odoo-versions=14.0"]
-        pylint_res = self.run_pylint(self.paths_modules)
+        pylint_res = self.run_pylint(self.frozen_paths_modules)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = self.expected_errors.copy()
         expected_errors.update({"manifest-version-format": 6})
@@ -186,7 +204,7 @@ class MainTest(unittest.TestCase):
             "--disable=all",
             "--enable=manifest-version-format",
         ]
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        pylint_res = self.run_pylint(self.frozen_paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
             "manifest-version-format": 6,
@@ -195,7 +213,7 @@ class MainTest(unittest.TestCase):
 
         # Now for version 11.0
         extra_params[0] = r'--manifest-version-format="11\.0\.\d+\.\d+.\d+$"'
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        pylint_res = self.run_pylint(self.frozen_paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
             "manifest-version-format": 5,
@@ -210,7 +228,7 @@ class MainTest(unittest.TestCase):
             "--disable=all",
             "--enable=manifest-version-format",
         ]
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        pylint_res = self.run_pylint(self.frozen_paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
             "manifest-version-format": 6,
@@ -219,7 +237,7 @@ class MainTest(unittest.TestCase):
 
         # Now for version 11.0
         extra_params[0] = "--valid-odoo-versions=11.0"
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        pylint_res = self.run_pylint(self.frozen_paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
             "manifest-version-format": 5,
@@ -236,7 +254,7 @@ class MainTest(unittest.TestCase):
             "--disable=all",
             "--enable=manifest-required-author",
         ]
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        pylint_res = self.run_pylint(self.frozen_paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
             "manifest-required-author": 4,
@@ -245,14 +263,14 @@ class MainTest(unittest.TestCase):
 
         # Then, run it using multiple authors
         extra_params[0] = "--manifest-required-authors=Vauxoo,Other"
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        pylint_res = self.run_pylint(self.frozen_paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors["manifest-required-author"] = 3
         self.assertDictEqual(real_errors, expected_errors)
 
         # Testing deprecated attribute
         extra_params[0] = "--manifest-required-author=" "Odoo Community Association (OCA)"
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        pylint_res = self.run_pylint(self.frozen_paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors_deprecated = {
             "manifest-required-author": (EXPECTED_ERRORS["manifest-required-author"]),
@@ -354,7 +372,7 @@ def fstring_no_sqli(self):
         disable = "--disable=all"
         for expected_error_name, expected_error_value in EXPECTED_ERRORS.items():
             enable = "--enable=%s" % expected_error_name
-            pylint_res = self.run_pylint(self.paths_modules, [disable, enable])
+            pylint_res = self.run_pylint(self.frozen_paths_modules, [disable, enable])
             real_errors = pylint_res.linter.stats.by_msg
             expected_errors = {expected_error_name: expected_error_value}
             self.assertDictEqual(real_errors, expected_errors)
@@ -364,7 +382,7 @@ def fstring_no_sqli(self):
         for disable_error in EXPECTED_ERRORS:
             expected_errors = self.expected_errors.copy()
             enable = "--disable=%s" % disable_error
-            pylint_res = self.run_pylint(self.paths_modules, self.default_extra_params + [enable])
+            pylint_res = self.run_pylint(self.frozen_paths_modules, self.default_extra_params + [enable])
             real_errors = pylint_res.linter.stats.by_msg
             expected_errors.pop(disable_error)
             self.assertDictEqual(real_errors, expected_errors)
@@ -385,7 +403,7 @@ def fstring_no_sqli(self):
     # Test category-allowed with and without error
     def test_170_category_allowed(self):
         extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed=Category 00"]
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        pylint_res = self.run_pylint(self.frozen_paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
             "category-allowed": 1,
@@ -393,13 +411,13 @@ def fstring_no_sqli(self):
         self.assertDictEqual(real_errors, expected_errors)
 
         extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed=Category 01"]
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        pylint_res = self.run_pylint(self.frozen_paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         self.assertFalse(real_errors)
 
     def test_option_odoo_deprecated_model_method(self):
         pylint_res = self.run_pylint(
-            self.paths_modules,
+            self.frozen_paths_modules,
             rcfile=os.path.abspath(
                 os.path.join(__file__, "..", "..", "testing", "resources", ".pylintrc-odoo-deprecated-model-methods")
             ),
@@ -430,7 +448,9 @@ def fstring_no_sqli(self):
             "[//]: # (start-checks)", "[//]: # (end-checks)", messages_content, readme_content
         )
 
-        pylint_res = self.run_pylint(self.paths_modules, verbose=True)
+        pylint_res = self.run_pylint(
+            self.test_sources, extra_params=["--disable=all", "--enable=odoolint"], verbose=True
+        )
         pylint_res.out.seek(0)
         all_check_errors_merged = defaultdict(list)
         for line in pylint_res.out:
