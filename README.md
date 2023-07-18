@@ -85,12 +85,12 @@ Add to your ".pre-commit-config.yaml" configuration file the following input
 
 ```yaml
     - repo: https://github.com/OCA/pylint-odoo
-        rev: v8.0.19
+        rev: v8.0.19 # may be a tag or commit hash
         hooks:
         # Add to your .pylintrc file:
         # [MASTER]
         # load-plugins=pylint_odoo
-        - id: pylint
+        - id: pylint_odoo
 ```
 
 # Usage
