@@ -63,6 +63,7 @@ EXPECTED_ERRORS = {
     "translation-unsupported-format": 1,
     "use-vim-comment": 1,
     "website-manifest-key-not-valid-uri": 1,
+    "no-raise-unlink": 2,
 }
 
 
@@ -75,11 +76,11 @@ class MainTest(unittest.TestCase):
             "--msg-template={path}:{line} {msg} - [{symbol}]",
             "--rcfile=%s" % os.devnull,
         ]
-        path_modules = os.path.join(
+        self.root_path_modules = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "testing", "resources", "test_repo"
         )
         # Similar to pre-commit way
-        self.paths_modules = glob(os.path.join(path_modules, "**", "*.py"), recursive=True)
+        self.paths_modules = glob(os.path.join(self.root_path_modules, "**", "*.py"), recursive=True)
         self.odoo_namespace_addons_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
             "testing",
@@ -147,6 +148,7 @@ class MainTest(unittest.TestCase):
             "translation-too-few-args",
             "translation-too-many-args",
             "translation-unsupported-format",
+            "no-raise-unlink",
         }
         self.default_extra_params += ["--valid-odoo-versions=13.0"]
         pylint_res = self.run_pylint(self.paths_modules)
@@ -165,6 +167,7 @@ class MainTest(unittest.TestCase):
         expected_errors = self.expected_errors.copy()
         expected_errors.update({"manifest-version-format": 6})
         excluded_msgs = {
+            "no-raise-unlink",
             "translation-contains-variable",
         }
         for excluded_msg in excluded_msgs:
@@ -362,6 +365,19 @@ def fstring_no_sqli(self):
             real_errors = pylint_res.linter.stats.by_msg
             expected_errors.pop(disable_error)
             self.assertDictEqual(real_errors, expected_errors)
+
+    def test_165_no_raises_unlink(self):
+        extra_params = ["--disable=all", "--enable=no-raise-unlink"]
+        test_repo = os.path.join(self.root_path_modules, "test_module")
+
+        self.assertDictEqual(
+            self.run_pylint([test_repo], extra_params).linter.stats.by_msg,
+            {"no-raise-unlink": 2},
+        )
+
+        # This check is only valid for Odoo 15.0 and upwards
+        extra_params.append("--valid-odoo-versions=14.0")
+        self.assertFalse(self.run_pylint([test_repo], extra_params).linter.stats.by_msg)
 
     @staticmethod
     def re_replace(sub_start, sub_end, substitution, content):
