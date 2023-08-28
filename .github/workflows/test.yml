@@ -21,7 +21,13 @@ jobs:
         include:
           - python: '3.10'
             os: ubuntu-latest
-            tox_env: py,lint,update-readme,build
+            tox_env: 'lint'
+          - python: '3.10'
+            os: ubuntu-latest
+            tox_env: 'update-readme'
+          - python: '3.10'
+            os: ubuntu-latest
+            tox_env: 'build'
         exclude:
           - python: '3.7'
             os: windows-latest
@@ -36,7 +42,7 @@ jobs:
       with:
         path: ~/.cache/pre-commit
         key: ${{ runner.os }}-py${{ matrix.python }}-pre-commit
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - uses: actions/setup-python@v4
@@ -57,13 +63,7 @@ jobs:
       run: |
         ls -lah dist/*
         python -m twine upload --verbose -u __token__ -p ${{ secrets.PYPI_API_TOKEN }} --repository-url https://upload.pypi.org/legacy/ dist/*
-    # TODO: Add GITHUB_RUN_ID.GITHUB_RUN_ATTEMPT.GITHUB_RUN_NUMBER to bumpversion to avoid duplicating upload versions or even the git sha
-    # For now, feel free to uncomment this line of code to test things related to upload to pypi (test)
-    # - name: TestPyPI publish package
-    #   if: runner.os == 'Linux' && startsWith(matrix.tox_env, 'py39-cover')
-    #   run: >-
-    #     python -m twine upload --verbose -u __token__ -p ${{ secrets.PYPI_TEST_API_TOKEN }} \
-    #       --repository-url https://test.pypi.org/legacy/ dist/* || true
+    #TODO: Add GITHUB_RUN_ID.GITHUB_RUN_ATTEMPT.GITHUB_RUN_NUMBER to bumpversion to avoid duplicating upload versions or even the git sha
     - name: codecov
       if: startsWith(matrix.tox_env, 'py')  # only coveralls in python tests
       uses: codecov/codecov-action@v3
