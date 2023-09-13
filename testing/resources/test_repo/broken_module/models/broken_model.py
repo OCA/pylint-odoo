@@ -68,6 +68,9 @@ def function_no_method():
     return broken_model1, broken_module1, broken_module2, broken_model2
 
 
+def fields_view_get():
+    return "Not part of a model, i'm free"
+
 class TestModel2(odoo.models.Model):
     def _compute_name2(self):
         # Compute called from string with write defined before
@@ -82,8 +85,17 @@ class TestModel2(odoo.models.Model):
             f_obj.write("write file allowed")
         unknown_type_object = self._get_object()
         unknown_type_object.write('write not self.browse allowed')
-    
+
     name2 = fields.Char(compute='_compute_name2')
+
+    def fields_view_get(self):
+        return "Deprecated in Odoo 16.0!!!"
+
+    def custom_deprecated_method_just_because(self):
+        return "this method is deprecated because i said so in the options" + self.name2
+
+    def another_deprecated_model_method(self):
+        return self.name2
 
 class TestModel(models.Model):
     _name = 'test.model'
@@ -111,7 +123,7 @@ class TestModel(models.Model):
         unknown_type_object = self._get_object()
         unknown_type_object.write('write not self.browse allowed')
         self.write({"name": "hello"})  # pylint: disable=no-write-in-compute
-    
+
     def _compute_with_method_def(self):
         # Compute called from funct-def with write
         self.write({"name": "hello"})
@@ -458,7 +470,7 @@ class TestModel(models.Model):
             'String with params format %(p1)s') % {'p1': 'v1'})
         raise exceptions.Warning(_(
             'String with params format %(p1)s' % {'p1': 'v1'}))
-    
+
     def my_method14(self):
         _("String with missing args %s %s", "param1")
         _("String with missing kwargs %(param1)s", param2="hola")

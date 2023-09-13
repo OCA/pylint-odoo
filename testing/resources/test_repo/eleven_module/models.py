@@ -13,3 +13,6 @@ class EleveModel(models.Model):
     def method1(self):
         self.const = isinstance(astroid.Const, Const)
         self.bo = isinstance(astroid.BinOp, bo)
+
+    def fields_view_get(self):
+        return self.bo

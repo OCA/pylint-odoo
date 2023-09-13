@@ -107,6 +107,7 @@ from collections import Counter, defaultdict
 import validators
 from astroid import ClassDef, FunctionDef, NodeNG, nodes
 from pylint.checkers import BaseChecker, utils
+from pylint.lint import PyLinter
 
 from .. import misc
 from .odoo_base_checker import OdooBaseChecker
@@ -251,6 +252,11 @@ ODOO_MSGS = {
         "bad-builtin-groupby",
         CHECK_DESCRIPTION,
     ),
+    "W8160": (
+        "%s has been deprecated by Odoo. Please look for alternatives.",
+        "deprecated-odoo-model-method",
+        CHECK_DESCRIPTION,
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
@@ -346,6 +352,8 @@ DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS = [
     "suds.client.Client",
     "urllib.request.urlopen",
 ]
+DFTL_DEPRECATED_ODOO_MODEL_METHODS = {"16.0": {"fields_view_get"}}
+
 # Regex used from https://github.com/translate/translate/blob/9de0d72437/translate/filters/checks.py#L50-L62  # noqa
 PRINTF_PATTERN = re.compile(
     r"""
@@ -517,6 +525,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 "help": "List of valid odoo versions separated by a comma.",
             },
         ),
+        (
+            "deprecated-odoo-model-methods",
+            {
+                "type": "string",
+                "metavar": "python_expression",
+                "default": "",
+                "help": "Dictionary consisting of versions (keys) and methods that have been marked as deprecated.",
+            },
+        ),
     )
 
     checks_maxmin_odoo_version = {
@@ -527,8 +544,13 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "no-raise-unlink": {"odoo_minversion": "15.0"},
     }
 
+    def __init__(self, linter: PyLinter):
+        super().__init__(linter)
+        self._deprecated_odoo_methods = set()
+
     def close(self):
         """Final process get all cached values and add messages"""
+        self.linter.config.deprecated_odoo_model_methods = set()
         for (_manifest_path, odoo_class_inherit), inh_nodes in self._odoo_inherit_items.items():
             # Skip _inherit='other.model' _name='model.name' because is valid
             inh_nodes = {
@@ -566,6 +588,16 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         self.linter.config.deprecated_field_parameters = self.colon_list_to_dict(
             self.linter.config.deprecated_field_parameters
         )
+
+        if self.linter.config.deprecated_odoo_model_methods:
+            deprecated_model_methods = ast.literal_eval(self.linter.config.deprecated_odoo_model_methods)
+        else:
+            deprecated_model_methods = DFTL_DEPRECATED_ODOO_MODEL_METHODS
+
+        max_valid_version = float(sorted(self.linter.config.valid_odoo_versions, key=float)[-1])
+        for version, checks in deprecated_model_methods.items():
+            if float(version) <= max_valid_version:
+                self._deprecated_odoo_methods.update(checks)
 
     def colon_list_to_dict(self, colon_list):
         """Converts a colon list to a dictionary.
@@ -1077,10 +1109,20 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         ):
             self.add_message("manifest-maintainers-list", node=manifest_keys_nodes.get("maintainers") or node)
 
-    @utils.only_required_for_messages(
-        "method-required-super",
-        "missing-return",
-    )
+    def check_deprecated_odoo_method(self, node: NodeNG) -> bool:
+        """Verify the given method is not marked as deprecated under the set Odoo versions.
+        :param node: Function definition to be checked
+        :return: True if the method is deprecated, false otherwise.
+        """
+        try:
+            if not self.get_odoo_models_class(node.parent):
+                return False
+        except AttributeError:
+            return False
+
+        return node.name in self._deprecated_odoo_methods
+
+    @utils.only_required_for_messages("method-required-super", "missing-return", "deprecated-odoo-model-method")
     def visit_functiondef(self, node):
         """Check that `api.one` and `api.multi` decorators not exists together
         Check that method `copy` exists `api.one` decorator
@@ -1088,6 +1130,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         """
         if not node.is_method():
             return
+
+        if self.is_odoo_message_enabled("deprecated-odoo-model-method") and self.check_deprecated_odoo_method(node):
+            self.add_message("deprecated-odoo-model-method", node=node, args=(node.name,))
 
         if node.name in self.linter.config.method_required_super:
             calls = [
