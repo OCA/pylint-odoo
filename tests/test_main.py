@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import re
 import sys
@@ -74,7 +76,7 @@ class MainTest(unittest.TestCase):
             "--reports=no",
             "--score=no",
             "--msg-template={path}:{line} {msg} - [{symbol}]",
-            "--rcfile=%s" % os.devnull,
+            "--persistent=no"
         ]
         self.root_path_modules = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "testing", "resources", "test_repo"
@@ -99,12 +101,16 @@ class MainTest(unittest.TestCase):
     def tearDown(self):
         sys.path = list(self.sys_path_origin)
 
-    def run_pylint(self, paths, extra_params=None, verbose=False):
+    def run_pylint(self, paths, extra_params: list | None = None, verbose=False, rcfile: str = ""):
         for path in paths:
             if not os.path.exists(path):
                 raise OSError('Path "{path}" not found.'.format(path=path))
+
         if extra_params is None:
             extra_params = self.default_extra_params
+        if rcfile:
+            extra_params.append(f"--rcfile={rcfile}")
+
         sys.path.extend(paths)
         cmd = self.default_options + extra_params + paths
         reporter = TextReporter(StringIO())
@@ -117,8 +123,6 @@ class MainTest(unittest.TestCase):
 
     @staticmethod
     def _run_pylint(args, out, reporter):
-        # copied directly from pylint tests/test_self.py
-        args = _add_rcfile_default_pylintrc(args + ["--persistent=no"])
         with _patch_streams(out):
             with pytest.raises(SystemExit) as ctx_mgr:
                 with warnings.catch_warnings():
