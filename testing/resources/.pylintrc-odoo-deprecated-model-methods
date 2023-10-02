@@ -1,0 +1,5 @@
+[ODOOLINT]
+deprecated-odoo-model-methods={
+    '15.0': {'custom_deprecated_method_just_because', 'another_deprecated_model_method'},
+    '16.0': {'fields_view_get'},
+    }

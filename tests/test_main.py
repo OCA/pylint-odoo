@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import re
 import sys
@@ -10,7 +12,7 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 from pylint.reporters.text import TextReporter
-from pylint.testutils._run import _add_rcfile_default_pylintrc, _Run as Run
+from pylint.testutils._run import _Run as Run
 from pylint.testutils.utils import _patch_streams
 
 from pylint_odoo import __version__ as version, plugin
@@ -64,6 +66,7 @@ EXPECTED_ERRORS = {
     "use-vim-comment": 1,
     "website-manifest-key-not-valid-uri": 1,
     "no-raise-unlink": 2,
+    "deprecated-odoo-model-method": 2,
 }
 
 
@@ -74,7 +77,7 @@ class MainTest(unittest.TestCase):
             "--reports=no",
             "--score=no",
             "--msg-template={path}:{line} {msg} - [{symbol}]",
-            "--rcfile=%s" % os.devnull,
+            "--persistent=no",
         ]
         self.root_path_modules = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "testing", "resources", "test_repo"
@@ -99,12 +102,16 @@ class MainTest(unittest.TestCase):
     def tearDown(self):
         sys.path = list(self.sys_path_origin)
 
-    def run_pylint(self, paths, extra_params=None, verbose=False):
+    def run_pylint(self, paths, extra_params: list | None = None, verbose=False, rcfile: str = ""):
         for path in paths:
             if not os.path.exists(path):
                 raise OSError('Path "{path}" not found.'.format(path=path))
+
         if extra_params is None:
             extra_params = self.default_extra_params
+        if rcfile:
+            extra_params.append(f"--rcfile={rcfile}")
+
         sys.path.extend(paths)
         cmd = self.default_options + extra_params + paths
         reporter = TextReporter(StringIO())
@@ -117,8 +124,6 @@ class MainTest(unittest.TestCase):
 
     @staticmethod
     def _run_pylint(args, out, reporter):
-        # copied directly from pylint tests/test_self.py
-        args = _add_rcfile_default_pylintrc(args + ["--persistent=no"])
         with _patch_streams(out):
             with pytest.raises(SystemExit) as ctx_mgr:
                 with warnings.catch_warnings():
@@ -149,6 +154,7 @@ class MainTest(unittest.TestCase):
             "translation-too-many-args",
             "translation-unsupported-format",
             "no-raise-unlink",
+            "deprecated-odoo-model-method",
         }
         self.default_extra_params += ["--valid-odoo-versions=13.0"]
         pylint_res = self.run_pylint(self.paths_modules)
@@ -166,10 +172,7 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = self.expected_errors.copy()
         expected_errors.update({"manifest-version-format": 6})
-        excluded_msgs = {
-            "no-raise-unlink",
-            "translation-contains-variable",
-        }
+        excluded_msgs = {"no-raise-unlink", "translation-contains-variable", "deprecated-odoo-model-method"}
         for excluded_msg in excluded_msgs:
             expected_errors.pop(excluded_msg)
         self.assertEqual(expected_errors, real_errors)
@@ -378,6 +381,19 @@ def fstring_no_sqli(self):
         # This check is only valid for Odoo 15.0 and upwards
         extra_params.append("--valid-odoo-versions=14.0")
         self.assertFalse(self.run_pylint([test_repo], extra_params).linter.stats.by_msg)
+
+    def test_option_odoo_deprecated_model_method(self):
+        pylint_res = self.run_pylint(
+            self.paths_modules,
+            rcfile=os.path.abspath(
+                os.path.join(__file__, "..", "..", "testing", "resources", ".pylintrc-odoo-deprecated-model-methods")
+            ),
+        )
+
+        self.assertEqual(
+            4,
+            pylint_res.linter.stats.by_msg["deprecated-odoo-model-method"],
+        )
 
     @staticmethod
     def re_replace(sub_start, sub_end, substitution, content):
