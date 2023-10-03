@@ -18,8 +18,7 @@ def generate_changelog():
         return changelog_str
     changelog = git._iter_log_oneline()
     changelog = git._iter_changelog(changelog)
-    git.write_git_changelog(changelog=changelog)
-    # git.generate_authors()
+    git.write_git_changelog(changelog=filter(lambda log: not log[1].startswith("* Bump version"), changelog))
     return read(fname)
 
 
