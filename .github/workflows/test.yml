@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python: ['3.8', '3.9', '3.10', '3.11']
         os: [ubuntu-latest, windows-latest, macos-latest]
         tox_env: [py]
         include:
@@ -28,9 +28,6 @@ jobs:
           - python: '3.10'
             os: ubuntu-latest
             tox_env: 'build'
-        exclude:
-          - python: '3.7'
-            os: windows-latest
     steps:
     - name: Set git to not change EoL
       if: runner.os == 'Windows'
