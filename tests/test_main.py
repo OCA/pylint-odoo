@@ -281,7 +281,6 @@ class MainTest(unittest.TestCase):
         pylint_res = self.run_pylint(path_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
-            "invalid-name": 1,
             "unused-argument": 1,
         }
         self.assertDictEqual(real_errors, expected_errors)
@@ -291,7 +290,7 @@ class MainTest(unittest.TestCase):
         pylint_res = self.run_pylint(path_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
-            "invalid-name": 3,
+            "invalid-name": 1,
             "unused-argument": 2,
         }
         self.assertDictEqual(real_errors, expected_errors)
