@@ -1386,7 +1386,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         return tuple(args) or kwargs
 
     @utils.only_required_for_messages("except-pass")
-    def visit_tryexcept(self, node):
+    def visit_try(self, node):
         """Visit block try except"""
         for handler in node.handlers:
             if not handler.name and len(handler.body) == 1 and isinstance(handler.body[0], nodes.node_classes.Pass):
