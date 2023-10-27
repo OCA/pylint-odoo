@@ -67,6 +67,7 @@ EXPECTED_ERRORS = {
     "website-manifest-key-not-valid-uri": 1,
     "no-raise-unlink": 2,
     "deprecated-odoo-model-method": 2,
+    "manifest-behind-migrations": 3,
 }
 
 

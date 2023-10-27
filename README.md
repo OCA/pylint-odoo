@@ -33,6 +33,7 @@ external-request-timeout | Use of external request method `%s` without timeout. 
 invalid-commit | Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction | E8102
 license-allowed | License "%s" not allowed in manifest file. | C8105
 manifest-author-string | The author key in the manifest file must be a string (with comma separated values) | E8101
+manifest-behind-migrations | Manifest version (%s) is lower than migration scripts (%s) | E8145
 manifest-data-duplicated | The file "%s" is duplicated in lines %s from manifest key "%s" | W8125
 manifest-deprecated-key | Deprecated key "%s" in manifest file | C8103
 manifest-maintainers-list | The maintainers key in the manifest file must be a list of strings | E8104
@@ -202,6 +203,12 @@ Checks valid only for odoo <= 13.0
  * manifest-author-string
 
     - https://github.com/OCA/pylint-odoo/blob/v9.0.1/testing/resources/test_repo/broken_module3/__openerp__.py#L5 The author key in the manifest file must be a string (with comma separated values)
+
+ * manifest-behind-migrations
+
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.1/testing/resources/test_repo/broken_module2/__openerp__.py#L2 Manifest version (1.0) is lower than migration scripts (2.0)
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.1/testing/resources/test_repo/eleven_module/__manifest__.py#L1 Manifest version (11.0.1.0.0) is lower than migration scripts (11.0.1.0.1)
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.1/testing/resources/test_repo/test_module/__openerp__.py#L2 Manifest version (10.0.1.0.0) is lower than migration scripts (11.0.1.0.0)
 
  * manifest-data-duplicated
 
