@@ -376,7 +376,6 @@ PRINTF_PATTERN = re.compile(
 
 
 class OdooAddons(OdooBaseChecker, BaseChecker):
-
     _from_imports = None
     name = "odoolint"
     msgs = ODOO_MSGS
@@ -704,7 +703,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         # check execute("...".format(self._table, table=self._table))
         # ignore sql.SQL().format
         if isinstance(node, nodes.Call) and isinstance(node.func, nodes.Attribute) and node.func.attrname == "format":
-
             if not all(map(self._sqli_allowable, node.args or [])):
                 return True
 
@@ -1164,7 +1162,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 if isinstance(call_func.func, nodes.Name)
             ]
             if "super" not in calls:
-                self.add_message("method-required-super", node=node, args=(node.name))
+                self.add_message("method-required-super", node=node, args=(node.name,))
 
         there_is_super = False
         for stmt in node.nodes_of_class(nodes.Call):
@@ -1180,7 +1178,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             and not node.is_generator()
             and node.name not in self.linter.config.no_missing_return
         ):
-            self.add_message("missing-return", node=node, args=(node.name))
+            self.add_message("missing-return", node=node, args=(node.name,))
 
     @utils.only_required_for_messages(
         "external-request-timeout", "odoo-addons-relative-import", "test-folder-imported"
@@ -1365,7 +1363,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             except ValueError:
                 continue
             for placeholder in placeholders:
-                if placeholder == "":
+                if not placeholder:
                     # unnumbered "{} {}"
                     # append 0 to use max(0, 0, ...) == 0
                     # and identify that all args are unnumbered vs numbered
@@ -1379,7 +1377,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     # named "{var0} {var1} {var2} {var0}"
                     format_str_kwargs[placeholder] = 0
         if format_str_args:
-            format_str_args = range(len(format_str_args)) if max(format_str_args) == 0 else range(max(format_str_args))
+            format_str_args = range(len(format_str_args)) if not max(format_str_args) else range(max(format_str_args))
         return format_str_args, format_str_kwargs
 
     @staticmethod
