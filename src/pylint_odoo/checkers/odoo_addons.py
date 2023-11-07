@@ -149,6 +149,7 @@ ODOO_MSGS = {
         "no-wizard-in-models",
         CHECK_DESCRIPTION,
     ),
+    "C8114": ('Category "%s" not allowed in manifest file.', "category-allowed", CHECK_DESCRIPTION),
     "E8101": (
         "The author key in the manifest file must be a string (with comma separated values)",
         "manifest-author-string",
@@ -284,6 +285,7 @@ DFTL_ATTRIBUTE_DEPRECATED = [
     "_defaults",
     "length",
 ]
+DFTL_CATEGORY_ALLOWED = []
 DFTL_METHOD_REQUIRED_SUPER = [
     "copy",
     "create",
@@ -532,6 +534,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 "metavar": "python_expression",
                 "default": "",
                 "help": "Dictionary consisting of versions (keys) and methods that have been marked as deprecated.",
+            },
+        ),
+        (
+            "category-allowed",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_CATEGORY_ALLOWED,
+                "help": "List of categories allowed in manifest file, separated by a comma.",
             },
         ),
     )
@@ -986,6 +997,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     @utils.only_required_for_messages(
         "development-status-allowed",
         "license-allowed",
+        "category-allowed",
         "manifest-author-string",
         "manifest-data-duplicated",
         "manifest-deprecated-key",
@@ -1044,6 +1056,17 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         license_str = manifest_dict.get("license", None)
         if license_str and license_str not in self.linter.config.license_allowed:
             self.add_message("license-allowed", node=manifest_keys_nodes.get("license") or node, args=(license_str,))
+
+        # Check category allowed
+        category_str = manifest_dict.get("category")
+        if (
+            category_str
+            and self.linter.config.category_allowed
+            and category_str not in self.linter.config.category_allowed
+        ):
+            self.add_message(
+                "category-allowed", node=manifest_keys_nodes.get("category") or node, args=(category_str,)
+            )
 
         # Check version format
         version_format = manifest_dict.get("version", "")
