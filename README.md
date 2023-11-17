@@ -225,9 +225,9 @@ Checks valid only for odoo <= 13.0
 
  * manifest-version-format
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.0.1/testing/resources/test_repo/broken_module/__openerp__.py#L8 Wrong Version Format "8_0.1.0.0" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0)\.\d+\.\d+\.\d+$"
-    - https://github.com/OCA/pylint-odoo/blob/v9.0.1/testing/resources/test_repo/broken_module2/__openerp__.py#L8 Wrong Version Format "1.0" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0)\.\d+\.\d+\.\d+$"
-    - https://github.com/OCA/pylint-odoo/blob/v9.0.1/testing/resources/test_repo/broken_module3/__openerp__.py#L8 Wrong Version Format "8.0.1.0.0foo" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0)\.\d+\.\d+\.\d+$"
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.1/testing/resources/test_repo/broken_module/__openerp__.py#L8 Wrong Version Format "8_0.1.0.0" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0|17\.0)\.\d+\.\d+\.\d+$"
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.1/testing/resources/test_repo/broken_module2/__openerp__.py#L8 Wrong Version Format "1.0" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0|17\.0)\.\d+\.\d+\.\d+$"
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.1/testing/resources/test_repo/broken_module3/__openerp__.py#L8 Wrong Version Format "8.0.1.0.0foo" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0|17\.0)\.\d+\.\d+\.\d+$"
 
  * method-compute
 
