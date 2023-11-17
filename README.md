@@ -206,9 +206,9 @@ Checks valid only for odoo <= 13.0
 
  * manifest-behind-migrations
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.0.1/testing/resources/test_repo/broken_module2/__openerp__.py#L2 Manifest version (1.0) is lower than migration scripts (2.0)
-    - https://github.com/OCA/pylint-odoo/blob/v9.0.1/testing/resources/test_repo/eleven_module/__manifest__.py#L1 Manifest version (11.0.1.0.0) is lower than migration scripts (11.0.1.0.1)
-    - https://github.com/OCA/pylint-odoo/blob/v9.0.1/testing/resources/test_repo/test_module/__openerp__.py#L2 Manifest version (10.0.1.0.0) is lower than migration scripts (11.0.1.0.0)
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.3/testing/resources/test_repo/broken_module2/__openerp__.py#L2 Manifest version (1.0) is lower than migration scripts (2.0)
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.3/testing/resources/test_repo/eleven_module/__manifest__.py#L1 Manifest version (11.0.1.0.0) is lower than migration scripts (11.0.1.0.1)
+    - https://github.com/OCA/pylint-odoo/blob/v9.0.3/testing/resources/test_repo/test_module/__openerp__.py#L2 Manifest version (10.0.1.0.0) is lower than migration scripts (11.0.1.0.0)
 
  * manifest-data-duplicated
 
