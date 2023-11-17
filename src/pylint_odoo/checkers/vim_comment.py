@@ -11,7 +11,6 @@ ODOO_MSGS = {
 
 
 class VimComment(OdooBaseChecker, BaseTokenChecker):
-
     name = "odoolint"
     msgs = ODOO_MSGS
 

@@ -184,6 +184,11 @@ ODOO_MSGS = {
         "no-raise-unlink",
         "Use @api.ondelete to add any constraints instead",
     ),
+    "E8145": (
+        "Manifest version (%s) is lower than migration scripts (%s)",
+        "manifest-behind-migrations",
+        "Update your manifest version, otherwise the migration script won't run",
+    ),
     "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "R8101": (
         "`odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` "
@@ -376,7 +381,6 @@ PRINTF_PATTERN = re.compile(
 
 
 class OdooAddons(OdooBaseChecker, BaseChecker):
-
     _from_imports = None
     name = "odoolint"
     msgs = ODOO_MSGS
@@ -557,7 +561,24 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     def __init__(self, linter: PyLinter):
         super().__init__(linter)
+        self._module_versions = {}
+        self._module_migrations = defaultdict(set)
         self._deprecated_odoo_methods = set()
+
+    @staticmethod
+    def version_greater_equal_than(original, against):
+        """Compare two versions and state which one is bigger than the other.
+        :param str original: Original version
+        :param str against: Value to compare against
+        :return: True if a >= b, otherwise False
+        """
+        for original_val, against_val in zip(original.split("."), against.split(".")):
+            if int(against_val) > int(original_val):
+                return False
+            if int(original_val) > int(against_val):
+                return True
+
+        return True
 
     def close(self):
         """Final process get all cached values and add messages"""
@@ -580,6 +601,18 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 "consider-merging-classes-inherited", node=first_node, args=(odoo_class_inherit, ", ".join(path_nodes))
             )
 
+        if self.linter.is_message_enabled("manifest-behind-migrations"):
+            for module, migrations in self._module_migrations.items():
+                module_version, manifest_node = self._module_versions[module]
+                for migration in migrations:
+                    try:
+                        if not self.version_greater_equal_than(module_version, migration):
+                            self.add_message(
+                                "manifest-behind-migrations", node=manifest_node, args=(module_version, migration)
+                            )
+                    except ValueError:
+                        continue
+
     def visit_module(self, node):
         """Initizalize the cache to save the original library name
         of all imported node
@@ -588,6 +621,13 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         All these methods are these "visit_*" methods are called from pylint API
         """
         self._from_imports = {}
+        basename = os.path.basename(node.file)
+        if basename not in {"pre-migration.py", "post-migration.py"}:
+            return
+
+        migration_version = os.path.basename(os.path.dirname(node.file))
+        module_name = os.path.basename(os.path.abspath(os.path.join(node.file, "..", "..", "..")))
+        self._module_migrations[module_name].add(migration_version)
 
     def leave_module(self, node):
         """Clear variables"""
@@ -704,7 +744,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         # check execute("...".format(self._table, table=self._table))
         # ignore sql.SQL().format
         if isinstance(node, nodes.Call) and isinstance(node.func, nodes.Attribute) and node.func.attrname == "format":
-
             if not all(map(self._sqli_allowable, node.args or [])):
                 return True
 
@@ -1008,6 +1047,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "missing-readme",
         "resource-not-exist",
         "website-manifest-key-not-valid-uri",
+        "manifest-behind-migrations",
     )
     def visit_dict(self, node):
         if not os.path.basename(self.linter.current_file) in misc.MANIFEST_FILES or not isinstance(
@@ -1070,6 +1110,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
         # Check version format
         version_format = manifest_dict.get("version", "")
+        self._module_versions[os.path.basename(os.path.dirname(self.linter.current_file))] = (version_format, node)
+
+        # Check version format
         formatrgx = self.formatversion(version_format)
         if version_format and not formatrgx:
             self.add_message(
@@ -1164,7 +1207,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 if isinstance(call_func.func, nodes.Name)
             ]
             if "super" not in calls:
-                self.add_message("method-required-super", node=node, args=(node.name))
+                self.add_message("method-required-super", node=node, args=(node.name,))
 
         there_is_super = False
         for stmt in node.nodes_of_class(nodes.Call):
@@ -1180,7 +1223,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             and not node.is_generator()
             and node.name not in self.linter.config.no_missing_return
         ):
-            self.add_message("missing-return", node=node, args=(node.name))
+            self.add_message("missing-return", node=node, args=(node.name,))
 
     @utils.only_required_for_messages(
         "external-request-timeout", "odoo-addons-relative-import", "test-folder-imported"
@@ -1365,7 +1408,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             except ValueError:
                 continue
             for placeholder in placeholders:
-                if placeholder == "":
+                if not placeholder:
                     # unnumbered "{} {}"
                     # append 0 to use max(0, 0, ...) == 0
                     # and identify that all args are unnumbered vs numbered
@@ -1379,7 +1422,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     # named "{var0} {var1} {var2} {var0}"
                     format_str_kwargs[placeholder] = 0
         if format_str_args:
-            format_str_args = range(len(format_str_args)) if max(format_str_args) == 0 else range(max(format_str_args))
+            format_str_args = range(len(format_str_args)) if not max(format_str_args) else range(max(format_str_args))
         return format_str_args, format_str_kwargs
 
     @staticmethod
