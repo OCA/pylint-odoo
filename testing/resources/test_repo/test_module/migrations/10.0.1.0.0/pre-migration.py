@@ -1,4 +1,5 @@
 from odoo import SUPERUSER_ID, api
+from odoo.addons.test_module import random_stuff
 
 
 def method(cr, unused):
