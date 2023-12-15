@@ -1488,6 +1488,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     def check_odoo_relative_import(self, node):
         node_dirpath = os.path.dirname(node.root().file)
+        if os.path.basename(os.path.dirname(node_dirpath)) == "migrations":
+            return
+
         manifest_path = misc.walk_up(node_dirpath, tuple(misc.MANIFEST_FILES), misc.top_path(node_dirpath))
         if not manifest_path:
             return
