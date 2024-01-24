@@ -9,7 +9,7 @@
     ''',
     'author': 'Odoo Development Services',
     'category': 'Custom Development',
-    'version': '15.1.0.6',
+    'version': '17.1.0.6',
     'depends': [
         'l10n_mx_edi',
         'lodi_so_sku',
