@@ -1,8 +1,11 @@
 name: Pylint Odoo
-on: [push]
+on: [ push ]
 jobs:
   Pylint-Odoo-Actions:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
     steps:
       - run: python setup.py install
       - run: pylint --load-plugins=pylint_odoo -e odoolint --disable=manifest-deprecated-key,missing-readme --valid-odoo-versions=17
