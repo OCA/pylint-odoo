@@ -14,4 +14,4 @@ jobs:
         with:
           python-version: '3.10'
       - run: python setup.py install
-      - run: pylint --load-plugins=pylint_odoo -e odoolint --disable=manifest-deprecated-key,missing-readme --valid-odoo-versions=17
+      - run: pylint --load-plugins=pylint_odoo -e odoolint --disable=manifest-deprecated-key,missing-readme --valid-odoo-versions=17 customizations/*

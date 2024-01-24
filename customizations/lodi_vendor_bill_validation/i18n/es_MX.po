@@ -1,0 +1,205 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* lodi_vendor_bill_validation
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 15.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-02-28 23:11+0000\n"
+"PO-Revision-Date: 2023-02-28 23:11+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: lodi_vendor_bill_validation
+#: code:addons/lodi_vendor_bill_validation/wizard/vendor_bill_attachment_wizard.py:0
+#, python-format
+msgid ""
+"\n"
+"VAT: %s from file: %s"
+msgstr "RFC: %s del archivo: %s"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_vendor_bill_attachment_wizard__account_id
+msgid "Account"
+msgstr "Cuenta"
+
+#. module: lodi_vendor_bill_validation
+#: model_terms:ir.ui.view,arch_db:lodi_vendor_bill_validation.vendor_bill_attachment_wizard_view_form
+msgid "Attach a file"
+msgstr "Adjunta un archivo"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_account_bank_statement_line__attachment_ids
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_account_move__attachment_ids
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_account_payment__attachment_ids
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_vendor_bill_attachment_wizard__attachment_ids
+msgid "Attachments"
+msgstr "Archivos adjuntos"
+
+#. module: lodi_vendor_bill_validation
+#: code:addons/lodi_vendor_bill_validation/wizard/vendor_bill_attachment_wizard.py:0
+#, python-format
+msgid "Bill %(msg)s has an invalid status"
+msgstr "Facturade proveedor %(msg)s tiene un estado invalido"
+
+#. module: lodi_vendor_bill_validation
+#: code:addons/lodi_vendor_bill_validation/wizard/vendor_bill_attachment_wizard.py:0
+#, python-format
+msgid "Bills"
+msgstr "Facturas de proveedor"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model,name:lodi_vendor_bill_validation.model_res_partner
+msgid "Contact"
+msgstr "Contacto"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_vendor_bill_attachment_wizard__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_vendor_bill_attachment_wizard__create_date
+msgid "Created on"
+msgstr "Creado en"
+
+#. module: lodi_vendor_bill_validation
+#: model_terms:ir.ui.view,arch_db:lodi_vendor_bill_validation.vendor_bill_attachment_wizard_view_form
+msgid "Discard"
+msgstr "Descartar"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_vendor_bill_attachment_wizard__display_name
+msgid "Display Name"
+msgstr "Nombre"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_res_partner__has_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_res_users__has_bill_validation
+#: model_terms:ir.ui.view,arch_db:lodi_vendor_bill_validation.view_partner_form_inherit_lodi_vendor_bill
+msgid "Bill validation is not mandatory"
+msgstr "Sin validación para facturas de proveedor"
+
+#. module: lodi_vendor_bill_validation
+#: code:addons/lodi_vendor_bill_validation/wizard/vendor_bill_attachment_wizard.py:0
+#, python-format
+msgid "Failure during validation of the SAT status: %(msg)s"
+msgstr "Falló durante la validación del estado ante el SAT: %(msg)s"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,help:lodi_vendor_bill_validation.field_account_bank_statement_line__l10n_mx_edi_cfdi_request
+#: model:ir.model.fields,help:lodi_vendor_bill_validation.field_account_move__l10n_mx_edi_cfdi_request
+#: model:ir.model.fields,help:lodi_vendor_bill_validation.field_account_payment__l10n_mx_edi_cfdi_request
+msgid "Flag indicating a CFDI should be generated for this journal entry."
+msgstr ""
+"Se debe generar un indicador que indica un CFDI para esta entrada de diario."
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_vendor_bill_attachment_wizard__id
+msgid "ID"
+msgstr "ID"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.actions.act_window,name:lodi_vendor_bill_validation.vendor_bill_attachment_wizard_action
+#: model:ir.ui.menu,name:lodi_vendor_bill_validation.vendor_bill_attachment_wizard_menu
+msgid "Import Bills"
+msgstr "Importar Facturas de Proveedor"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_vendor_bill_attachment_wizard__journal_id
+msgid "Journal"
+msgstr "Diario"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model,name:lodi_vendor_bill_validation.model_account_move
+msgid "Journal Entry"
+msgstr "Asiento de diario"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_vendor_bill_attachment_wizard____last_update
+msgid "Last Modified on"
+msgstr "Última modificación en"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_vendor_bill_attachment_wizard__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_vendor_bill_attachment_wizard__write_date
+msgid "Last Updated on"
+msgstr "Última actualización en"
+
+#. module: lodi_vendor_bill_validation
+#: model_terms:ir.ui.view,arch_db:lodi_vendor_bill_validation.vendor_bill_attachment_wizard_view_form
+msgid "Process"
+msgstr "Proceso"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_account_bank_statement_line__l10n_mx_edi_cfdi_request
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_account_move__l10n_mx_edi_cfdi_request
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_account_payment__l10n_mx_edi_cfdi_request
+msgid "Request a CFDI"
+msgstr "Solicita un CFDI"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model,name:lodi_vendor_bill_validation.model_account_tax
+msgid "Tax"
+msgstr "Impuesto"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_account_tax__code
+msgid "Tax code"
+msgstr "Código del impuesto"
+
+#. module: lodi_vendor_bill_validation
+#: code:addons/lodi_vendor_bill_validation/wizard/vendor_bill_attachment_wizard.py:0
+#, python-format
+msgid "The CFDI document was successfully created."
+msgstr "El archivo CFDI fue creado satisfactoriamente"
+
+#. module: lodi_vendor_bill_validation
+#: code:addons/lodi_vendor_bill_validation/wizard/vendor_bill_attachment_wizard.py:0
+#, python-format
+msgid "The following Bills have been already synchronized: %s"
+msgstr "Las siguientes facturas de proveedor han sido sincronizadas: %s"
+
+#. module: lodi_vendor_bill_validation
+#: code:addons/lodi_vendor_bill_validation/wizard/vendor_bill_attachment_wizard.py:0
+#, python-format
+msgid "The following VATs do not exist %s"
+msgstr "Los siguientes RFC(s) no existe(n): %s"
+
+#. module: lodi_vendor_bill_validation
+#: code:addons/lodi_vendor_bill_validation/models/account_move.py:0
+#, python-format
+msgid "The following bills can not be validated: %s\n\nThe following are some reasons: \n1. Vendor is not from Mexico\n2. Vendor needs vendor bill validation\n3. Vendor bills do not have a valid UUID"
+msgstr "Las siguientes facturas de proveedor no pueden ser validadas: %s\n\nLos siguientes puntos son posibles razones: \n1. El proveedor no es de México\n2. El proveedor necesita validación de facturas de proveedor\n3. Las facturas de proveedor no tienen un UUID válido"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_account_bank_statement_line__validation_total
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_account_move__validation_total
+#: model:ir.model.fields,field_description:lodi_vendor_bill_validation.field_account_payment__validation_total
+msgid "Validation Total"
+msgstr "Validación Total"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model.fields.selection,name:lodi_vendor_bill_validation.selection__account_move__l10n_mx_edi_cfdi_request__in_invoice
+msgid "Vendor Bill"
+msgstr "Factura de Proveedor"
+
+#. module: lodi_vendor_bill_validation
+#: code:addons/lodi_vendor_bill_validation/models/account_move.py:0
+#, python-format
+msgid "Without reference"
+msgstr "Sin referencia"
+
+#. module: lodi_vendor_bill_validation
+#: model:ir.model,name:lodi_vendor_bill_validation.model_vendor_bill_attachment_wizard
+msgid "Wizard to attach bill xml files"
+msgstr "Interfaz para adjuntar los XML(s) de las facturas de proveedor"

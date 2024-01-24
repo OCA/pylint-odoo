@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_move_form_inherit_lodi_vendor_bill" model="ir.ui.view">
+        <field name="name">view.move.form.inherit.lodi.vendor.bill</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <field name="ref" position="attributes">
+                <attribute name="attrs">{'readonly': [('move_type', '=', 'in_invoice'), ('state', '=', 'posted')]}</attribute>
+            </field>
+            <field name="l10n_mx_edi_cfdi_uuid" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('state', 'not in', ('posted', 'cancel')), ('l10n_mx_edi_cfdi_request', '=', False), ('move_type', '!=', 'in_invoice')]}</attribute>
+            </field>
+            <group id="header_right_group" position="inside">
+                <field name="l10n_mx_edi_cfdi_request" invisible="1"/>
+                <field name="validation_total"
+                       attrs="{'invisible': [('move_type', '!=', 'in_invoice')], 'readonly': [('move_type', '=', 'in_invoice'), ('state', '=', 'posted')]}"/>
+            </group>
+        </field>
+    </record>
+
+    <record id="view_l10n_mx_edi_invoice_form_inherit_lodi_vendor_bill" model="ir.ui.view">
+        <field name="name">view.l10n.mx.edi.invoice.form.inherit.lodi.vendor.bill</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="l10n_mx_edi.view_l10n_mx_edi_invoice_form_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//label[@for='l10n_mx_edi_sat_status']" position="attributes">
+                <attribute name="attrs">{'invisible': ['&amp;', ('move_type', '!=', 'in_invoice'), '|', ('state', 'not in', ('posted', 'cancel')), ('l10n_mx_edi_cfdi_request', '=', False)]}</attribute>
+            </xpath>
+
+            <xpath expr="//label[@for='l10n_mx_edi_sat_status']/following-sibling::div" position="attributes">
+                <attribute name="attrs">{'invisible': ['&amp;', ('move_type', '!=', 'in_invoice'), '|', ('state', 'not in', ('posted', 'cancel')), ('l10n_mx_edi_cfdi_request', '=', False)]}</attribute>
+            </xpath>
+
+            <button name="l10n_mx_edi_update_sat_status" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', '|', ('state', 'not in', ('posted', 'cancel')), ('l10n_mx_edi_cfdi_request', '=', False), ('move_type', '=', 'in_invoice')]}</attribute>
+            </button>
+
+            <!-- Hide fields for invoices -->
+            <field name="l10n_mx_edi_origin" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('l10n_mx_edi_cfdi_request', '=', False), ('move_type', '=', 'in_invoice')]}</attribute>
+            </field>
+            <field name="l10n_mx_edi_cancel_invoice_id" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('l10n_mx_edi_cfdi_request', '=', False), ('move_type', '=', 'in_invoice')]}</attribute>
+            </field>
+            <field name="l10n_mx_edi_payment_method_id" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'invisible': ['|', ('l10n_mx_edi_cfdi_request', '=', False), ('move_type', '=', 'in_invoice')]}</attribute>
+            </field>
+            <field name="l10n_mx_edi_payment_policy" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('l10n_mx_edi_cfdi_request', '=', False), ('move_type', '=', 'in_invoice')]}</attribute>
+            </field>
+            <field name="l10n_mx_edi_usage" position="attributes">
+                <attribute name="attrs">{'readonly':[('state', '!=', 'draft')], 'invisible': ['|', ('l10n_mx_edi_cfdi_request', '=', False), ('move_type', '=', 'in_invoice')]}</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>

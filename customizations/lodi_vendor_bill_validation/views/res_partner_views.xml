@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_partner_form_inherit_lodi_vendor_bill" model="ir.ui.view">
+        <field name="name">view.partner.form.inherit.lodi.vendor.bill</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <group position="before">
+                <label for="is_bill_validation" string="Bill validation is not mandatory"/>
+                <field name="is_bill_validation"/>
+            </group>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <template id="report_saleorder_document_inherit_lodi_so_sku" inherit_id="sale.report_saleorder_document">
+        <xpath expr="//th[@name='th_description']" position="after">
+            <th name="th_product_sku" class="text-left">SKU</th>
+        </xpath>
+        <xpath expr="//td[@name='td_name']" position="after">
+            <td>
+                <span t-esc="line.product_id.get_sku_by_partner_id(partner_id).sku or ''"/>
+            </td>
+        </xpath>
+
+        <xpath expr="//td[@name='td_name']" position="replace">
+            <td name="td_name">
+                <span t-esc="line.product_id.get_sku_by_partner_id(doc.partner_id.id).internal_product_name or line.name"/>
+            </td>
+        </xpath>
+    </template>
+</odoo>
