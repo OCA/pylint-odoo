@@ -7,9 +7,9 @@
         TASK ID: 2973956
         Developers: eacm, hmpb
     ''',
-    'author': 'Odoo PS',
+    'author': 'Odoo Development Services',
     'category': 'Custom Development',
-    'version': '15.0.1.0.6',
+    'version': '15.1.0.6',
     'depends': [
         'l10n_mx_edi',
         'lodi_so_sku',
