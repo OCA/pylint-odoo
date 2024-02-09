@@ -410,6 +410,20 @@ def fstring_no_sqli(self):
             pylint_res.linter.stats.by_msg["deprecated-odoo-model-method"],
         )
 
+    def test_175_prohibited_method_override(self):
+        """Test --prohibited_override_methods parameter"""
+        extra_params = [
+            "--disable=all",
+            "--enable=prohibited-method-override",
+            "--prohibited-method-override=test_base_method_1,test_base_method_3",
+        ]
+        pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
+        real_errors = pylint_res.linter.stats.by_msg
+        expected_errors = {
+            "prohibited-method-override": 2,
+        }
+        self.assertDictEqual(real_errors, expected_errors)
+
     @staticmethod
     def re_replace(sub_start, sub_end, substitution, content):
         re_sub = re.compile(rf"^{re.escape(sub_start)}$.*^{re.escape(sub_end)}$", re.M | re.S)
