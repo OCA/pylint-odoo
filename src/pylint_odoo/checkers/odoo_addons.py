@@ -1152,7 +1152,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
         # Check if the website is valid URI
         website = manifest_dict.get("website", "")
-        url_is_valid = bool(validators.url(website, public=True))
+        url_is_valid = bool(validators.url(website))
         if website and "," not in website and not url_is_valid:
             self.add_message(
                 "website-manifest-key-not-valid-uri", node=manifest_keys_nodes.get("website") or node, args=(website)
