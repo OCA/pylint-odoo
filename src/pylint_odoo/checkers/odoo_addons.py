@@ -204,6 +204,7 @@ ODOO_MSGS = {
     "W8103": ('Translation method _("string") in fields is not necessary.', "translation-field", CHECK_DESCRIPTION),
     "W8105": ('attribute "%s" deprecated', "attribute-deprecated", CHECK_DESCRIPTION),
     "W8106": ('Missing `super` call in "%s" method.', "method-required-super", CHECK_DESCRIPTION),
+    "W8107": ('Prohibited override of "%s" method.', "prohibited-method-override", CHECK_DESCRIPTION),
     "W8110": ("Missing `return` (`super` is used) in method %s.", "missing-return", CHECK_DESCRIPTION),
     "W8111": (
         'Field parameter "%s" is no longer supported. Use "%s" instead.',
@@ -303,6 +304,7 @@ DFTL_METHOD_REQUIRED_SUPER = [
     "unlink",
     "write",
 ]
+DFTL_PROHIBITED_OVERRIDE_METHODS = []
 DFTL_CURSOR_EXPR = [
     "cr",  # old api
     "self._cr",  # new api
@@ -493,6 +495,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 "metavar": "<comma separated values>",
                 "default": DFTL_METHOD_REQUIRED_SUPER,
                 "help": "List of methods where call to `super` is required.separated by a comma.",
+            },
+        ),
+        (
+            "prohibited-method-override",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_PROHIBITED_OVERRIDE_METHODS,
+                "help": "List of methods that have been marked as prohibited to override.",
             },
         ),
         (
@@ -1188,7 +1199,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
         return node.name in self._deprecated_odoo_methods
 
-    @utils.only_required_for_messages("method-required-super", "missing-return", "deprecated-odoo-model-method")
+    @utils.only_required_for_messages(
+        "method-required-super", "prohibited-method-override", "missing-return", "deprecated-odoo-model-method"
+    )
     def visit_functiondef(self, node):
         """Check that `api.one` and `api.multi` decorators not exists together
         Check that method `copy` exists `api.one` decorator
@@ -1215,6 +1228,22 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             if isinstance(func, nodes.Name) and func.name == "super":
                 there_is_super = True
                 break
+
+        # Verify if super attributes are prohibited methods to override
+        if there_is_super and self.linter.config.prohibited_method_override or DFTL_PROHIBITED_OVERRIDE_METHODS:
+            for attr in node.nodes_of_class(nodes.Attribute):
+                if attr.attrname != node.name:
+                    continue
+                func = attr.expr.func
+                if (
+                    isinstance(func, nodes.Name)
+                    and func.name == "super"
+                    and (
+                        attr.attrname in self.linter.config.prohibited_method_override
+                        or attr.attrname in DFTL_PROHIBITED_OVERRIDE_METHODS
+                    )
+                ):
+                    self.add_message("prohibited-method-override", node=node, args=(attr.attrname,))
 
         there_is_return = any(node.nodes_of_class(nodes.Return, skip_klass=(nodes.FunctionDef, nodes.ClassDef)))
         if (
