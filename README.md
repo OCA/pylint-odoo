@@ -52,6 +52,7 @@ no-write-in-compute | Compute method calling `write`. Use `update` instead. | E8
 odoo-addons-relative-import | Same Odoo module absolute import. You should use relative import with "." instead of "odoo.addons.%s" | W8150
 odoo-exception-warning | `odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` use `from odoo.exceptions import UserError` | R8101
 print-used | Print used. Use `logger` instead. | W8116
+prohibited-method-override | Prohibited override of "%s" method. | W8107
 renamed-field-parameter | Field parameter "%s" is no longer supported. Use "%s" instead. | W8111
 resource-not-exist | File "%s": "%s" not found. | F8101
 sql-injection | SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection | E8103
