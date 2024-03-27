@@ -15,17 +15,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ['3.8', '3.9', '3.10', '3.11']
+        python: ['3.8', '3.9', '3.10', '3.11', '3.12']
         os: [ubuntu-latest, windows-latest, macos-latest]
         tox_env: [py]
         include:
-          - python: '3.10'
+          - python: '3.12'
             os: ubuntu-latest
             tox_env: 'lint'
-          - python: '3.10'
+          - python: '3.12'
             os: ubuntu-latest
             tox_env: 'update-readme'
-          - python: '3.10'
+          - python: '3.12'
             os: ubuntu-latest
             tox_env: 'build'
     steps:
@@ -39,10 +39,10 @@ jobs:
       with:
         path: ~/.cache/pre-commit
         key: ${{ runner.os }}-py${{ matrix.python }}-pre-commit
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4.1.2
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5.0.0
       with:
         python-version: ${{ matrix.python }}
         architecture: 'x64'
@@ -63,7 +63,7 @@ jobs:
     #TODO: Add GITHUB_RUN_ID.GITHUB_RUN_ATTEMPT.GITHUB_RUN_NUMBER to bumpversion to avoid duplicating upload versions or even the git sha
     - name: codecov
       if: startsWith(matrix.tox_env, 'py')  # only coveralls in python tests
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         fail_ci_if_error: false  # TODO: Set true after fix token for win&macosx
         verbose: true
