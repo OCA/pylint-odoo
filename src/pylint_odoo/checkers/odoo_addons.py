@@ -647,9 +647,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     def open(self):
         super().open()
         self._odoo_inherit_items = defaultdict(set)
-        self.linter.config.deprecated_field_parameters = self.colon_list_to_dict(
-            self.linter.config.deprecated_field_parameters
-        )
+        if isinstance(self.linter.config.deprecated_field_parameters, dict):
+            self.linter.config.deprecated_field_parameters = self.colon_list_to_dict(
+                self.linter.config.deprecated_field_parameters
+            )
 
         if self.linter.config.deprecated_odoo_model_methods:
             deprecated_model_methods = ast.literal_eval(self.linter.config.deprecated_odoo_model_methods)
