@@ -6,6 +6,7 @@ pre-commit
 pytest
 pytest-cov
 pytest-xdist
+setuptools >=42
 tox
 twine
 wheel
