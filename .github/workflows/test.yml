@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         python: ['3.8', '3.9', '3.10', '3.11', '3.12']
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-13, macos-latest]
         tox_env: [py]
         include:
           - python: '3.12'
@@ -33,6 +33,16 @@ jobs:
           - python: '3.12'
             os: ubuntu-latest
             tox_env: 'build'
+        exclude:
+          # macos-14 AKA macos-latest has switched to being an ARM runner, only supporting newer versions of Python
+          # https://github.com/actions/setup-python/issues/825#issuecomment-2096792396
+          - python: '3.8'
+            os: macos-latest
+          - python: '3.9'
+            os: macos-latest
+          - python: '3.10'
+            os: macos-latest
+
     steps:
     - name: Set git to not change EoL
       if: runner.os == 'Windows'
@@ -43,7 +53,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ${{ env.PRE_COMMIT_CACHE }}
-        key: ${{ runner.os }}-py${{ matrix.python }}-pre-commit
+        key: ${{ runner.os }}-${{ runner.arch }}-py${{ matrix.python }}-pre-commit
     - uses: actions/checkout@v4.1.2
       with:
         fetch-depth: 0
