@@ -228,8 +228,8 @@ ODOO_MSGS = {
     ),
     "W8116": ("Print used. Use `logger` instead.", "print-used", CHECK_DESCRIPTION),
     "W8120": (
-        "Translation method _(%s) is using positional string printf "
-        'formatting. Use named placeholder `_("%%(placeholder)s")` instead.',
+        "Translation method _(%s) is using positional string printf formatting with "
+        'multiple arguments. Use named placeholder `_("%%(placeholder)s")` instead.',
         "translation-positional-used",
         CHECK_DESCRIPTION,
     ),
