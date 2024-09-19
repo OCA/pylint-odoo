@@ -63,7 +63,7 @@ translation-format-interpolation | Use %s formatting in odoo._ functions | W8302
 translation-format-truncated | Logging format string ends in middle of conversion specifier | E8301
 translation-fstring-interpolation | Use %s formatting in odoo._ functions | W8303
 translation-not-lazy | Use %s formatting in odoo._ functions | W8301
-translation-positional-used | Translation method _(%s) is using positional string printf formatting. Use named placeholder `_("%%(placeholder)s")` instead. | W8120
+translation-positional-used | Translation method _(%s) is using positional string printf formatting with multiple arguments. Use named placeholder `_("%%(placeholder)s")` instead. | W8120
 translation-required | String parameter on "%s" requires translation. Use %s_(%s) | C8107
 translation-too-few-args | Not enough arguments for odoo._ format string | E8306
 translation-too-many-args | Too many arguments for odoo._ format string | E8305
@@ -350,9 +350,9 @@ Checks valid only for odoo <= 13.0
 
  * translation-positional-used
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.2/testing/resources/test_repo/broken_module/models/broken_model.py#L372 Translation method _('Variables not translatable: %s, %s' % (variable1, variable2)) is using positional string printf formatting. Use named placeholder `_("%(placeholder)s")` instead.
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.2/testing/resources/test_repo/broken_module/models/broken_model.py#L375 Translation method _('Variables not translatable: %s %s' % (variable1, variable2)) is using positional string printf formatting. Use named placeholder `_("%(placeholder)s")` instead.
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.2/testing/resources/test_repo/broken_module/models/broken_model.py#L378 Translation method _('Variables not translatable: %s, %s' % (variable1, variable2)) is using positional string printf formatting. Use named placeholder `_("%(placeholder)s")` instead.
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.2/testing/resources/test_repo/broken_module/models/broken_model.py#L372 Translation method _('Variables not translatable: %s, %s' % (variable1, variable2)) is using positional string printf formatting with multiple arguments. Use named placeholder `_("%(placeholder)s")` instead.
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.2/testing/resources/test_repo/broken_module/models/broken_model.py#L375 Translation method _('Variables not translatable: %s %s' % (variable1, variable2)) is using positional string printf formatting with multiple arguments. Use named placeholder `_("%(placeholder)s")` instead.
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.2/testing/resources/test_repo/broken_module/models/broken_model.py#L378 Translation method _('Variables not translatable: %s, %s' % (variable1, variable2)) is using positional string printf formatting with multiple arguments. Use named placeholder `_("%(placeholder)s")` instead.
 
  * translation-required
 
