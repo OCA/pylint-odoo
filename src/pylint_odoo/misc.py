@@ -32,6 +32,7 @@ DFTL_VALID_ODOO_VERSIONS = [
     "15.0",
     "16.0",
     "17.0",
+    "18.0",
 ]
 DFTL_MANIFEST_VERSION_FORMAT = r"({valid_odoo_versions})\.\d+\.\d+\.\d+$"
 
