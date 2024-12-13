@@ -490,6 +490,19 @@ def fstring_no_sqli(self):
             "The README was updated! Don't panic only failing for CI purposes. Run the same test again.",
         )
 
+    def test_gettext_env(self):
+        extra_params = ["--disable=all", "--enable=prefer-env-translation"]
+        test_repo = os.path.join(self.root_path_modules, "eighteen_module")
+
+        self.assertDictEqual(
+            self.run_pylint([test_repo], extra_params).linter.stats.by_msg,
+            {"prefer-env-translation": 1},
+        )
+
+        # This check is only valid for Odoo 18.0 and upwards
+        extra_params.append("--valid-odoo-versions=18.0")
+        self.assertTrue(self.run_pylint([test_repo], extra_params).linter.stats.by_msg)
+
 
 if __name__ == "__main__":
     unittest.main()

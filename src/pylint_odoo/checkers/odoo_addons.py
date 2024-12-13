@@ -265,6 +265,11 @@ ODOO_MSGS = {
         "deprecated-odoo-model-method",
         CHECK_DESCRIPTION,
     ),
+    "W8161": (
+        "Better using self.env._ for getting some performance improvement in some cases. More info at https://github.com/odoo/odoo/pull/174844",
+        "prefer-env-translation",
+        CHECK_DESCRIPTION,
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
@@ -569,6 +574,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             "odoo_maxversion": "13.0",
         },
         "no-raise-unlink": {"odoo_minversion": "15.0"},
+        "prefer-env-translation": {"odoo_minversion": "18.0"},
     }
 
     def __init__(self, linter: PyLinter):
@@ -796,6 +802,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "translation-field",
         "translation-positional-used",
         "translation-required",
+        "prefer-env-translation",
     )
     def visit_call(self, node):
         if (
@@ -973,6 +980,17 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 # Check just the following cases "%s %s..."
                 self.add_message("translation-positional-used", node=node, args=(str2translate,))
 
+            # prefer-env-translation: recommend to translate a string (_) with self.env._
+            if (
+                isinstance(arg, nodes.Const)
+                and not isinstance(
+                    node.func, nodes.Attribute
+                )  # ensure it's not already called as attribute, e.g: self.env._()
+                and not isinstance(node.parent, nodes.Assign)
+                and self._is_instance_method(self.get_enclosing_function(node))
+            ):
+                self.add_message("prefer-env-translation", node=node)
+
         # SQL Injection
         if self._check_sql_injection_risky(node):
             self.add_message("sql-injection", node=node)
@@ -1007,6 +1025,11 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 infer_node = utils.safe_infer(node.func)
                 if infer_node and infer_node.qname() == "itertools.groupby":
                     self.add_message("bad-builtin-groupby", node=node)
+
+    @staticmethod
+    def _is_instance_method(node: FunctionDef) -> bool:
+        parent = getattr(node, "parent", False)
+        return isinstance(parent, ClassDef) and ("_name" in parent.locals or "_inherit" in parent.locals)
 
     @utils.only_required_for_messages(
         "development-status-allowed",
