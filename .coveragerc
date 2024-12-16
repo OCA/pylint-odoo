@@ -4,7 +4,6 @@ source = src
 [run]
 source = src
 parallel = true
-dynamic_context = test_function
 context = ${{COVERAGE_CONTEXT}}
 
 [report]
