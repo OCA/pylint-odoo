@@ -575,6 +575,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         self._module_versions = {}
         self._module_migrations = defaultdict(set)
         self._deprecated_odoo_methods = set()
+        self.deprecated_field_parameters = {}
+        self._odoo_inherit_items = defaultdict(set)
 
     @staticmethod
     def version_greater_equal_than(original, against):
@@ -614,7 +616,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
         if self.linter.is_message_enabled("manifest-behind-migrations"):
             for module, migrations in self._module_migrations.items():
-                module_version, manifest_node = self._module_versions[module]
+                module_version, manifest_node = self._module_versions.get(module) or (None, None)
+                if (module_version, manifest_node) == (None, None):
+                    continue
                 for migration in migrations:
                     try:
                         if not self.version_greater_equal_than(module_version, migration):
@@ -646,10 +650,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     def open(self):
         super().open()
-        self._odoo_inherit_items = defaultdict(set)
-        self.linter.config.deprecated_field_parameters = self.colon_list_to_dict(
-            self.linter.config.deprecated_field_parameters
-        )
+        self.deprecated_field_parameters = self.colon_list_to_dict(self.linter.config.deprecated_field_parameters)
 
         if self.linter.config.deprecated_odoo_model_methods:
             deprecated_model_methods = ast.literal_eval(self.linter.config.deprecated_odoo_model_methods)
@@ -869,7 +870,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     self.add_message("attribute-string-redundant", node=node)
                 if isinstance(argument, nodes.Keyword):
                     argument_aux = argument.value
-                    deprecated = self.linter.config.deprecated_field_parameters
+                    deprecated = self.deprecated_field_parameters
                     if (
                         argument.arg in ["compute", "search", "inverse"]
                         and isinstance(argument_aux, nodes.Const)

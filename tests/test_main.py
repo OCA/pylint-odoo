@@ -424,6 +424,14 @@ def fstring_no_sqli(self):
         }
         self.assertDictEqual(real_errors, expected_errors)
 
+    def test_180_jobs(self):
+        """Using jobs could raise new errors"""
+        self.default_extra_params += ["--jobs=2"]
+        pylint_res = self.run_pylint(self.paths_modules, verbose=True)
+        real_errors = pylint_res.linter.stats.by_msg
+        # TODO: Remove .keys() in order to validate the number of occurrences
+        self.assertEqual(self.expected_errors.keys(), real_errors.keys())
+
     @staticmethod
     def re_replace(sub_start, sub_end, substitution, content):
         re_sub = re.compile(rf"^{re.escape(sub_start)}$.*^{re.escape(sub_end)}$", re.M | re.S)
