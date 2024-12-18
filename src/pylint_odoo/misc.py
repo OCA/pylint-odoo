@@ -89,15 +89,20 @@ def top_path(path):
         return path.root or path.drive
 
 
+def full_norm_path(path):
+    """Expand paths in all possible ways"""
+    return os.path.normpath(os.path.realpath(os.path.abspath(os.path.expanduser(os.path.expandvars(path.strip())))))
+
+
 @lru_cache(maxsize=256)
 def walk_up(path, filenames, top):
     """Look for "filenames" walking up in parent paths of "path"
     but limited only to "top" path
     """
-    if path == top:
+    if full_norm_path(path) == full_norm_path(top):
         return None
     for filename in filenames:
         path_filename = os.path.join(path, filename)
-        if os.path.isfile(path_filename):
+        if os.path.isfile(full_norm_path(path_filename)):
             return path_filename
     return walk_up(os.path.dirname(path), filenames, top)
