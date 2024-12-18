@@ -104,6 +104,7 @@ import re
 import string
 from collections import Counter, defaultdict
 
+import packaging.version
 import validators
 from astroid import ClassDef, FunctionDef, NodeNG, nodes
 from pylint.checkers import BaseChecker, utils
@@ -572,26 +573,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     def __init__(self, linter: PyLinter):
         super().__init__(linter)
-        self._module_versions = {}
-        self._module_migrations = defaultdict(set)
         self._deprecated_odoo_methods = set()
         self.deprecated_field_parameters = {}
         self._odoo_inherit_items = defaultdict(set)
-
-    @staticmethod
-    def version_greater_equal_than(original, against):
-        """Compare two versions and state which one is bigger than the other.
-        :param str original: Original version
-        :param str against: Value to compare against
-        :return: True if a >= b, otherwise False
-        """
-        for original_val, against_val in zip(original.split("."), against.split(".")):
-            if int(against_val) > int(original_val):
-                return False
-            if int(original_val) > int(against_val):
-                return True
-
-        return True
 
     def close(self):
         """Final process get all cached values and add messages"""
@@ -614,20 +598,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 "consider-merging-classes-inherited", node=first_node, args=(odoo_class_inherit, ", ".join(path_nodes))
             )
 
-        if self.linter.is_message_enabled("manifest-behind-migrations"):
-            for module, migrations in self._module_migrations.items():
-                module_version, manifest_node = self._module_versions.get(module) or (None, None)
-                if (module_version, manifest_node) == (None, None):
-                    continue
-                for migration in migrations:
-                    try:
-                        if not self.version_greater_equal_than(module_version, migration):
-                            self.add_message(
-                                "manifest-behind-migrations", node=manifest_node, args=(module_version, migration)
-                            )
-                    except ValueError:
-                        continue
-
     def visit_module(self, node):
         """Initizalize the cache to save the original library name
         of all imported node
@@ -636,13 +606,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         All these methods are these "visit_*" methods are called from pylint API
         """
         self._from_imports = {}
-        basename = os.path.basename(node.file)
-        if basename not in {"pre-migration.py", "post-migration.py"}:
-            return
-
-        migration_version = os.path.basename(os.path.dirname(node.file))
-        module_name = os.path.basename(os.path.abspath(os.path.join(node.file, "..", "..", "..")))
-        self._module_migrations[module_name].add(migration_version)
 
     def leave_module(self, node):
         """Clear variables"""
@@ -1122,7 +1085,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
         # Check version format
         version_format = manifest_dict.get("version", "")
-        self._module_versions[os.path.basename(os.path.dirname(self.linter.current_file))] = (version_format, node)
 
         # Check version format
         formatrgx = self.formatversion(version_format)
@@ -1132,6 +1094,23 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 node=manifest_keys_nodes.get("version") or node,
                 args=(version_format, self.linter.config.manifest_version_format_parsed),
             )
+
+        # Check manifest-behind-migrations
+        migrations_path = os.path.join(os.path.dirname(self.linter.current_file), "migrations")
+        if self.linter.is_message_enabled("manifest-behind-migrations") and os.path.isdir(migrations_path):
+            for migration_path in sorted(os.listdir(migrations_path), reverse=True):
+                if not os.path.isdir(os.path.join(migrations_path, migration_path)):
+                    continue
+                try:
+                    migration_path_v = packaging.version.Version(migration_path)
+                    version_format_v = packaging.version.Version(version_format)
+                    if migration_path_v > version_format_v:
+                        self.add_message(
+                            "manifest-behind-migrations", node=node, args=(version_format, migration_path)
+                        )
+                        break
+                except packaging.version.InvalidVersion:
+                    continue
 
         # Check if resource exist
         # Check manifest-data-duplicated
