@@ -395,6 +395,11 @@ class TestModel(models.Model):
         _('%d') % 3
         _('{}').format('hello')
         _('{}').format(3)
+
+        # It raised exception but it was already fixed
+        msg = "Invalid not _ method %s".lstrip() % "value"
+        # It should emit message but binop.left is showing "lstrip" only instead of "_"
+        self.message_post(_('Double method _ and lstrtip %s').lstrip() % (variable1,))  # TODO: Emit message for this case
         return error_msg
 
     def my_method2(self, variable2):

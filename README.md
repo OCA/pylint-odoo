@@ -187,15 +187,15 @@ Checks valid only for odoo <= 13.0
 
  * external-request-timeout
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L685 Use of external request method `requests.delete` without timeout. It could wait for a long time
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L686 Use of external request method `requests.get` without timeout. It could wait for a long time
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L687 Use of external request method `requests.head` without timeout. It could wait for a long time
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L690 Use of external request method `requests.delete` without timeout. It could wait for a long time
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L691 Use of external request method `requests.get` without timeout. It could wait for a long time
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L692 Use of external request method `requests.head` without timeout. It could wait for a long time
 
  * invalid-commit
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L404 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L405 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L406 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L409 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L410 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L411 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
 
  * license-allowed
 
@@ -270,7 +270,7 @@ Checks valid only for odoo <= 13.0
 
  * no-wizard-in-models
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L824 No wizard class for model directory. See the complete structure https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#complete-structure
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L829 No wizard class for model directory. See the complete structure https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#complete-structure
 
  * no-write-in-compute
 
@@ -307,9 +307,9 @@ Checks valid only for odoo <= 13.0
 
  * sql-injection
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L571 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L573 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L575 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L576 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L578 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L580 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
 
  * test-folder-imported
 
@@ -332,15 +332,15 @@ Checks valid only for odoo <= 13.0
 
     - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L380 Use lazy % or .format() or % formatting in odoo._ functions
     - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L381 Use lazy % or .format() or % formatting in odoo._ functions
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L468 Use lazy % or .format() or % formatting in odoo._ functions
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L473 Use lazy % or .format() or % formatting in odoo._ functions
 
  * translation-format-truncated
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L479 Logging format string ends in middle of conversion specifier
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L484 Logging format string ends in middle of conversion specifier
 
  * translation-fstring-interpolation
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L477 Use lazy % or .format() or % formatting in odoo._ functions
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L482 Use lazy % or .format() or % formatting in odoo._ functions
 
  * translation-not-lazy
 
@@ -362,15 +362,15 @@ Checks valid only for odoo <= 13.0
 
  * translation-too-few-args
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L475 Not enough arguments for odoo._ format string
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L480 Not enough arguments for odoo._ format string
 
  * translation-too-many-args
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L480 Too many arguments for odoo._ format string
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L485 Too many arguments for odoo._ format string
 
  * translation-unsupported-format
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L478 Unsupported odoo._ format character 'y' (0x79) at index 30
+    - https://github.com/OCA/pylint-odoo/blob/v9.1.4/testing/resources/test_repo/broken_module/models/broken_model.py#L483 Unsupported odoo._ format character 'y' (0x79) at index 30
 
  * use-vim-comment
 
