@@ -1298,7 +1298,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             if manifest_path:
                 self._odoo_inherit_items[(manifest_path, odoo_class_inherit)].add(node)
 
-    def get_func_name(self, node):
+    @staticmethod
+    def get_func_name(node):
         func_name = (
             isinstance(node, nodes.Name) and node.name or isinstance(node, nodes.Attribute) and node.attrname or ""
         )

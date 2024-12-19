@@ -2,9 +2,10 @@ import re
 from contextlib import contextmanager
 from unittest.mock import patch
 
-from astroid import builder, nodes
+from astroid import builder, exceptions as astroid_exceptions, nodes
 from pylint.checkers import logging
 
+from .odoo_addons import OdooAddons
 from .odoo_base_checker import OdooBaseChecker
 
 
@@ -79,16 +80,21 @@ class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
            _("lazy detectable: %s" % es_err.error)
         """
         new_code = f"{node.left.as_string()[:-1]} {node.op} {node.right.as_string()})"
-        new_node = builder.extract_node(new_code)
+        try:
+            new_node = builder.extract_node(new_code)
+        except astroid_exceptions.AstroidSyntaxError:
+            return
         node_attrs = ["lineno", "col_offset", "parent", "end_lineno", "end_col_offset", "position", "fromlineno"]
         for node_attr in node_attrs:
             setattr(new_node, node_attr, getattr(node, node_attr, None))
         return new_node
 
     def visit_binop(self, node):
-        if not isinstance(node.left, nodes.Call) or node.op != "%":
+        if not isinstance(node.left, nodes.Call) or node.op != "%" or OdooAddons.get_func_name(node.left.func) != "_":
             return
-        self.visit_call(self.transform_binop2call(node))
+        new_node = self.transform_binop2call(node)
+        if new_node:
+            self.visit_call(new_node)
 
     def _check_log_method(self, *args, **kwargs):
         with patch("pylint.checkers.logging.CHECKED_CONVENIENCE_FUNCTIONS", {"_"}):
