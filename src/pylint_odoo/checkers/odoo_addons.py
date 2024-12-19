@@ -1087,12 +1087,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         version_format = manifest_dict.get("version", "")
 
         # Check version format
-        formatrgx = self.formatversion(version_format)
+        formatrgx, manifest_version_format_parsed = self.formatversion(version_format)
         if version_format and not formatrgx:
             self.add_message(
                 "manifest-version-format",
                 node=manifest_keys_nodes.get("version") or node,
-                args=(version_format, self.linter.config.manifest_version_format_parsed),
+                args=(version_format, manifest_version_format_parsed),
             )
 
         # Check manifest-behind-migrations
@@ -1385,10 +1385,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         valid_odoo_versions = self.linter.config.valid_odoo_versions
         valid_odoo_versions = "|".join(map(re.escape, valid_odoo_versions))
         manifest_version_format = self.linter.config.manifest_version_format
-        self.linter.config.manifest_version_format_parsed = manifest_version_format.format(
-            valid_odoo_versions=valid_odoo_versions
-        )
-        return re.match(self.linter.config.manifest_version_format_parsed, version_string)
+        manifest_version_format_parsed = manifest_version_format.format(valid_odoo_versions=valid_odoo_versions)
+        return re.match(manifest_version_format_parsed, version_string), manifest_version_format_parsed
 
     def join_node_args_kwargs(self, node):
         """Method to join args and keywords
