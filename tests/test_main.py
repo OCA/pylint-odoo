@@ -5,7 +5,7 @@ import re
 import sys
 import unittest
 import warnings
-from collections import defaultdict
+from collections import Counter, defaultdict
 from glob import glob
 from io import StringIO
 from tempfile import NamedTemporaryFile
@@ -426,12 +426,17 @@ def fstring_no_sqli(self):
 
     def test_180_jobs(self):
         """Using jobs could raise new errors"""
-        self.default_extra_params += ["--jobs=4"]
+        self.default_extra_params += ["--jobs=2"]
         pylint_res = self.run_pylint(self.paths_modules, verbose=True)
         # pylint_res.linter.stats.by_msg has a issue generating the stats wrong with --jobs
         res = self._get_messages_from_output(pylint_res)
         real_errors = {key: len(set(lines)) for key, lines in res.items()}
         self.assertEqual(self.expected_errors, real_errors)
+
+        for key, lines in res.items():
+            lines_counter = Counter(tuple(lines))
+            for line, count in lines_counter.items():
+                self.assertLessEqual(count, 2, "%s duplicated more than 2 times. Line %s" % (key, line))
 
     @staticmethod
     def re_replace(sub_start, sub_end, substitution, content):
