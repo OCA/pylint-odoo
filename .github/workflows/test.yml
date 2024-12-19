@@ -78,7 +78,7 @@ jobs:
     #TODO: Add GITHUB_RUN_ID.GITHUB_RUN_ATTEMPT.GITHUB_RUN_NUMBER to bumpversion to avoid duplicating upload versions or even the git sha
     - name: codecov
       if: startsWith(matrix.tox_env, 'py')  # only coveralls in python tests
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: false  # TODO: Set true after fix token for win&macosx
         verbose: true
