@@ -1029,7 +1029,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             node.parent, nodes.Expr
         ):
             return
-        manifest_dict = ast.literal_eval(node.as_string())
+        try:
+            manifest_dict = ast.literal_eval(node.as_string())
+        except ValueError:
+            # There is code that the node is formed but literal_eval raises error
+            # e.g. {"key": "" or ""}
+            return
         manifest_keys_nodes = {
             key_node.value: key_node for key_node, _value in node.items if isinstance(key_node, nodes.Const)
         }
