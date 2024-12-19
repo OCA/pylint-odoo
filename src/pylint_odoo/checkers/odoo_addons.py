@@ -1585,7 +1585,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 break
             if not isinstance(attr, nodes.Name):
                 continue
-            imported_class = node.lookup(attr.name)[1][-1]
+            imported_class = node.lookup(attr.name)[1]
+            if not imported_class:
+                continue
+            imported_class = imported_class[-1]
             package_names = []
             if isinstance(imported_class, nodes.ImportFrom):
                 package_names = imported_class.modname.split(".")[:1]

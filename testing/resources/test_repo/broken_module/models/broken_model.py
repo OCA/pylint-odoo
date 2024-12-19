@@ -850,3 +850,11 @@ if __name__ == '__main__':
     ]
     for query in queries:
         self.env.cr.execute(query)
+
+class Ccc(object):
+
+    class Ddd(object):
+        pass
+
+    class Eee(Ddd):
+        pass
