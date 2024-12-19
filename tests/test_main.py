@@ -426,11 +426,12 @@ def fstring_no_sqli(self):
 
     def test_180_jobs(self):
         """Using jobs could raise new errors"""
-        self.default_extra_params += ["--jobs=2"]
+        self.default_extra_params += ["--jobs=4"]
         pylint_res = self.run_pylint(self.paths_modules, verbose=True)
-        real_errors = pylint_res.linter.stats.by_msg
-        # TODO: Remove .keys() in order to validate the number of occurrences
-        self.assertEqual(self.expected_errors.keys(), real_errors.keys())
+        # pylint_res.linter.stats.by_msg has a issue generating the stats wrong with --jobs
+        res = self._get_messages_from_output(pylint_res)
+        real_errors = {key: len(set(lines)) for key, lines in res.items()}
+        self.assertEqual(self.expected_errors, real_errors)
 
     @staticmethod
     def re_replace(sub_start, sub_end, substitution, content):
@@ -440,6 +441,17 @@ def fstring_no_sqli(self):
         substitution = substitution.replace("\\", "\\\\")
         new_content = re_sub.sub(f"{sub_start}\n\n{substitution}\n\n{sub_end}", content)
         return new_content
+
+    def _get_messages_from_output(self, pylint_res):
+        pylint_res.out.seek(0)
+        all_check_errors_merged = defaultdict(list)
+        for line in pylint_res.out:
+            checks_found = RE_CHECK_OUTPUT.findall(line)
+            if not checks_found:
+                continue
+            line = RE_CHECK_OUTPUT.sub("", line).strip()
+            all_check_errors_merged[checks_found[0]].append(line)
+        return all_check_errors_merged
 
     @unittest.skipIf(not os.environ.get("BUILD_README"), "BUILD_README environment variable not enabled")
     def test_build_docstring(self):
@@ -453,14 +465,7 @@ def fstring_no_sqli(self):
         )
 
         pylint_res = self.run_pylint(self.paths_modules, verbose=True)
-        pylint_res.out.seek(0)
-        all_check_errors_merged = defaultdict(list)
-        for line in pylint_res.out:
-            checks_found = RE_CHECK_OUTPUT.findall(line)
-            if not checks_found:
-                continue
-            line = RE_CHECK_OUTPUT.sub("", line).strip()
-            all_check_errors_merged[checks_found[0]].append(line)
+        all_check_errors_merged = self._get_messages_from_output(pylint_res)
         check_example_content = ""
         for check_error, msgs in sorted(all_check_errors_merged.items(), key=lambda a: a[0]):
             check_example_content += f"\n\n * {check_error}\n"
