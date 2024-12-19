@@ -579,7 +579,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     def close(self):
         """Final process get all cached values and add messages"""
-        self.linter.config.deprecated_odoo_model_methods = set()
         for (_manifest_path, odoo_class_inherit), inh_nodes in self._odoo_inherit_items.items():
             # Skip _inherit='other.model' _name='model.name' because is valid
             inh_nodes = {
@@ -597,6 +596,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             self.add_message(
                 "consider-merging-classes-inherited", node=first_node, args=(odoo_class_inherit, ", ".join(path_nodes))
             )
+        self._odoo_inherit_items = defaultdict(set)
 
     def visit_module(self, node):
         """Initizalize the cache to save the original library name
