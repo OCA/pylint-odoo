@@ -22,7 +22,7 @@ EXPECTED_ERRORS = {
     "attribute-deprecated": 3,
     "attribute-string-redundant": 31,
     "bad-builtin-groupby": 2,
-    "consider-merging-classes-inherited": 2,
+    "consider-merging-classes-inherited": 3,
     "context-overridden": 3,
     "development-status-allowed": 1,
     "except-pass": 3,
@@ -142,6 +142,13 @@ class MainTest(unittest.TestCase):
     def test_20_expected_errors(self):
         """Expected vs found errors"""
         pylint_res = self.run_pylint(self.paths_modules, verbose=True)
+        real_errors = pylint_res.linter.stats.by_msg
+        self.assertEqual(self.expected_errors, real_errors)
+
+    def test_22_expected_errors_jobs(self):
+        """Expected vs found errors with jobs"""
+        extra_params = ["--jobs=0"]
+        pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
         self.assertEqual(self.expected_errors, real_errors)
 
@@ -382,12 +389,32 @@ def fstring_no_sqli(self):
             expected_errors = {expected_error_name: expected_error_value}
             self.assertDictEqual(real_errors, expected_errors)
 
+    def test_155_check_only_enabled_one_check_jobs(self):
+        """Checking -d all -e ONLY-ONE-CHECK --jobs=0"""
+        disable = "--disable=all"
+        for expected_error_name, expected_error_value in EXPECTED_ERRORS.items():
+            enable = "--enable=%s" % expected_error_name
+            pylint_res = self.run_pylint(self.paths_modules, [disable, enable, "--jobs=0"])
+            real_errors = pylint_res.linter.stats.by_msg
+            expected_errors = {expected_error_name: expected_error_value}
+            self.assertDictEqual(real_errors, expected_errors)
+
     def test_160_check_only_disabled_one_check(self):
         """Checking -d all -e odoolint -d ONLY-ONE-CHECK"""
         for disable_error in EXPECTED_ERRORS:
             expected_errors = self.expected_errors.copy()
             enable = "--disable=%s" % disable_error
             pylint_res = self.run_pylint(self.paths_modules, self.default_extra_params + [enable])
+            real_errors = pylint_res.linter.stats.by_msg
+            expected_errors.pop(disable_error)
+            self.assertDictEqual(real_errors, expected_errors)
+
+    def test_165_check_only_disabled_one_check_jobs(self):
+        """Checking -d all -e odoolint -d ONLY-ONE-CHECK --jobs=0"""
+        for disable_error in EXPECTED_ERRORS:
+            expected_errors = self.expected_errors.copy()
+            enable = "--disable=%s" % disable_error
+            pylint_res = self.run_pylint(self.paths_modules, self.default_extra_params + [enable, "--jobs=0"])
             real_errors = pylint_res.linter.stats.by_msg
             expected_errors.pop(disable_error)
             self.assertDictEqual(real_errors, expected_errors)

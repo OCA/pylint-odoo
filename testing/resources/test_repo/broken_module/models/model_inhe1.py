@@ -13,3 +13,7 @@ class TestModel(models.Model):
 
 class TestModel2(models.Model):
     _inherit = 'model.no.duplicated'
+
+
+class StockWarehouseOrderpoint(models.Model):
+    _inherit = 'stock.warehouse.orderpoint'
