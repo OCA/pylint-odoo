@@ -23,7 +23,7 @@ EXPECTED_ERRORS = {
     "attribute-deprecated": 3,
     "attribute-string-redundant": 31,
     "bad-builtin-groupby": 2,
-    "consider-merging-classes-inherited": 2,
+    "consider-merging-classes-inherited": 3,
     "context-overridden": 3,
     "development-status-allowed": 1,
     "except-pass": 3,
