@@ -47,22 +47,23 @@ EXPECTED_ERRORS = {
     "no-write-in-compute": 16,
     "odoo-addons-relative-import": 4,
     "odoo-exception-warning": 4,
+    "prefer-env-translation": 111,
     "print-used": 1,
     "renamed-field-parameter": 2,
     "resource-not-exist": 4,
     "sql-injection": 21,
     "test-folder-imported": 3,
-    "translation-contains-variable": 11,
+    "translation-contains-variable": 33,
     "translation-field": 2,
-    "translation-format-interpolation": 4,
-    "translation-format-truncated": 1,
-    "translation-fstring-interpolation": 1,
-    "translation-not-lazy": 21,
-    "translation-positional-used": 10,
+    "translation-format-interpolation": 8,
+    "translation-format-truncated": 2,
+    "translation-fstring-interpolation": 2,
+    "translation-not-lazy": 42,
+    "translation-positional-used": 30,
     "translation-required": 15,
-    "translation-too-few-args": 1,
-    "translation-too-many-args": 1,
-    "translation-unsupported-format": 1,
+    "translation-too-few-args": 2,
+    "translation-too-many-args": 2,
+    "translation-unsupported-format": 2,
     "use-vim-comment": 1,
     "website-manifest-key-not-valid-uri": 1,
     "no-raise-unlink": 2,
@@ -150,6 +151,9 @@ class MainTest(unittest.TestCase):
     def test_25_checks_excluding_by_odoo_version(self):
         """All odoolint errors vs found but excluding based on Odoo version"""
         excluded_msgs = {
+            "deprecated-odoo-model-method",
+            "no-raise-unlink",
+            "prefer-env-translation",
             "translation-format-interpolation",
             "translation-format-truncated",
             "translation-fstring-interpolation",
@@ -157,8 +161,6 @@ class MainTest(unittest.TestCase):
             "translation-too-few-args",
             "translation-too-many-args",
             "translation-unsupported-format",
-            "no-raise-unlink",
-            "deprecated-odoo-model-method",
         }
         self.default_extra_params += ["--valid-odoo-versions=13.0"]
         pylint_res = self.run_pylint(self.paths_modules)
@@ -176,7 +178,12 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = self.expected_errors.copy()
         expected_errors.update({"manifest-version-format": 6})
-        excluded_msgs = {"no-raise-unlink", "translation-contains-variable", "deprecated-odoo-model-method"}
+        excluded_msgs = {
+            "deprecated-odoo-model-method",
+            "no-raise-unlink",
+            "prefer-env-translation",
+            "translation-contains-variable",
+        }
         for excluded_msg in excluded_msgs:
             expected_errors.pop(excluded_msg)
         self.assertEqual(expected_errors, real_errors)
@@ -321,6 +328,22 @@ class MainTest(unittest.TestCase):
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {}
         self.assertDictEqual(real_errors, expected_errors)
+
+    def test_gettext_env(self):
+        """prefer-env-translation is only valid for odoo v18.0+ but not for older odoo versions"""
+        pylint_res = self.run_pylint(
+            self.paths_modules, ["--valid-odoo-versions=18.0", "--disable=all", "--enable=prefer-env-translation"]
+        )
+        real_errors = pylint_res.linter.stats.by_msg
+        expected_errors = {"prefer-env-translation": self.expected_errors.get("prefer-env-translation")}
+        self.assertEqual(expected_errors, real_errors)
+
+        pylint_res = self.run_pylint(
+            self.paths_modules, ["--valid-odoo-versions=17.0", "--disable=all", "--enable=prefer-env-translation"]
+        )
+        real_errors = pylint_res.linter.stats.by_msg
+        expected_errors = {}
+        self.assertEqual(expected_errors, real_errors)
 
     @unittest.skipUnless(not sys.platform.startswith("win"), "TOOD: Fix with windows")  # TODO: Fix it
     def test_145_check_fstring_sqli(self):

@@ -44,6 +44,8 @@ from ftplib import FTP as ftp_r
 from odoo import fields, models, _
 from odoo.exceptions import UserError
 from odoo import exceptions
+from odoo.tools.translate import LazyTranslate
+
 
 # Relatives import for odoo addons
 from odoo.addons.broken_module import broken_model as broken_model1
@@ -61,6 +63,7 @@ from odoo import tools
 import itertools
 from itertools import groupby
 
+_lt = LazyTranslate(__name__)
 other_field = fields.Char()
 
 
@@ -402,6 +405,134 @@ class TestModel(models.Model):
         self.message_post(_('Double method _ and lstrtip %s').lstrip() % (variable1,))  # TODO: Emit message for this case
         return error_msg
 
+    def my_method11(self, variable1):
+        #  Shouldn't show error of field-argument-translate
+        self.my_method2(self.env._('hello world'))
+
+        # Message post with new translation function
+        self.message_post(subject=self.env._('Subject translatable'),
+                          body=self.env._('Body translatable'))
+        self.message_post(self.env._('Body translatable'),
+                          self.env._('Subject translatable'))
+        self.message_post(self.env._('Body translatable'),
+                          subject=self.env._('Subject translatable'))
+        self.message_post(self.env._('A CDR has been recovered for %s') % (variable1,))
+        self.message_post(self.env._('A CDR has been recovered for %s') % variable1)
+        self.message_post(self.env._('Var {a}').format(a=variable1))
+        self.message_post(self.env._('Var %(variable)s') % {'variable': variable1})
+        self.message_post(subject=self.env._('Subject translatable'),
+                          body=self.env._('Body translatable %s') % variable1)
+        self.message_post(subject=self.env._('Subject translatable %(variable)s') %
+                          {'variable': variable1},
+                          message_type='notification')
+        self.message_post(self.env._('Body translatable'),
+                          self.env._('Subject translatable {a}').format(a=variable1))
+        self.message_post(self.env._('Body translatable %s') % variable1,
+                          self.env._('Subject translatable %(variable)s') %
+                          {'variable': variable1})
+        self.message_post('<p>%s</p>' % self.env._('Body translatable'))
+        self.message_post(body='<p>%s</p>' % self.env._('Body translatable'))
+
+        # translation new function with variables in the term
+        variable2 = variable1
+        self.message_post(self.env._('Variable not translatable: %s' % variable1))
+        self.message_post(self.env._('Variables not translatable: %s, %s' % (
+            variable1, variable2)))
+        self.message_post(body=self.env._('Variable not translatable: %s' % variable1))
+        self.message_post(body=self.env._('Variables not translatable: %s %s' % (
+            variable1, variable2)))
+        error_msg = self.env._('Variable not translatable: %s' % variable1)
+        error_msg = self.env._('Variables not translatable: %s, %s' % (
+            variable1, variable2))
+        error_msg = self.env._('Variable not translatable: {}'.format(variable1))
+        error_msg = self.env._('Variables not translatable: {}, {variable2}'.format(
+            variable1, variable2=variable2))
+
+        # string with parameters without name
+        # so you can't change the order in the translation
+        self.env._('%s %d') % ('hello', 3)
+        self.env._('%s %s') % ('hello', 'world')
+        self.env._('{} {}').format('hello', 3)
+        self.env._('{} {}').format('hello', 'world')
+
+        # Valid cases
+        self.env._('%(strname)s') % {'strname': 'hello'}
+        self.env._('%(strname)s %(intname)d') % {'strname': 'hello', 'intname': 3}
+        self.env._('%s') % 'hello'
+        self.env._('%d') % 3
+        self.env._('{}').format('hello')
+        self.env._('{}').format(3)
+
+        # It raised exception but it was already fixed
+        msg = "Invalid not _ method %s".lstrip() % "value"
+        # It should emit message but binop.left is showing "lstrip" only instead of "_"
+        self.message_post(self.env._('Double method _ and lstrtip %s').lstrip() % (variable1,))  # TODO: Emit message for this case
+        return error_msg
+
+    def my_method111(self, variable1):
+        #  Shouldn't show error of field-argument-translate
+        self.my_method2(_lt('hello world'))
+
+        # Message post with new translation function
+        self.message_post(subject=_lt('Subject translatable'),
+                          body=_lt('Body translatable'))
+        self.message_post(_lt('Body translatable'),
+                          _lt('Subject translatable'))
+        self.message_post(_lt('Body translatable'),
+                          subject=_lt('Subject translatable'))
+        self.message_post(_lt('A CDR has been recovered for %s') % (variable1,))
+        self.message_post(_lt('A CDR has been recovered for %s') % variable1)
+        self.message_post(_lt('Var {a}').format(a=variable1))
+        self.message_post(_lt('Var %(variable)s') % {'variable': variable1})
+        self.message_post(subject=_lt('Subject translatable'),
+                          body=_lt('Body translatable %s') % variable1)
+        self.message_post(subject=_lt('Subject translatable %(variable)s') %
+                          {'variable': variable1},
+                          message_type='notification')
+        self.message_post(_lt('Body translatable'),
+                          _lt('Subject translatable {a}').format(a=variable1))
+        self.message_post(_lt('Body translatable %s') % variable1,
+                          _lt('Subject translatable %(variable)s') %
+                          {'variable': variable1})
+        self.message_post('<p>%s</p>' % _lt('Body translatable'))
+        self.message_post(body='<p>%s</p>' % _lt('Body translatable'))
+
+        # translation new function with variables in the term
+        variable2 = variable1
+        self.message_post(_lt('Variable not translatable: %s' % variable1))
+        self.message_post(_lt('Variables not translatable: %s, %s' % (
+            variable1, variable2)))
+        self.message_post(body=_lt('Variable not translatable: %s' % variable1))
+        self.message_post(body=_lt('Variables not translatable: %s %s' % (
+            variable1, variable2)))
+        error_msg = _lt('Variable not translatable: %s' % variable1)
+        error_msg = _lt('Variables not translatable: %s, %s' % (
+            variable1, variable2))
+        error_msg = _lt('Variable not translatable: {}'.format(variable1))
+        error_msg = _lt('Variables not translatable: {}, {variable2}'.format(
+            variable1, variable2=variable2))
+
+        # string with parameters without name
+        # so you can't change the order in the translation
+        _lt('%s %d') % ('hello', 3)
+        _lt('%s %s') % ('hello', 'world')
+        _lt('{} {}').format('hello', 3)
+        _lt('{} {}').format('hello', 'world')
+
+        # Valid cases
+        _lt('%(strname)s') % {'strname': 'hello'}
+        _lt('%(strname)s %(intname)d') % {'strname': 'hello', 'intname': 3}
+        _lt('%s') % 'hello'
+        _lt('%d') % 3
+        _lt('{}').format('hello')
+        _lt('{}').format(3)
+
+        # It raised exception but it was already fixed
+        msg = "Invalid not _ method %s".lstrip() % "value"
+        # It should emit message but binop.left is showing "lstrip" only instead of "_"
+        self.message_post(_lt('Double method _ and lstrtip %s').lstrip() % (variable1,))  # TODO: Emit message for this case
+        return error_msg
+
     def my_method2(self, variable2):
         return variable2
 
@@ -431,6 +562,18 @@ class TestModel(models.Model):
         if user_id != 99:
             # Method with translation
             raise UserError(_('String with translation'))
+
+    def my_method71(self):
+        user_id = 1
+        if user_id != 99:
+            # Method with translation
+            raise UserError(self.env._('String with translation'))
+
+    def my_method72(self):
+        user_id = 1
+        if user_id != 99:
+            # Method with translation
+            raise UserError(_lt('String with translation'))
 
     def my_method8(self):
         user_id = 1
@@ -476,6 +619,28 @@ class TestModel(models.Model):
         raise exceptions.Warning(_(
             'String with params format %(p1)s' % {'p1': 'v1'}))
 
+    def my_method131(self):
+        # Shouldn't show error
+        raise exceptions.Warning(self.env._(
+            'String with params format {p1}').format(p1='v1'))
+        raise exceptions.Warning(self.env._(
+            'String with params format {p1}'.format(p1='v1')))
+        raise exceptions.Warning(self.env._(
+            'String with params format %(p1)s') % {'p1': 'v1'})
+        raise exceptions.Warning(self.env._(
+            'String with params format %(p1)s' % {'p1': 'v1'}))
+
+    def my_method132(self):
+        # Shouldn't show error
+        raise exceptions.Warning(_lt(
+            'String with params format {p1}').format(p1='v1'))
+        raise exceptions.Warning(_lt(
+            'String with params format {p1}'.format(p1='v1')))
+        raise exceptions.Warning(_lt(
+            'String with params format %(p1)s') % {'p1': 'v1'})
+        raise exceptions.Warning(_lt(
+            'String with params format %(p1)s' % {'p1': 'v1'}))
+
     def my_method14(self):
         _("String with missing args %s %s", "param1")
         _("String with missing kwargs %(param1)s", param2="hola")
@@ -490,6 +655,36 @@ class TestModel(models.Model):
 
         _("String with correct args %s", "param1")
         _("String with correct kwargs %(param1)s", param1="hola")
+
+    def my_method141(self):
+        self.env._("String with missing args %s %s", "param1")
+        self.env._("String with missing kwargs %(param1)s", param2="hola")
+        self.env._(f"String with f-interpolation {self.param1}")
+        self.env._("String unsupported character %y", "param1")
+        self.env._("format truncated %s%", 'param1')
+        self.env._("too many args %s", 'param1', 'param2')
+
+        self.env._("multi-positional args without placeholders %s %s", 'param1', 'param2')
+
+        self.env._("multi-positional args without placeholders {} {}".format('param1', 'param2'))
+
+        self.env._("String with correct args %s", "param1")
+        self.env._("String with correct kwargs %(param1)s", param1="hola")
+
+    def my_method142(self):
+        _lt("String with missing args %s %s", "param1")
+        _lt("String with missing kwargs %(param1)s", param2="hola")
+        _lt(f"String with f-interpolation {self.param1}")
+        _lt("String unsupported character %y", "param1")
+        _lt("format truncated %s%", 'param1')
+        _lt("too many args %s", 'param1', 'param2')
+
+        _lt("multi-positional args without placeholders %s %s", 'param1', 'param2')
+
+        _lt("multi-positional args without placeholders {} {}".format('param1', 'param2'))
+
+        _lt("String with correct args %s", "param1")
+        _lt("String with correct kwargs %(param1)s", param1="hola")
 
     def old_api_method_alias(self, cursor, user, ids, context=None):  # old api
         pass
