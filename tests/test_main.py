@@ -125,12 +125,15 @@ class MainTest(unittest.TestCase):
 
     @staticmethod
     def _run_pylint(args, out, reporter):
-        with _patch_streams(out):
-            with pytest.raises(SystemExit) as ctx_mgr:
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
+        with pytest.raises(SystemExit) as ctx_mgr:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                if sys.gettrace() is None:  # No pdb enabled
+                    with _patch_streams(out):
+                        Run(args, reporter=reporter)
+                else:  # pdb enabled
                     Run(args, reporter=reporter)
-            return int(ctx_mgr.value.code)
+        return int(ctx_mgr.value.code)
 
     def test_10_path_dont_exist(self):
         """test if path don't exist"""
