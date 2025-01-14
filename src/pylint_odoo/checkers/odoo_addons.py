@@ -265,6 +265,11 @@ ODOO_MSGS = {
         "deprecated-odoo-model-method",
         CHECK_DESCRIPTION,
     ),
+    "W8161": (
+        "Better using self.env._ More info at https://github.com/odoo/odoo/pull/174844",
+        "prefer-env-translation",
+        CHECK_DESCRIPTION,
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
@@ -569,6 +574,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             "odoo_maxversion": "13.0",
         },
         "no-raise-unlink": {"odoo_minversion": "15.0"},
+        "prefer-env-translation": {"odoo_minversion": "18.0"},
     }
 
     def __init__(self, linter: PyLinter):
@@ -789,6 +795,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "method-inverse",
         "method-search",
         "no-write-in-compute",
+        "prefer-env-translation",
         "print-used",
         "renamed-field-parameter",
         "sql-injection",
@@ -870,8 +877,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                             self.odoo_computes.add(method_name)
                 if (
                     isinstance(argument_aux, nodes.Call)
-                    and isinstance(argument_aux.func, nodes.Name)
-                    and argument_aux.func.name == "_"
+                    and self.get_func_name(argument_aux.func) in misc.TRANSLATION_METHODS
                 ):
                     self.add_message("translation-field", node=argument_aux)
                 index += 1
@@ -942,7 +948,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     self.add_message("translation-required", node=node, args=("message_post", keyword, as_string))
 
         # Call _(...) with variables into the term to be translated
-        if isinstance(node.func, nodes.Name) and node.func.name == "_" and node.args:
+        if self.get_func_name(node.func) in misc.TRANSLATION_METHODS and node.args:
+            # "_" -> isinstance(node.func, nodes.Name)
+            # "self.env._" -> isinstance(node.func, nodes.Attribute)
+            if isinstance(node.func, nodes.Name) and node.func.as_string() in misc.TRANSLATION_METHODS:
+                self.add_message("prefer-env-translation", node=node)
+
             wrong = ""
             right = ""
             arg = node.args[0]

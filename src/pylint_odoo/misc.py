@@ -35,6 +35,7 @@ DFTL_VALID_ODOO_VERSIONS = [
     "18.0",
 ]
 DFTL_MANIFEST_VERSION_FORMAT = r"({valid_odoo_versions})\.\d+\.\d+\.\d+$"
+TRANSLATION_METHODS = ("_", "_lt")
 
 
 class StringParseError(TypeError):

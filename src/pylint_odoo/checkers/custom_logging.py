@@ -5,6 +5,7 @@ from unittest.mock import patch
 from astroid import builder, exceptions as astroid_exceptions, nodes
 from pylint.checkers import logging
 
+from .. import misc
 from .odoo_addons import OdooAddons
 from .odoo_base_checker import OdooBaseChecker
 
@@ -67,9 +68,9 @@ class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
         return super().add_message(msgid, *args, **kwargs)
 
     def visit_call(self, node):
-        if not isinstance(node.func, nodes.Name):
+        name = OdooAddons.get_func_name(node.func)
+        if name not in misc.TRANSLATION_METHODS:
             return
-        name = node.func.name
         with config_logging_modules(self.linter, ("odoo",)):
             self._check_log_method(node, name)
 
