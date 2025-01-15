@@ -104,7 +104,6 @@ import re
 import string
 from collections import Counter, defaultdict
 
-import validators
 from astroid import ClassDef, FunctionDef, NodeNG, nodes
 from pylint.checkers import BaseChecker, utils
 from pylint.lint import PyLinter
@@ -217,7 +216,7 @@ ODOO_MSGS = {
         CHECK_DESCRIPTION,
     ),
     "W8114": (
-        'Website "%s" in manifest key is not a valid URI',
+        'Website "%s" in manifest key is not a valid URI. %s',
         "website-manifest-key-not-valid-uri",
         CHECK_DESCRIPTION,
     ),
@@ -1157,11 +1156,18 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             self.add_message("missing-readme", args=(self.linter.config.readme_template_url,), node=node)
 
         # Check if the website is valid URI
-        website = manifest_dict.get("website", "")
-        url_is_valid = bool(validators.url(website))
-        if website and "," not in website and not url_is_valid:
+        website = manifest_dict.get("website") or ""
+        msg = ""
+        url_is_valid = False
+        try:
+            url_is_valid = misc.validate_url(website)
+        except misc.InvalidURL as url_exc:
+            msg = str(url_exc)
+        if website and not url_is_valid:
             self.add_message(
-                "website-manifest-key-not-valid-uri", node=manifest_keys_nodes.get("website") or node, args=(website)
+                "website-manifest-key-not-valid-uri",
+                node=manifest_keys_nodes.get("website") or node,
+                args=(website, msg),
             )
 
         # Check valid development_status values

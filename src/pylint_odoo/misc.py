@@ -1,9 +1,11 @@
 import os
+import re
 import subprocess
 import sys
 from contextlib import contextmanager
 from functools import lru_cache
 from pathlib import Path
+from urllib.parse import urlsplit
 
 MANIFEST_DATA_KEYS = ["data", "demo", "demo_xml", "init_xml", "test", "update_xml"]
 
