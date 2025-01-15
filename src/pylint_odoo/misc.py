@@ -107,3 +107,51 @@ def walk_up(path, filenames, top):
         if os.path.isfile(full_norm_path(path_filename)):
             return path_filename
     return walk_up(os.path.dirname(path), filenames, top)
+
+
+class InvalidVersion(Exception):
+    pass
+
+
+def version2tuple(version):
+    try:
+        return tuple(int(i) for i in version.split("."))
+    except (ValueError, AttributeError) as exc:
+        raise InvalidVersion(
+            f"Invalid Version only integers separated by dot was expected. e.g. 18.0.1.0.0 but received {[version]}"
+        ) from exc
+
+
+class InvalidURL(Exception):
+    pass
+
+
+# Based on https://github.com/python-validators/validators/blob/c9585e91f8b409029/src/validators/domain.py#L87-L99
+DOMAIN_RE = re.compile(r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-_]{0,61}[a-z]$", re.IGNORECASE)
+
+
+def validate_url(url):
+    if not url:
+        raise InvalidURL("Empty URL")
+    if re.search(r"\s", url):
+        raise InvalidURL("URL must not contain white spaces, they must be encoded")
+    try:
+        scheme, netloc, _path, _query, _fragment = urlsplit(url)
+    except ValueError as ve_exc:
+        raise InvalidURL(f"URL invalid: {str(ve_exc)}") from ve_exc
+
+    if scheme not in ("https", "http"):
+        raise InvalidURL("URL needs to start with 'http[s]://'")
+    if not netloc:
+        raise InvalidURL("Invalid URL domain not identified")
+
+    # Based on https://github.com/python-validators/validators/blob/c9585e91f8b409029/src/validators/domain.py#L98
+    if re.search(r"__+", netloc):
+        raise InvalidURL(f"Domain section must not contain double underscore '__' because of security issues {netloc}")
+    try:
+        netloc = netloc.encode("idna").decode("utf-8")
+    except UnicodeError as err:
+        raise InvalidURL(f"Unable to encode/decode domain section {netloc}") from err
+    if not DOMAIN_RE.match(netloc):
+        raise InvalidURL(f"Domain '{netloc}' contains invalid characters")
+    return True

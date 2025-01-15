@@ -104,7 +104,6 @@ import re
 import string
 from collections import Counter, defaultdict
 
-import packaging.version
 import validators
 from astroid import ClassDef, FunctionDef, NodeNG, nodes
 from pylint.checkers import BaseChecker, utils
@@ -1118,14 +1117,14 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 if not os.path.isdir(os.path.join(migrations_path, migration_path)):
                     continue
                 try:
-                    migration_path_v = packaging.version.Version(migration_path)
-                    version_format_v = packaging.version.Version(version_format)
+                    migration_path_v = misc.version2tuple(migration_path)
+                    version_format_v = misc.version2tuple(version_format)
                     if migration_path_v > version_format_v:
                         self.add_message(
                             "manifest-behind-migrations", node=node, args=(version_format, migration_path)
                         )
                         break
-                except packaging.version.InvalidVersion:
+                except misc.InvalidVersion:
                     continue
 
         # Check if resource exist
