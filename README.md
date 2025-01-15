@@ -70,7 +70,7 @@ translation-too-few-args | Not enough arguments for odoo._ format string | E8306
 translation-too-many-args | Too many arguments for odoo._ format string | E8305
 translation-unsupported-format | Unsupported odoo._ format character %r (%#02x) at index %d | E8300
 use-vim-comment | Use of vim comment | W8202
-website-manifest-key-not-valid-uri | Website "%s" in manifest key is not a valid URI | W8114
+website-manifest-key-not-valid-uri | Website "%s" in manifest key is not a valid URI. %s | W8114
 
 
 [//]: # (end-checks)
@@ -394,7 +394,8 @@ Checks valid only for odoo <= 13.0
 
  * website-manifest-key-not-valid-uri
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.1/testing/resources/test_repo/broken_module3/__openerp__.py#L7 Website "htt://odoo-community.com" in manifest key is not a valid URI
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.1/testing/resources/test_repo/broken_module2/__openerp__.py#L7 Website "https://odoo-community.org,https://odoo.com" in manifest key is not a valid URI. Domain 'odoo-community.org,https:' contains invalid characters
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.1/testing/resources/test_repo/broken_module3/__openerp__.py#L7 Website "htt://odoo-community.com" in manifest key is not a valid URI. URL needs to start with 'http[s]://'
 
 [//]: # (end-example)
 

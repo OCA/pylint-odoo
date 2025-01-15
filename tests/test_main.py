@@ -65,7 +65,7 @@ EXPECTED_ERRORS = {
     "translation-too-many-args": 2,
     "translation-unsupported-format": 2,
     "use-vim-comment": 1,
-    "website-manifest-key-not-valid-uri": 1,
+    "website-manifest-key-not-valid-uri": 2,
     "no-raise-unlink": 2,
     "deprecated-odoo-model-method": 2,
     "manifest-behind-migrations": 3,
