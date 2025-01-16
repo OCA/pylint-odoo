@@ -4,7 +4,6 @@ import os
 import re
 import sys
 import unittest
-import warnings
 from collections import Counter, defaultdict
 from glob import glob
 from io import StringIO
@@ -127,13 +126,11 @@ class MainTest(unittest.TestCase):
     @staticmethod
     def _run_pylint(args, out, reporter):
         with pytest.raises(SystemExit) as ctx_mgr:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                if sys.gettrace() is None:  # No pdb enabled
-                    with _patch_streams(out):
-                        Run(args, reporter=reporter)
-                else:  # pdb enabled
+            if sys.gettrace() is None:  # No pdb enabled
+                with _patch_streams(out):
                     Run(args, reporter=reporter)
+            else:  # pdb enabled
+                Run(args, reporter=reporter)
         return int(ctx_mgr.value.code)
 
     def test_10_path_dont_exist(self):
@@ -463,6 +460,20 @@ def fstring_no_sqli(self):
             lines_counter = Counter(tuple(lines))
             for line, count in lines_counter.items():
                 self.assertLessEqual(count, 2, "%s duplicated more than 2 times. Line %s" % (key, line))
+
+    def test_format_version_value_error(self):
+        """Test --valid-odoo-versions to force a value error exception"""
+        extra_params = [
+            "--valid-odoo-versions=8.0saas",
+            "--disable=all",
+            "--enable=manifest-version-format",
+        ]
+        with self.assertWarns(UserWarning) as warn:
+            pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
+        real_errors = pylint_res.linter.stats.by_msg
+        expected_errors = {"manifest-version-format": 6}
+        self.assertDictEqual(real_errors, expected_errors)
+        self.assertIn("Invalid manifest versions format ['8.0saas']", str(warn.warning))
 
     @staticmethod
     def re_replace(sub_start, sub_end, substitution, content):

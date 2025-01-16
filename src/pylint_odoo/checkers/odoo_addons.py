@@ -102,6 +102,7 @@ import itertools
 import os
 import re
 import string
+import warnings
 from collections import Counter, defaultdict
 
 from astroid import ClassDef, FunctionDef, NodeNG, nodes
@@ -623,10 +624,19 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             deprecated_model_methods = ast.literal_eval(self.linter.config.deprecated_odoo_model_methods)
         else:
             deprecated_model_methods = DFTL_DEPRECATED_ODOO_MODEL_METHODS
-
-        max_valid_version = float(sorted(self.linter.config.valid_odoo_versions, key=float)[-1])
+        odoo_versions = [misc.version_parse(odoo_version) for odoo_version in self.linter.config.valid_odoo_versions]
+        if () in odoo_versions:
+            # Empty value means odoo_version value could not be adapted
+            warnings.warn(
+                f"Invalid manifest versions format {self.linter.config.valid_odoo_versions}. "
+                "It was not possible to supress checks based on particular odoo version",
+                UserWarning,
+                stacklevel=2,
+            )
+            return
+        max_valid_version = max(odoo_versions)
         for version, checks in deprecated_model_methods.items():
-            if float(version) <= max_valid_version:
+            if misc.version_parse(version) <= max_valid_version:
                 self._deprecated_odoo_methods.update(checks)
 
     def colon_list_to_dict(self, colon_list):
