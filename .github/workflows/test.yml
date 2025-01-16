@@ -21,17 +21,17 @@ jobs:
       fail-fast: false
       matrix:
         python: ['3.9', '3.10', '3.11', '3.12', '3.13']
-        os: [ubuntu-latest, windows-latest, macos-13, macos-latest]
+        os: [ubuntu-24.04, windows-latest, macos-13, macos-latest]
         tox_env: [py]
         include:
           - python: '3.13'
-            os: ubuntu-latest
+            os: ubuntu-24.04
             tox_env: 'lint'
           - python: '3.13'
-            os: ubuntu-latest
+            os: ubuntu-24.04
             tox_env: 'update-readme'
           - python: '3.13'
-            os: ubuntu-latest
+            os: ubuntu-24.04
             tox_env: 'build'
         exclude:
           # macos-14 AKA macos-latest has switched to being an ARM runner, only supporting newer versions of Python
