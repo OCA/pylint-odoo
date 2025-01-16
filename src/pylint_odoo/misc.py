@@ -45,7 +45,10 @@ class StringParseError(TypeError):
 
 
 def version_parse(version_str):
-    return tuple(map(int, version_str.split(".")))
+    try:
+        return tuple(map(int, version_str.split(".")))
+    except (ValueError, TypeError):
+        return tuple()
 
 
 def get_plugin_msgs(pylint_run_res):

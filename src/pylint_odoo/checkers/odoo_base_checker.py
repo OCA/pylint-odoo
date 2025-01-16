@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import warnings
+
 import pylint
 from pylint.checkers import BaseChecker
 
@@ -30,6 +32,15 @@ class OdooBaseChecker(BaseChecker):
         if msg_symbol is None:
             return True
         odoo_version = valid_odoo_versions[0]
+        odoo_version_tuple = misc.version_parse(odoo_version)
+        if not odoo_version_tuple:
+            warnings.warn(
+                f"Invalid manifest versions format {odoo_version}. "
+                "It was not possible to supress checks based on particular odoo version",
+                UserWarning,
+                stacklevel=2,
+            )
+            return True
         required_odoo_versions = self.checks_maxmin_odoo_version.get(msg_symbol) or {}
         odoo_minversion = required_odoo_versions.get("odoo_minversion") or misc.DFTL_VALID_ODOO_VERSIONS[0]
         odoo_maxversion = required_odoo_versions.get("odoo_maxversion") or misc.DFTL_VALID_ODOO_VERSIONS[-1]
