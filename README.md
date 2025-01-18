@@ -168,6 +168,7 @@ Checks valid only for odoo <= 13.0
 
     - https://github.com/OCA/pylint-odoo/blob/v9.3.2/testing/resources/test_repo/broken_module/models/model_inhe2.py#L11 Consider merging classes inherited to "res.company" from testing/resources/test_repo/broken_module/models/model_inhe1.py:8:4, testing/resources/test_repo/broken_module/models/model_inhe2.py:7:4.
     - https://github.com/OCA/pylint-odoo/blob/v9.3.2/testing/resources/test_repo/broken_module/models/model_inhe2.py#L19 Consider merging classes inherited to "res.partner" from testing/resources/test_repo/broken_module/models/model_inhe2.py:15:4.
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.2/testing/resources/test_repo/broken_module/models/model_inhe2.py#L56 Consider merging classes inherited to "stock.warehouse.orderpoint" from testing/resources/test_repo/broken_module/models/model_inhe1.py:19:4.
 
  * context-overridden
 
