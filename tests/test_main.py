@@ -36,6 +36,7 @@ EXPECTED_ERRORS = {
     "manifest-required-author": 1,
     "manifest-required-key": 1,
     "manifest-version-format": 3,
+    "manifest-external-assets": 3,
     "method-compute": 1,
     "method-inverse": 1,
     "method-required-super": 8,

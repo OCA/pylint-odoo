@@ -36,6 +36,7 @@ manifest-author-string | The author key in the manifest file must be a string (w
 manifest-behind-migrations | Manifest version (%s) is lower than migration scripts (%s) | E8145
 manifest-data-duplicated | The file "%s" is duplicated in lines %s from manifest key "%s" | W8125
 manifest-deprecated-key | Deprecated key "%s" in manifest file | C8103
+manifest-external-assets | Asset %s should be distributed with module's source code. More info at https://httptoolkit.com/blog/public-cdn-risks/ | W8162
 manifest-maintainers-list | The maintainers key in the manifest file must be a list of strings | E8104
 manifest-required-author | One of the following authors must be present in manifest: %s | C8101
 manifest-required-key | Missing required key "%s" in manifest file | C8102
@@ -223,6 +224,12 @@ Checks valid only for odoo <= 13.0
  * manifest-deprecated-key
 
     - https://github.com/OCA/pylint-odoo/blob/v9.3.2/testing/resources/test_repo/broken_module/__openerp__.py#L7 Deprecated key "description" in manifest file
+
+ * manifest-external-assets
+
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.2/testing/resources/test_repo/twelve_module/__manifest__.py#L15 Asset https://shady.cdn.com/somefile.js should be distributed with module's source code. More info at https://httptoolkit.com/blog/public-cdn-risks/
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.2/testing/resources/test_repo/twelve_module/__manifest__.py#L19 Asset https://bad.idea.com/cool.css should be distributed with module's source code. More info at https://httptoolkit.com/blog/public-cdn-risks/
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.2/testing/resources/test_repo/twelve_module/__manifest__.py#L20 Asset http://insecure.and.bad.idea.com/kiwi.js should be distributed with module's source code. More info at https://httptoolkit.com/blog/public-cdn-risks/
 
  * manifest-maintainers-list
 
