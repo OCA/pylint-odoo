@@ -34,6 +34,7 @@ invalid-commit | Use of cr.commit() directly - More info https://github.com/OCA/
 license-allowed | License "%s" not allowed in manifest file. | C8105
 manifest-author-string | The author key in the manifest file must be a string (with comma separated values) | E8101
 manifest-behind-migrations | Manifest version (%s) is lower than migration scripts (%s) | E8145
+deprecated-name-get | 'name_get' is deprecated. Use '_compute_display_name' instead. More info at https://github.com/odoo/odoo/pull/122085. | E8146
 manifest-data-duplicated | The file "%s" is duplicated in lines %s from manifest key "%s" | W8125
 manifest-deprecated-key | Deprecated key "%s" in manifest file | C8103
 manifest-external-assets | Asset %s should be distributed with module's source code. More info at https://httptoolkit.com/blog/public-cdn-risks/ | W8162

@@ -190,6 +190,11 @@ ODOO_MSGS = {
         "manifest-behind-migrations",
         "Update your manifest version, otherwise the migration script won't run",
     ),
+    "E8146": (
+        "'name_get' is deprecated. Use '_compute_display_name' instead. More info at https://github.com/odoo/odoo/pull/122085.",
+        "deprecated-name-get",
+        CHECK_DESCRIPTION,
+    ),
     "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "R8101": (
         "`odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` "
@@ -580,6 +585,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         },
         "no-raise-unlink": {"odoo_minversion": "15.0"},
         "prefer-env-translation": {"odoo_minversion": "18.0"},
+        "deprecated-name-get": {"odoo_minversion": "17.0"},
     }
 
     def __init__(self, linter: PyLinter):
@@ -1244,7 +1250,11 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         return node.name in self._deprecated_odoo_methods
 
     @utils.only_required_for_messages(
-        "method-required-super", "prohibited-method-override", "missing-return", "deprecated-odoo-model-method"
+        "method-required-super",
+        "prohibited-method-override",
+        "missing-return",
+        "deprecated-odoo-model-method",
+        "deprecated-name-get",
     )
     def visit_functiondef(self, node):
         """Check that `api.one` and `api.multi` decorators not exists together
@@ -1256,7 +1266,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
         if self.is_odoo_message_enabled("deprecated-odoo-model-method") and self.check_deprecated_odoo_method(node):
             self.add_message("deprecated-odoo-model-method", node=node, args=(node.name,))
-
+        if self.is_odoo_message_enabled("deprecated-name-get") and node.name == "name_get":
+            self.add_message("deprecated-name-get", node=node)
         if node.name in self.linter.config.method_required_super:
             calls = [
                 call_func.func.name
