@@ -26,6 +26,7 @@ bad-builtin-groupby | Used builtin function `itertools.groupby`. Prefer `odoo.to
 category-allowed | Category "%s" not allowed in manifest file. | C8114
 consider-merging-classes-inherited | Consider merging classes inherited to "%s" from %s. | R8180
 context-overridden | Context overridden using dict. Better using kwargs `with_context(**%s)` or `with_context(key=value)` | W8121
+deprecated-name-get | 'name_get' is deprecated. Use '_compute_display_name' instead. More info at https://github.com/odoo/odoo/pull/122085. | E8146
 deprecated-odoo-model-method | %s has been deprecated by Odoo. Please look for alternatives. | W8160
 development-status-allowed | Manifest key development_status "%s" not allowed. Use one of: %s. | C8111
 except-pass | pass into block except. If you really need to use the pass consider logging that exception | W8138
@@ -175,6 +176,10 @@ Checks valid only for odoo <= 13.0
     - https://github.com/OCA/pylint-odoo/blob/v9.3.2/testing/resources/test_repo/broken_module/models/broken_model.py#L195 Context overridden using dict. Better using kwargs `with_context(**{'overwrite_context': True})` or `with_context(key=value)`
     - https://github.com/OCA/pylint-odoo/blob/v9.3.2/testing/resources/test_repo/broken_module/models/broken_model.py#L197 Context overridden using dict. Better using kwargs `with_context(**ctx)` or `with_context(key=value)`
     - https://github.com/OCA/pylint-odoo/blob/v9.3.2/testing/resources/test_repo/broken_module/models/broken_model.py#L199 Context overridden using dict. Better using kwargs `with_context(**ctx2)` or `with_context(key=value)`
+
+ * deprecated-name-get
+
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.2/testing/resources/test_repo/twelve_module/models.py#L7 'name_get' is deprecated. Use '_compute_display_name' instead. More info at https://github.com/odoo/odoo/pull/122085.
 
  * deprecated-odoo-model-method
 
