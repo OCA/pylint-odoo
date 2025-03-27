@@ -24,6 +24,7 @@ EXPECTED_ERRORS = {
     "bad-builtin-groupby": 2,
     "consider-merging-classes-inherited": 2,
     "context-overridden": 3,
+    "deprecated-name-get": 1,
     "development-status-allowed": 1,
     "except-pass": 3,
     "external-request-timeout": 51,
@@ -159,6 +160,7 @@ class MainTest(unittest.TestCase):
             "translation-too-few-args",
             "translation-too-many-args",
             "translation-unsupported-format",
+            "deprecated-name-get",
         }
         self.default_extra_params += ["--valid-odoo-versions=13.0"]
         pylint_res = self.run_pylint(self.paths_modules)
@@ -177,6 +179,7 @@ class MainTest(unittest.TestCase):
         expected_errors = self.expected_errors.copy()
         expected_errors.update({"manifest-version-format": 6})
         excluded_msgs = {
+            "deprecated-name-get",
             "deprecated-odoo-model-method",
             "no-raise-unlink",
             "prefer-env-translation",
