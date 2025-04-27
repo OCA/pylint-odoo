@@ -1287,16 +1287,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         # Verify if super attributes are prohibited methods to override
         if there_is_super and self.linter.config.prohibited_method_override or DFTL_PROHIBITED_OVERRIDE_METHODS:
             for attr in node.nodes_of_class(nodes.Attribute):
-                if attr.attrname != node.name:
+                if attr.attrname != node.name or not hasattr(attr.expr, "func"):
                     continue
-                func = attr.expr.func
-                if (
-                    isinstance(func, nodes.Name)
-                    and func.name == "super"
-                    and (
-                        attr.attrname in self.linter.config.prohibited_method_override
-                        or attr.attrname in DFTL_PROHIBITED_OVERRIDE_METHODS
-                    )
+                func_name = self.get_func_name(attr.expr.func)
+                if func_name == "super" and (
+                    attr.attrname in self.linter.config.prohibited_method_override
+                    or attr.attrname in DFTL_PROHIBITED_OVERRIDE_METHODS
                 ):
                     self.add_message("prohibited-method-override", node=node, args=(attr.attrname,))
 
