@@ -89,7 +89,23 @@ class TestModel2(odoo.models.Model):
         unknown_type_object = self._get_object()
         unknown_type_object.write('write not self.browse allowed')
 
+    def _default(self):
+        pass
+
+    def _domain(self):
+        pass
+
     name2 = fields.Char(compute='_compute_name2')
+
+    default1 = fields.Char(default='good_default')  # good default
+    default2 = fields.Char(default=lambda self: self._default())  # good default
+    default3 = fields.Char(default=_default)  # bad default
+    default4 = fields.Date(default=fields.Date.context_today)  # good default
+
+    domain1 = fields.Many2one("res.partner", domain=_domain)  # bad domain
+    domain2 = fields.Many2one("res.partner", domain=lambda self: self._domain())  # good domain
+    domain3 = fields.Many2one("res.partner", domain=[("type", "=", "Product")])  # good domain
+    domain4 = fields.Many2one("res.partner", domain='[("type", "=", "Product")]')  # good domain
 
     def fields_view_get(self):
         return "Deprecated in Odoo 16.0!!!"
