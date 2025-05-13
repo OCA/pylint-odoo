@@ -53,6 +53,7 @@ EXPECTED_ERRORS = {
     "renamed-field-parameter": 2,
     "resource-not-exist": 4,
     "sql-injection": 21,
+    "string-method-name": 4,
     "test-folder-imported": 3,
     "translation-contains-variable": 33,
     "translation-field": 2,
