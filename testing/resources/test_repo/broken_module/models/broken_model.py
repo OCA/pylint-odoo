@@ -127,6 +127,12 @@ class TestModel(models.Model):
         unknown_type_object.write('write not self.browse allowed')
         self.write({"name": "hello"})  # pylint: disable=no-write-in-compute
 
+    def _search_name(self):
+        pass
+
+    def _inverse_name(self):
+        pass
+
     def _compute_with_method_def(self):
         # Compute called from funct-def with write
         self.write({"name": "hello"})
@@ -149,6 +155,12 @@ class TestModel(models.Model):
         compute='_compute_name',  # good compute method name
         search='_search_name',  # good search method name
         inverse='_inverse_name',  # good inverse method name
+    )
+
+    name2 = fields.Char(
+        compute=_compute_name,  # bad string-method-name
+        search=_search_name,  # bad string-method-name
+        inverse=_inverse_name,  # bad string-method-name
     )
 
     # Imported openerp.fields use Char (Upper case)

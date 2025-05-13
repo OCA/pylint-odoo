@@ -195,6 +195,12 @@ ODOO_MSGS = {
         "deprecated-name-get",
         CHECK_DESCRIPTION,
     ),
+    "E8147": (
+        'Use string method name `"%s"` to preserve inheritability. '
+        "More info at https://github.com/OCA/odoo-pre-commit-hooks/issues/126",
+        "string-method-name",
+        CHECK_DESCRIPTION,
+    ),
     "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "R8101": (
         "`odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` "
@@ -819,6 +825,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "print-used",
         "renamed-field-parameter",
         "sql-injection",
+        "string-method-name",
         "translation-contains-variable",
         "translation-field",
         "translation-positional-used",
@@ -895,6 +902,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         )
                         if method_name and self.class_odoo_models:
                             self.odoo_computes.add(method_name)
+                    if (
+                        self.linter.is_message_enabled("string-method-name", node.lineno)
+                        and argument.arg in ["compute", "search", "inverse"]
+                        and isinstance(argument.value, nodes.Name)
+                    ):
+                        self.add_message("string-method-name", node=argument.value, args=(argument.value.name,))
                 if (
                     isinstance(argument_aux, nodes.Call)
                     and self.get_func_name(argument_aux.func) in misc.TRANSLATION_METHODS
