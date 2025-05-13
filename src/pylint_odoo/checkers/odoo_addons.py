@@ -914,20 +914,28 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         and argument.arg in ["compute", "search", "inverse"]
                         and isinstance(argument.value, nodes.Name)
                     ):
-                        self.add_message("inheritable-method-string", node=argument.value, args=(argument.value.name,))
+                        # Check if the value is a method of the class
+                        infered = utils.safe_infer(argument.value)
+                        if isinstance(infered, nodes.FunctionDef) and infered.is_method():
+                            self.add_message(
+                                "inheritable-method-string", node=argument.value, args=(argument.value.name,)
+                            )
                     if (
                         self.linter.is_message_enabled("inheritable-method-lambda", node.lineno)
                         and argument.arg in ["default", "domain"]
                         and isinstance(argument.value, nodes.Name)
                     ):
-                        self.add_message(
-                            "inheritable-method-lambda",
-                            node=argument.value,
-                            args=(
-                                argument.arg,
-                                argument.value.name,
-                            ),
-                        )
+                        # Check if the value is a method of the class
+                        infered = utils.safe_infer(argument.value)
+                        if isinstance(infered, nodes.FunctionDef) and infered.is_method():
+                            self.add_message(
+                                "inheritable-method-lambda",
+                                node=argument.value,
+                                args=(
+                                    argument.arg,
+                                    argument.value.name,
+                                ),
+                            )
 
                 if (
                     isinstance(argument_aux, nodes.Call)
