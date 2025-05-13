@@ -66,6 +66,8 @@ from itertools import groupby
 _lt = LazyTranslate(__name__)
 other_field = fields.Char()
 
+DOMAIN_GOOD = '[("type", "=", "Product")]'
+
 
 def function_no_method():
     return broken_model1, broken_module1, broken_module2, broken_model2
@@ -106,6 +108,8 @@ class TestModel2(odoo.models.Model):
     domain2 = fields.Many2one("res.partner", domain=lambda self: self._domain())  # good domain
     domain3 = fields.Many2one("res.partner", domain=[("type", "=", "Product")])  # good domain
     domain4 = fields.Many2one("res.partner", domain='[("type", "=", "Product")]')  # good domain
+    domain5 = fields.Many2one("res.partner", domain='[("type", "=", "Product")]')  # good domain
+    domain6 = fields.Many2one("res.partner", domain=DOMAIN_GOOD)  # good domain
 
     def fields_view_get(self):
         return "Deprecated in Odoo 16.0!!!"
