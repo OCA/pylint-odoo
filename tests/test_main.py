@@ -46,6 +46,7 @@ EXPECTED_ERRORS = {
     "method-search": 1,
     "missing-readme": 1,
     "missing-return": 1,
+    "no-search-all": 12,
     "no-wizard-in-models": 1,
     "no-write-in-compute": 16,
     "odoo-addons-relative-import": 4,

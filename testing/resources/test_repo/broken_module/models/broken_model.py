@@ -91,6 +91,69 @@ class TestModel2(odoo.models.Model):
         unknown_type_object = self._get_object()
         unknown_type_object.write('write not self.browse allowed')
 
+        self.search([])  # bad get whole table
+        self.search(domain=[])  # bad get whole table
+
+        self.search([], order="id")  # bad get whole table
+        self.search(domain=[], order="id")  # bad get whole table
+
+        self.search([], limit=1)  # good limit
+        self.search(domain=[], limit=1)  # good limit
+        self.search([], 0, 1)  # good limit
+
+        domain1 = []
+        self.search(domain1)  # bad get whole table but we don't know the value of domain
+        self.search(domain=domain1)  # bad get whole table but we don't know the value of domain
+
+        domain2 = []
+        domain2.append([("id", "=", 1)])
+        self.search(domain2)  # good domain
+        self.search(domain=domain2)  # good domain
+
+        domain3 = []
+        domain3 += [("id", "=", 1)]
+        domain3 += [("other", "=", 0)]
+        self.search(domain3)  # good domain
+        self.search(domain=domain3)  # good domain
+
+        domain4 = []
+        domain4 = domain4 + [("id", "=", 1)]
+        self.search(domain4)  # good domain
+        self.search(domain=domain4)  # good domain
+
+        self.search([], count=True)  # good count
+
+        self.search_read([])  # bad get whole table
+        self.search_read(domain=[])  # bad get whole table
+
+        self.search_read([], order="id")  # bad get whole table
+        self.search_read(domain=[], order="id")  # bad get whole table
+
+        self.search_read([], limit=1)  # good limit
+        self.search_read(domain=[], limit=1)  # good limit
+        self.search_read([], 0, 1)  # good limit
+
+        domain10 = []
+        self.search_read(domain10)  # bad get whole table but we don't know the value of domain
+        self.search_read(domain=domain10)  # bad get whole table but we don't know the value of domain
+
+        domain20 = []
+        domain20.append([("id", "=", 1)])
+        self.search_read(domain20)  # good domain
+        self.search_read(domain=domain20)  # good domain
+
+        domain30 = []
+        domain30 += [("id", "=", 1)]
+        domain30 += [("other", "=", 0)]
+        self.search_read(domain30)  # good domain
+        self.search_read(domain=domain30)  # good domain
+
+        domain40 = []
+        domain40 = domain40 + [("id", "=", 1)]
+        self.search_read(domain40)  # good domain
+        self.search_read(domain=domain40)  # good domain
+
+
     def _default(self):
         pass
 
