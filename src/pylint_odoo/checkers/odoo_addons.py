@@ -292,6 +292,11 @@ ODOO_MSGS = {
         "manifest-external-assets",
         CHECK_DESCRIPTION,
     ),
+    "W8163": (
+        "Using an empty domain `%s([])` without a `limit` will load all records, may impact performance.",
+        "no-search-all",
+        CHECK_DESCRIPTION,
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
@@ -828,6 +833,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "method-compute",
         "method-inverse",
         "method-search",
+        "no-search-all",
         "no-write-in-compute",
         "prefer-env-translation",
         "print-used",
@@ -1080,6 +1086,63 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 infer_node = utils.safe_infer(node.func)
                 if infer_node and infer_node.qname() == "itertools.groupby":
                     self.add_message("bad-builtin-groupby", node=node)
+        if (
+            self.linter.is_message_enabled("no-search-all", node.lineno)
+            # only odoo valid structure class -> def -> search()
+            and isinstance(node.scope(), nodes.FunctionDef)
+            and isinstance(node.scope().parent, nodes.ClassDef)
+            and self.get_odoo_models_class(node.scope().parent)
+            and self.get_func_name(node.func) in ("search", "search_read")
+            and (node.args or node.keywords)
+        ):
+            if node.args:
+                domain = node.args[0]
+            elif node.keywords:
+                for keyword in node.keywords:
+                    if keyword.arg != "domain":
+                        continue
+                    domain = keyword.value
+                    break
+            if domain:
+                empty_domain = False
+                if isinstance(domain, nodes.List) and not domain.elts:
+                    # search([])
+                    # search(domain=[])
+                    empty_domain = True
+                elif isinstance(domain, nodes.Name):
+                    # domain=[]; search(domain)
+                    # domain=[]; search(domain=domain)
+
+                    domain_assignation = utils.safe_infer(domain)
+                    if (
+                        domain_assignation is not None
+                        and isinstance(domain_assignation, nodes.List)
+                        # empty list. Infer consider domain += ... with values not needed look for nodes.AugAssign
+                        and not domain_assignation.elts
+                        # assigned the domain in the same method than search call
+                        and domain_assignation.scope() == node.scope()
+                    ):
+                        empty_domain = True
+                        for subnode in node.scope().nodes_of_class(nodes.Call):
+                            if (
+                                # only get nodes between assignation domain=... to use in search(domain)
+                                # not consider DOMAIN_EMPTY global variables in order to avoid
+                                # looking for in the whole code since it could be slow and complex
+                                # to detect an "append"
+                                domain_assignation.lineno <= subnode.lineno <= node.lineno
+                                and self.get_func_lib(subnode.func) == domain.name
+                                and self.get_func_name(subnode.func) in ("append", "extend", "insert")
+                            ):
+                                # Consider domain.append(), domain.extend(), domain.insert()
+                                empty_domain = False
+                                break
+                limit_or_count = (
+                    any(kw.arg in ("limit", "count") for kw in node.keywords)
+                    or len(node.args) >= 3
+                    or (self.get_func_name(node.func) == "search" and len(node.args) >= 5)
+                )
+                if empty_domain and not limit_or_count:
+                    self.add_message("no-search-all", node=node, args=(self.get_func_name(node.func),))
 
     @utils.only_required_for_messages(
         "development-status-allowed",
