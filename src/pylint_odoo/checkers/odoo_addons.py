@@ -1097,12 +1097,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         ):
             if node.args:
                 domain = node.args[0]
-            elif node.keywords:
-                for keyword in node.keywords:
-                    if keyword.arg != "domain":
-                        continue
-                    domain = keyword.value
-                    break
+            else:
+                domain = next((kw.value for kw in node.keywords if kw.arg == "domain"), None)
             if domain:
                 empty_domain = False
                 if isinstance(domain, nodes.List) and not domain.elts:

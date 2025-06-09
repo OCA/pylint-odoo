@@ -153,6 +153,9 @@ class TestModel2(odoo.models.Model):
         self.search_read(domain40)  # good domain
         self.search_read(domain=domain40)  # good domain
 
+        self.search(limit=1)  # first arg required
+        self.search_read(limit=1)  # first arg required
+
 
     def _default(self):
         pass
