@@ -1141,12 +1141,14 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     self.add_message("no-search-all", node=node, args=(self.get_func_name(node.func),))
 
     @utils.only_required_for_messages(
+        "category-allowed",
         "development-status-allowed",
         "license-allowed",
-        "category-allowed",
         "manifest-author-string",
+        "manifest-behind-migrations",
         "manifest-data-duplicated",
         "manifest-deprecated-key",
+        "manifest-external-assets",
         "manifest-maintainers-list",
         "manifest-required-author",
         "manifest-required-key",
@@ -1154,8 +1156,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "missing-readme",
         "resource-not-exist",
         "website-manifest-key-not-valid-uri",
-        "manifest-behind-migrations",
-        "manifest-external-assets",
     )
     def visit_dict(self, node):
         if not os.path.basename(self.linter.current_file) in misc.MANIFEST_FILES or not isinstance(
@@ -1351,11 +1351,11 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         return node.name in self._deprecated_odoo_methods
 
     @utils.only_required_for_messages(
-        "method-required-super",
-        "prohibited-method-override",
-        "missing-return",
-        "deprecated-odoo-model-method",
         "deprecated-name-get",
+        "deprecated-odoo-model-method",
+        "method-required-super",
+        "missing-return",
+        "prohibited-method-override",
     )
     def visit_functiondef(self, node):
         """Check that `api.one` and `api.multi` decorators not exists together
@@ -1772,12 +1772,18 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 if class_base_name in ["Model", "AbstractModel", "TransientModel"]:
                     return (class_base_name, class_base)
 
-    @utils.only_required_for_messages("no-write-in-compute", "no-wizard-in-models")
+    @utils.only_required_for_messages(
+        "no-wizard-in-models",
+        "no-write-in-compute",
+    )
     def visit_classdef(self, node):
         self.class_odoo_models = self.get_odoo_models_class(node)
         self.odoo_computes = set()
 
-    @utils.only_required_for_messages("no-write-in-compute", "no-wizard-in-models")
+    @utils.only_required_for_messages(
+        "no-wizard-in-models",
+        "no-write-in-compute",
+    )
     def leave_classdef(self, node):
         if self.class_odoo_models:
             for odoo_compute in self.odoo_computes:
