@@ -70,7 +70,7 @@ translation-format-truncated | Logging format string ends in middle of conversio
 translation-fstring-interpolation | Use %s formatting in odoo._ functions | W8303
 translation-not-lazy | Use %s formatting in odoo._ functions | W8301
 translation-positional-used | Translation method _(%s) is using positional string printf formatting with multiple arguments. Use named placeholder `_("%%(placeholder)s")` instead. | W8120
-translation-required | String parameter on "%s" requires translation. Use %s_(%s) | C8107
+translation-required | String parameter on "%s" requires translation. Use %s%s(%s) | C8107
 translation-too-few-args | Not enough arguments for odoo._ format string | E8306
 translation-too-many-args | Too many arguments for odoo._ format string | E8305
 translation-unsupported-format | Unsupported odoo._ format character %r (%#02x) at index %d | E8300
@@ -406,9 +406,9 @@ Checks valid only for odoo <= 13.0
 
  * translation-required
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.9/testing/resources/test_repo/broken_module/models/broken_model.py#L432 String parameter on "message_post" requires translation. Use body=_('Body not translatable %s')
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.9/testing/resources/test_repo/broken_module/models/broken_model.py#L432 String parameter on "message_post" requires translation. Use subject=_('Subject not translatable')
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.9/testing/resources/test_repo/broken_module/models/broken_model.py#L434 String parameter on "message_post" requires translation. Use body=_('Body not translatable {}')
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.9/testing/resources/test_repo/broken_module/models/broken_model.py#L432 String parameter on "message_post" requires translation. Use body=self.env._('Body not translatable %s')
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.9/testing/resources/test_repo/broken_module/models/broken_model.py#L432 String parameter on "message_post" requires translation. Use subject=self.env._('Subject not translatable')
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.9/testing/resources/test_repo/broken_module/models/broken_model.py#L434 String parameter on "message_post" requires translation. Use body=self.env._('Body not translatable {}')
 
  * translation-too-few-args
 

@@ -134,7 +134,11 @@ ODOO_MSGS = {
         "manifest-version-format",
         CHECK_DESCRIPTION,
     ),
-    "C8107": ('String parameter on "%s" requires translation. Use %s_(%s)', "translation-required", CHECK_DESCRIPTION),
+    "C8107": (
+        'String parameter on "%s" requires translation. Use %s%s(%s)',
+        "translation-required",
+        CHECK_DESCRIPTION,
+    ),
     "C8108": ('Name of compute method should start with "_compute_"', "method-compute", CHECK_DESCRIPTION),
     "C8109": ('Name of search method should start with "_search_"', "method-search", CHECK_DESCRIPTION),
     "C8110": ('Name of inverse method should start with "_inverse_"', "method-inverse", CHECK_DESCRIPTION),
@@ -645,6 +649,14 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         """Clear variables"""
         self._from_imports = {}
 
+    def _get_max_valid_odoo_versions(self):
+        odoo_versions = [misc.version_parse(odoo_version) for odoo_version in self.linter.config.valid_odoo_versions]
+        if () in odoo_versions:
+            # Empty value means odoo_version value could not be adapted
+            return
+        max_valid_version = max(odoo_versions)
+        return max_valid_version
+
     def open(self):
         super().open()
         self.deprecated_field_parameters = self.colon_list_to_dict(self.linter.config.deprecated_field_parameters)
@@ -653,9 +665,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             deprecated_model_methods = ast.literal_eval(self.linter.config.deprecated_odoo_model_methods)
         else:
             deprecated_model_methods = DFTL_DEPRECATED_ODOO_MODEL_METHODS
-        odoo_versions = [misc.version_parse(odoo_version) for odoo_version in self.linter.config.valid_odoo_versions]
-        if () in odoo_versions:
-            # Empty value means odoo_version value could not be adapted
+
+        max_valid_version = self._get_max_valid_odoo_versions()
+        if max_valid_version is None:
             warnings.warn(
                 f"Invalid manifest versions format {self.linter.config.valid_odoo_versions}. "
                 "It was not possible to supress checks based on particular odoo version",
@@ -663,7 +675,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 stacklevel=2,
             )
             return
-        max_valid_version = max(odoo_versions)
         for version, checks in deprecated_model_methods.items():
             if misc.version_parse(version) <= max_valid_version:
                 self._deprecated_odoo_methods.update(checks)
@@ -1025,7 +1036,13 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     as_string = value.func.expr.as_string()
                 if as_string:
                     keyword = keyword and "%s=" % keyword
-                    self.add_message("translation-required", node=node, args=("message_post", keyword, as_string))
+                    tl_method = "_"
+                    max_valid_odoo_version = self._get_max_valid_odoo_versions()
+                    if max_valid_odoo_version >= (8, 0):
+                        tl_method = "self.env._"
+                    self.add_message(
+                        "translation-required", node=node, args=("message_post", keyword, tl_method, as_string)
+                    )
 
         # Call _(...) with variables into the term to be translated
         if self.get_func_name(node.func) in misc.TRANSLATION_METHODS and node.args:
@@ -1538,7 +1555,11 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         elif isinstance(argument, nodes.BinOp):
             argument = argument.left
         if self._get_str_value(argument) is not None and func_name in self.linter.config.odoo_exceptions:
-            self.add_message("translation-required", node=node, args=(func_name, "", argument.as_string()))
+            tl_method = "_"
+            max_valid_odoo_version = self._get_max_valid_odoo_versions()
+            if max_valid_odoo_version >= (8, 0):
+                tl_method = "self.env._"
+            self.add_message("translation-required", node=node, args=(func_name, "", tl_method, argument.as_string()))
 
     @utils.only_required_for_messages("translation-required", "no-raise-unlink")
     def visit_raise(self, node):
