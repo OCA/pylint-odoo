@@ -1038,7 +1038,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     keyword = keyword and "%s=" % keyword
                     tl_method = "_"
                     max_valid_odoo_version = self._get_max_valid_odoo_versions()
-                    if max_valid_odoo_version >= (8, 0):
+                    if max_valid_odoo_version is None or max_valid_odoo_version >= (8, 0):
                         tl_method = "self.env._"
                     self.add_message(
                         "translation-required", node=node, args=("message_post", keyword, tl_method, as_string)
@@ -1557,7 +1557,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         if self._get_str_value(argument) is not None and func_name in self.linter.config.odoo_exceptions:
             tl_method = "_"
             max_valid_odoo_version = self._get_max_valid_odoo_versions()
-            if max_valid_odoo_version >= (8, 0):
+            if max_valid_odoo_version is None or max_valid_odoo_version >= (8, 0):
                 tl_method = "self.env._"
             self.add_message("translation-required", node=node, args=(func_name, "", tl_method, argument.as_string()))
 
