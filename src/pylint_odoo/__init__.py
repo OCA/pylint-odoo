@@ -1,3 +1,3 @@
-__version__ = "9.3.9"
+__version__ = "9.3.10"
 
 from .plugin import register
