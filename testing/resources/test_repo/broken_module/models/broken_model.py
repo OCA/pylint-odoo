@@ -164,6 +164,7 @@ class TestModel2(odoo.models.Model):
         pass
 
     name2 = fields.Char(compute='_compute_name2')
+    name3 = fields.Char(compute=f'_compute_name3')
 
     default1 = fields.Char(default='good_default')  # good default
     default2 = fields.Char(default=lambda self: self._default())  # good default
@@ -256,6 +257,14 @@ class TestModel(models.Model):
         compute='my_method_compute',  # bad compute method name
         search='my_method_search',  # bad search method name
         inverse='my_method_inverse',  # bad inverse method name
+    )
+
+    other_field2 = fields.char(
+        name=_(f"Other field"),
+        copy=True,
+        compute=f'my_method_compute',  # bad compute method name
+        search=f'my_method_search',  # bad search method name
+        inverse=f'my_method_inverse',  # bad inverse method name
     )
     compute_none = fields.Char(compute=None)
 
@@ -654,6 +663,8 @@ class TestModel(models.Model):
         if user_id != 99:
             # Method without translation
             raise UserError('String without translation')
+        if user_id != 100:
+            raise UserError(f"f-string without translation '{self.text_variable_1}'")
 
     def my_method7(self):
         user_id = 1
