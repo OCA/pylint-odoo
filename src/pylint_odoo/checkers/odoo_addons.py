@@ -822,6 +822,19 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     if assign_node.targets[0].as_string() == node.as_string():
                         yield assign_node.value
 
+    def _get_str_value(self, node):
+        """Check if the node is str (constant) and get value or f-string get values"""
+        if isinstance(node, nodes.Const) and node.name == "str":
+            return node.value
+        if isinstance(node, nodes.JoinedStr):
+            value = ""
+            for val in node.values:
+                if isinstance(val, nodes.Const):
+                    value += val.value
+                else:
+                    value += "{}"
+            return value
+
     @utils.only_required_for_messages(
         "attribute-string-redundant",
         "bad-builtin-groupby",
@@ -873,19 +886,18 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 # Check this 'name = fields.Char("name")'
                 if (
                     not is_related
-                    and isinstance(argument, nodes.Const)
-                    and (index == FIELDS_METHOD.get(argument.parent.func.attrname, 0))
-                    and (argument.value == field_name.title())
+                    and self._get_str_value(argument) == field_name.title()
+                    and index == FIELDS_METHOD.get(argument.parent.func.attrname, 0)
                 ):
                     self.add_message("attribute-string-redundant", node=node)
                 if isinstance(argument, nodes.Keyword):
                     argument_aux = argument.value
                     deprecated = self.deprecated_field_parameters
+                    value = self._get_str_value(argument_aux)
                     if (
                         argument.arg in ["compute", "search", "inverse"]
-                        and isinstance(argument_aux, nodes.Const)
-                        and isinstance(argument_aux.value, str)
-                        and not argument_aux.value.startswith("_" + argument.arg + "_")
+                        and value is not None
+                        and not value.startswith("_" + argument.arg + "_")
                     ):
                         self.add_message("method-" + argument.arg, node=argument_aux)
                     # Check if the param string is equal to the name
@@ -893,7 +905,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     elif (
                         not is_related
                         and argument.arg == "string"
-                        and (isinstance(argument_aux, nodes.Const) and argument_aux.value == field_name.title())
+                        and self._get_str_value(argument_aux) == field_name.title()
                     ):
                         self.add_message("attribute-string-redundant", node=node)
                     elif argument.arg in deprecated:
@@ -988,13 +1000,13 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     continue
                 as_string = ""
                 # case: message_post(body='String')
-                if isinstance(value, nodes.Const):
+                if isinstance(value, (nodes.Const, nodes.JoinedStr)):
                     as_string = value.as_string()
                 # case: message_post(body='String %s' % (...))
                 elif (
                     isinstance(value, nodes.BinOp)
                     and value.op == "%"
-                    and isinstance(value.left, nodes.Const)
+                    and isinstance(value.left, (nodes.Const, nodes.JoinedStr))
                     # The right part is translatable only if it's a
                     # function or a list of functions
                     and not (
@@ -1007,7 +1019,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 elif (
                     isinstance(value, nodes.Call)
                     and isinstance(value.func, nodes.Attribute)
-                    and isinstance(value.func.expr, nodes.Const)
+                    and isinstance(value.func.expr, (nodes.Const, nodes.JoinedStr))
                     and value.func.attrname == "format"
                 ):
                     as_string = value.func.expr.as_string()
@@ -1329,9 +1341,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
         for _, item in node.items:
             for element in item.elts:
-                if isinstance(element, nodes.Const):
-                    if is_external_url(element.value):
-                        self.add_message("manifest-external-assets", node=element, args=(element.value,))
+                if (value := self._get_str_value(element)) is not None:
+                    if is_external_url(value):
+                        self.add_message("manifest-external-assets", node=element, args=(value,))
                 elif isinstance(element, (nodes.Tuple, nodes.List)):
                     for entry in element.elts:
                         if isinstance(entry, nodes.Const) and is_external_url(entry.value):
@@ -1525,12 +1537,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             argument = argument.func.expr
         elif isinstance(argument, nodes.BinOp):
             argument = argument.left
-
-        if (
-            isinstance(argument, nodes.Const)
-            and argument.name == "str"
-            and func_name in self.linter.config.odoo_exceptions
-        ):
+        if self._get_str_value(argument) is not None and func_name in self.linter.config.odoo_exceptions:
             self.add_message("translation-required", node=node, args=(func_name, "", argument.as_string()))
 
     @utils.only_required_for_messages("translation-required", "no-raise-unlink")
