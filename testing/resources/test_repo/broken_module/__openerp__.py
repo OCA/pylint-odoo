@@ -25,4 +25,5 @@
     'installable': True,
     'name': 'Duplicated value',
     'active': True,  # Deprecated active key
+    'price': 800,
 }

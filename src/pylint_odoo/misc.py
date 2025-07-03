@@ -38,6 +38,7 @@ DFTL_VALID_ODOO_VERSIONS = [
 ]
 DFTL_MANIFEST_VERSION_FORMAT = r"({valid_odoo_versions})\.\d+\.\d+\.\d+$"
 TRANSLATION_METHODS = ("_", "_lt")
+EMAIL_RE = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 
 
 class StringParseError(TypeError):
@@ -160,3 +161,7 @@ def validate_url(url):
     if not DOMAIN_RE.match(netloc):
         raise InvalidURL(f"Domain '{netloc}' contains invalid characters")
     return True
+
+
+def validate_email(email):
+    return EMAIL_RE.match(email) is not None

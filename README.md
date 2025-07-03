@@ -34,6 +34,7 @@ external-request-timeout | Use of external request method `%s` without timeout. 
 inheritable-method-lambda | Use `%s=lambda self: self.%s()` to preserve inheritability. More info at https://github.com/OCA/odoo-pre-commit-hooks/issues/126 | E8148
 inheritable-method-string | Use string method name `"%s"` to preserve inheritability. More info at https://github.com/OCA/odoo-pre-commit-hooks/issues/126 | E8147
 invalid-commit | Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction | E8102
+invalid-email | Invalid email "%s" | R8181
 license-allowed | License "%s" not allowed in manifest file. | C8105
 manifest-author-string | The author key in the manifest file must be a string (with comma separated values) | E8101
 manifest-behind-migrations | Manifest version (%s) is lower than migration scripts (%s) | E8145
@@ -42,12 +43,13 @@ manifest-deprecated-key | Deprecated key "%s" in manifest file | C8103
 manifest-external-assets | Asset %s should be distributed with module's source code. More info at https://httptoolkit.com/blog/public-cdn-risks/ | W8162
 manifest-maintainers-list | The maintainers key in the manifest file must be a list of strings | E8104
 manifest-required-author | One of the following authors must be present in manifest: %s | C8101
-manifest-required-key | Missing required key "%s" in manifest file | C8102
+manifest-required-key | Missing required key %s"%s" in manifest file | C8102
 manifest-version-format | Wrong Version Format "%s" in manifest file. Regex to match: "%s" | C8106
 method-compute | Name of compute method should start with "_compute_" | C8108
 method-inverse | Name of inverse method should start with "_inverse_" | C8110
 method-required-super | Missing `super` call in "%s" method. | W8106
 method-search | Name of search method should start with "_search_" | C8109
+missing-odoo-file | Missing %s %sfile | C8115
 missing-readme | Missing ./README.rst file. Template here: %s | C8112
 missing-return | Missing `return` (`super` is used) in method %s. | W8110
 no-raise-unlink | No exceptions should be raised inside unlink() functions | E8140
@@ -222,6 +224,10 @@ Checks valid only for odoo <= 13.0
     - https://github.com/OCA/pylint-odoo/blob/v9.3.11/testing/resources/test_repo/broken_module/models/broken_model.py#L648 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
     - https://github.com/OCA/pylint-odoo/blob/v9.3.11/testing/resources/test_repo/broken_module/models/broken_model.py#L649 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
 
+ * invalid-email
+
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.11/testing/resources/test_repo/broken_module2/__openerp__.py#L13 Invalid email "invalidmail.com"
+
  * license-allowed
 
     - https://github.com/OCA/pylint-odoo/blob/v9.3.11/testing/resources/test_repo/broken_module2/__openerp__.py#L4 License "unknow license" not allowed in manifest file.
@@ -261,6 +267,8 @@ Checks valid only for odoo <= 13.0
  * manifest-required-key
 
     - https://github.com/OCA/pylint-odoo/blob/v9.3.11/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing required key "license" in manifest file
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.11/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing required key app "currency" in manifest file
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.11/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing required key app "images" in manifest file
 
  * manifest-version-format
 
@@ -288,6 +296,10 @@ Checks valid only for odoo <= 13.0
 
     - https://github.com/OCA/pylint-odoo/blob/v9.3.11/testing/resources/test_repo/broken_module/models/broken_model.py#L258 Name of search method should start with "_search_"
     - https://github.com/OCA/pylint-odoo/blob/v9.3.11/testing/resources/test_repo/broken_module/models/broken_model.py#L266 Name of search method should start with "_search_"
+
+ * missing-odoo-file
+
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.11/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing broken_module/static/description/index.html app file
 
  * missing-readme
 
