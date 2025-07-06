@@ -10,4 +10,5 @@
     'data': [],
     'test': [],
     'installable': False,
+    'support': 'valid@email.com',
 }

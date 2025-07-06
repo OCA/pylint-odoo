@@ -126,7 +126,7 @@ ODOO_MSGS = {
         "manifest-required-author",
         CHECK_DESCRIPTION,
     ),
-    "C8102": ('Missing required key "%s" in manifest file', "manifest-required-key", CHECK_DESCRIPTION),
+    "C8102": ('Missing required key %s"%s" in manifest file', "manifest-required-key", CHECK_DESCRIPTION),
     "C8103": ('Deprecated key "%s" in manifest file', "manifest-deprecated-key", CHECK_DESCRIPTION),
     "C8105": ('License "%s" not allowed in manifest file.', "license-allowed", CHECK_DESCRIPTION),
     "C8106": (
@@ -155,6 +155,11 @@ ODOO_MSGS = {
         CHECK_DESCRIPTION,
     ),
     "C8114": ('Category "%s" not allowed in manifest file.', "category-allowed", CHECK_DESCRIPTION),
+    "C8115": (
+        "Missing %s %sfile",
+        "missing-odoo-file",
+        CHECK_DESCRIPTION,
+    ),
     "E8101": (
         "The author key in the manifest file must be a string (with comma separated values)",
         "manifest-author-string",
@@ -221,6 +226,11 @@ ODOO_MSGS = {
     "R8180": (
         'Consider merging classes inherited to "%s" from %s.',
         "consider-merging-classes-inherited",
+        CHECK_DESCRIPTION,
+    ),
+    "R8181": (
+        'Invalid email "%s"',
+        "invalid-email",
         CHECK_DESCRIPTION,
     ),
     "W8103": ('Translation method _("string") in fields is not necessary.', "translation-field", CHECK_DESCRIPTION),
@@ -304,6 +314,8 @@ ODOO_MSGS = {
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
+DFTL_MANIFEST_REQUIRED_KEYS_APP = ["currency", "images", "license", "support"]
+DFTL_ODOO_REQUIRED_FILES_APP = [os.path.join("static", "description", "index.html")]
 DFTL_MANIFEST_REQUIRED_AUTHORS = ["Odoo Community Association (OCA)"]
 DFTL_MANIFEST_DEPRECATED_KEYS = ["description"]
 DFTL_LICENSE_ALLOWED = [
@@ -515,6 +527,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             },
         ),
         (
+            "manifest-required-keys-app",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_MANIFEST_REQUIRED_KEYS_APP,
+                "help": "List of keys required in manifest file for apps, separated by a comma.",
+            },
+        ),
+        (
             "manifest-version-format",
             {
                 "type": "string",
@@ -559,6 +580,18 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 "metavar": "<comma separated values>",
                 "default": DFTL_ODOO_EXCEPTIONS,
                 "help": "List of odoo exceptions separated by a comma.",
+            },
+        ),
+        (
+            "odoo-required-files",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_ODOO_REQUIRED_FILES_APP,
+                "help": (
+                    "List of mandatory relative paths (comma-separated) expected inside Odoo module. "
+                    "Example: static/description/index.html"
+                ),
             },
         ),
         (
@@ -1172,6 +1205,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     @utils.only_required_for_messages(
         "category-allowed",
         "development-status-allowed",
+        "invalid-email",
         "license-allowed",
         "manifest-author-string",
         "manifest-behind-migrations",
@@ -1182,6 +1216,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "manifest-required-author",
         "manifest-required-key",
         "manifest-version-format",
+        "missing-odoo-file",
         "missing-readme",
         "resource-not-exist",
         "website-manifest-key-not-valid-uri",
@@ -1222,7 +1257,14 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         required_keys = self.linter.config.manifest_required_keys
         for required_key in required_keys:
             if required_key not in manifest_dict:
-                self.add_message("manifest-required-key", node=node, args=(required_key,))
+                self.add_message(
+                    "manifest-required-key",
+                    node=node,
+                    args=(
+                        "",
+                        required_key,
+                    ),
+                )
 
         # Check keys deprecated
         deprecated_keys = self.linter.config.manifest_deprecated_keys
@@ -1323,6 +1365,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 args=(website, msg),
             )
 
+        # Check if the email is valid
+        if (email_support := manifest_dict.get("support")) and not misc.validate_email(email_support):
+            self.add_message("invalid-email", node=manifest_keys_nodes.get("support") or node, args=(email_support,))
+
         # Check valid development_status values
         dev_status = manifest_dict.get("development_status")
         if dev_status and dev_status not in self.linter.config.development_status_allowed:
@@ -1351,6 +1397,34 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             # errors are not attributed to the proper node.
             if assets_node:
                 self._check_manifest_external_assets(assets_node)
+
+        if "price" in manifest_dict:
+            # manifest has "price" so it is an App
+            app_required_keys = set(self.linter.config.manifest_required_keys_app) - set(
+                self.linter.config.manifest_required_keys
+            )
+            for app_required_key in app_required_keys:
+                self.add_message(
+                    "manifest-required-key",
+                    node=node,
+                    args=(
+                        "app ",
+                        app_required_key,
+                    ),
+                )
+
+            for subpath in self.linter.config.odoo_required_files:
+                required_path = os.path.join(dirname, subpath)
+                if not os.path.isfile(required_path):
+                    required_relative_path = os.path.join(os.path.basename(dirname), subpath)
+                    self.add_message(
+                        "missing-odoo-file",
+                        node=node,
+                        args=(
+                            required_relative_path,
+                            "app ",
+                        ),
+                    )
 
     def _check_manifest_external_assets(self, node):
         def is_external_url(url):
