@@ -1,5 +1,6 @@
 import re
 from contextlib import contextmanager
+from typing import Literal
 from unittest.mock import patch
 
 from astroid import builder, exceptions as astroid_exceptions, nodes
@@ -100,3 +101,13 @@ class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
     def _check_log_method(self, *args, **kwargs):
         with patch("pylint.checkers.logging.CHECKED_CONVENIENCE_FUNCTIONS", {"_"}):
             super()._check_log_method(*args, **kwargs)
+
+    def _check_format_string(self, node: nodes.Call, format_arg: Literal[0, 1]) -> None:
+        num_args = logging._count_supplied_tokens(node.args[format_arg + 1 :])
+        # Custom revert for https://github.com/pylint-dev/pylint/commit/c23674554a7fac2fbb390cb67
+        # since translation returns a string so it is a valid case for translation but not for logging
+        if not num_args:
+            # If no args were supplied the string is not interpolated and can contain
+            # formatting characters - it's used verbatim. Don't check any further.
+            return
+        return super()._check_format_string(node=node, format_arg=format_arg)
