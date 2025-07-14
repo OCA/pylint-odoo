@@ -424,9 +424,8 @@ Checks valid only for odoo <= 13.0
 
  * translation-too-few-args
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.12/testing/resources/test_repo/broken_module/models/broken_model.py#L455 Not enough arguments for odoo._ format string
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.12/testing/resources/test_repo/broken_module/models/broken_model.py#L456 Not enough arguments for odoo._ format string
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.12/testing/resources/test_repo/broken_module/models/broken_model.py#L460 Not enough arguments for odoo._ format string
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.12/testing/resources/test_repo/broken_module/models/broken_model.py#L754 Not enough arguments for odoo._ format string
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.12/testing/resources/test_repo/broken_module/models/broken_model.py#L769 Not enough arguments for odoo._ format string
 
  * translation-too-many-args
 
