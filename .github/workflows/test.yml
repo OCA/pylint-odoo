@@ -76,5 +76,6 @@ jobs:
       if: startsWith(matrix.tox_env, 'py')  # only coveralls in python tests
       uses: codecov/codecov-action@v5
       with:
-        fail_ci_if_error: false  # TODO: Set true after fix token for win&macosx
+        fail_ci_if_error: true
         verbose: true
+        token: ${{ secrets.CODECOV_TOKEN }}
