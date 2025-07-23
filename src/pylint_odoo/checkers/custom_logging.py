@@ -70,10 +70,46 @@ class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
 
     def visit_call(self, node):
         name = OdooAddons.get_func_name(node.func)
+        if name == "format" and (new_node := self.transform_formatcall2tlcall(node)):
+            node = new_node
+            name = OdooAddons.get_func_name(node.func)
         if name not in misc.TRANSLATION_METHODS:
             return
         with config_logging_modules(self.linter, ("odoo",)):
             self._check_log_method(node, name)
+
+    def transform_formatcall2tlcall(self, node):
+        """Transform no detectable node:
+           _("lazy not detectable: {}").format("var")
+        To detectable one:
+           _("lazy detectable: {}".format("vat"))
+        """
+        if not (
+            isinstance(node, nodes.Call) and isinstance(node.func, nodes.Attribute) and node.func.attrname == "format"
+        ):
+            return
+
+        format_expr = node.func.expr.as_string()
+
+        args_str = ", ".join(arg.as_string() for arg in node.args)
+        kwargs_str = ", ".join(f"{kw.arg}={kw.value.as_string()}" for kw in node.keywords)
+        all_args = ", ".join(item for item in [args_str, kwargs_str] if item)
+        new_code = f"{format_expr[:-1]}.format({all_args}))"
+        try:
+            new_node = builder.extract_node(new_code)
+        except astroid_exceptions.AstroidSyntaxError:
+            return
+        # node = self.env._('{param1}').format(param1='hello')
+        # new_node = self.env._('{param1}'.format(param1='hello'))
+        # new_node.args[0] = '{param1}'.format(param1='hello')
+        if not new_node.args:
+            return
+        node_attrs = ["lineno", "col_offset", "parent", "end_lineno", "end_col_offset", "position", "fromlineno"]
+        for node_attr in node_attrs:
+            setattr(new_node, node_attr, getattr(node, node_attr, None))
+            # Help to preserve the lineno of the first arg used from pylint/checkers/logging.py::_check_log_method
+            setattr(new_node.args[0], node_attr, getattr(node, node_attr, None))
+        return new_node
 
     def transform_binop2call(self, node):
         """Transform no detectable node:
