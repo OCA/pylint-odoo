@@ -64,7 +64,7 @@ EXPECTED_ERRORS = {
     "test-folder-imported": 3,
     "translation-contains-variable": 33,
     "translation-field": 3,
-    "translation-format-interpolation": 8,
+    "translation-format-interpolation": 22,
     "translation-format-truncated": 2,
     "translation-fstring-interpolation": 3,
     "translation-not-lazy": 42,

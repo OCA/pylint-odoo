@@ -389,9 +389,9 @@ Checks valid only for odoo <= 13.0
 
  * translation-format-interpolation
 
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.13/testing/resources/test_repo/broken_module/models/broken_model.py#L457 Use lazy % or .format() or % formatting in odoo._ functions
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.13/testing/resources/test_repo/broken_module/models/broken_model.py#L465 Use lazy % or .format() or % formatting in odoo._ functions
     - https://github.com/OCA/pylint-odoo/blob/v9.3.13/testing/resources/test_repo/broken_module/models/broken_model.py#L490 Use lazy % or .format() or % formatting in odoo._ functions
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.13/testing/resources/test_repo/broken_module/models/broken_model.py#L491 Use lazy % or .format() or % formatting in odoo._ functions
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.13/testing/resources/test_repo/broken_module/models/broken_model.py#L554 Use lazy % or .format() or % formatting in odoo._ functions
 
  * translation-format-truncated
 
