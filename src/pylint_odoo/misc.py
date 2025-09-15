@@ -35,6 +35,7 @@ DFTL_VALID_ODOO_VERSIONS = [
     "16.0",
     "17.0",
     "18.0",
+    "19.0",
 ]
 DFTL_MANIFEST_VERSION_FORMAT = r"({valid_odoo_versions})\.\d+\.\d+\.\d+$"
 TRANSLATION_METHODS = ("_", "_lt")
@@ -124,7 +125,7 @@ def version2tuple(version):
         return tuple(int(i) for i in version.split("."))
     except (ValueError, AttributeError) as exc:
         raise InvalidVersion(
-            f"Invalid Version only integers separated by dot was expected. e.g. 18.0.1.0.0 but received {[version]}"
+            f"Invalid Version only integers separated by dot was expected. e.g. 19.0.1.0.0 but received {[version]}"
         ) from exc
 
 
