@@ -879,6 +879,29 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     value += "{}"
             return value
 
+    def _static_func_infer_name(self, node):
+        """Get library.method_name
+        > from requests import request
+        > request.get()
+
+        It will return requests.request.get for the call node get()
+        """
+        if not isinstance(node, nodes.Call):
+            return
+        func = node.func
+        lib_alias = self.get_func_lib(func)
+        # Use dict "self._from_imports" to know the source library of the method
+        lib_original = self._from_imports.get(lib_alias) or lib_alias
+        func_name = self.get_func_name(func)
+        lib_original_func_name = (
+            # If it using "requests.request()"
+            f"{lib_original}.{func_name}"
+            if lib_original
+            # If it using "from requests import request;request()"
+            else self._from_imports.get(func_name)
+        )
+        return lib_original_func_name
+
     @utils.only_required_for_messages(
         "attribute-string-redundant",
         "bad-builtin-groupby",
@@ -1020,6 +1043,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             and node.func.attrname == "with_context"
             and not node.keywords
             and node.args
+            # support self.with_context(clean_context(self.env.context))
+            # does not support ctx = clean_context(self.env.context);self.with_context(ctx)
+            and self._static_func_infer_name(node.args[0]) != "odoo.tools.clean_context"
         ):
             # with_context(**ctx) is considered a keywords
             # So, if only one args is received it is overridden
@@ -1119,17 +1145,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             self.add_message("sql-injection", node=node)
 
         # external-request-timeout
-        lib_alias = self.get_func_lib(node.func)
-        # Use dict "self._from_imports" to know the source library of the method
-        lib_original = self._from_imports.get(lib_alias) or lib_alias
-        func_name = self.get_func_name(node.func)
-        lib_original_func_name = (
-            # If it using "requests.request()"
-            "%s.%s" % (lib_original, func_name)
-            if lib_original
-            # If it using "from requests import request;request()"
-            else self._from_imports.get(func_name)
-        )
+        lib_original_func_name = self._static_func_infer_name(node)
         if lib_original_func_name in self.linter.config.external_request_timeout_methods:
             for argument in self.join_node_args_kwargs(node):
                 if not isinstance(argument, nodes.Keyword):
@@ -1510,7 +1526,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             self.add_message("missing-return", node=node, args=(node.name,))
 
     @utils.only_required_for_messages(
-        "external-request-timeout", "odoo-addons-relative-import", "test-folder-imported"
+        "context-overridden",
+        "external-request-timeout",
+        "odoo-addons-relative-import",
+        "test-folder-imported",
     )
     def visit_import(self, node):
         self._from_imports.update({alias or name: "%s" % name for name, alias in node.names})
@@ -1518,7 +1537,11 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         self.check_folder_test_imported(node)
 
     @utils.only_required_for_messages(
-        "external-request-timeout", "odoo-addons-relative-import", "odoo-exception-warning", "test-folder-imported"
+        "context-overridden",
+        "external-request-timeout",
+        "odoo-addons-relative-import",
+        "odoo-exception-warning",
+        "test-folder-imported",
     )
     def visit_importfrom(self, node):
         if node.modname == "odoo.exceptions":
