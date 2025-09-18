@@ -41,9 +41,14 @@ import ftplib as ftplib_r
 from ftplib import FTP
 from ftplib import FTP as ftp_r
 
+import odoo
+
 from odoo import fields, models, _
 from odoo.exceptions import UserError
 from odoo import exceptions
+from odoo import tools
+from odoo.tools import clean_context
+from odoo.tools import clean_context as clean_context2
 from odoo.tools.translate import LazyTranslate
 
 
@@ -307,6 +312,10 @@ class TestModel(models.Model):
 
         self.with_context(**ctx).write({})
         self.with_context(overwrite_context=False).write({})
+        self.with_context(clean_context(self.env.context))  # Valid case
+        self.with_context(tools.clean_context(self.env.context))  # Valid case
+        self.with_context(odoo.tools.clean_context(self.env.context))  # Valid case
+        self.with_context(clean_context2(self.env.context))  # Valid case
         return date
 
     my_ok_field = fields.Float(
