@@ -64,6 +64,7 @@ prohibited-method-override | Prohibited override of "%s" method. | W8107
 renamed-field-parameter | Field parameter "%s" is no longer supported. Use "%s" instead. | W8111
 resource-not-exist | File "%s": "%s" not found. | F8101
 sql-injection | SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection | E8103
+super-method-mismatch | `super().%s` mismatch but defined method is `%s` | W8164
 test-folder-imported | Test folder imported in module %s | E8130
 translation-contains-variable | Translatable term in "%s" contains variables. Use %s instead | W8115
 translation-field | Translation method _("string") in fields is not necessary. | W8103
@@ -368,6 +369,12 @@ Checks valid only for odoo <= 13.0
     - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/models/broken_model.py#L889 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
     - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/models/broken_model.py#L891 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
     - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/models/broken_model.py#L893 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
+
+ * super-method-mismatch
+
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/tests/test_model.py#L19 `super().test_base_method_2` mismatch but defined method is `test_base_method_1`
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/tests/test_model.py#L20 `super().test_base_method_3` mismatch but defined method is `test_base_method_1`
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/tests/test_model.py#L24 `super().test_base_method_1` mismatch but defined method is `test_base_method_2`
 
  * test-folder-imported
 
