@@ -22,6 +22,7 @@ EXPECTED_ERRORS = {
     "attribute-deprecated": 3,
     "attribute-string-redundant": 31,
     "bad-builtin-groupby": 2,
+    "category-allowed": 1,
     "consider-merging-classes-inherited": 2,
     "context-overridden": 3,
     "deprecated-name-get": 1,
@@ -417,17 +418,20 @@ def fstring_no_sqli(self):
     # Test category-allowed with and without error
     def test_170_category_allowed(self):
         extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed=Category 00"]
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
-            "category-allowed": 1,
+            "category-allowed": 2,
         }
         self.assertDictEqual(real_errors, expected_errors)
 
+        expected_errors = {
+            "category-allowed": 1,
+        }
         extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed=Category 01"]
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
-        self.assertFalse(real_errors)
+        self.assertDictEqual(real_errors, expected_errors)
 
     def test_option_odoo_deprecated_model_method(self):
         pylint_res = self.run_pylint(

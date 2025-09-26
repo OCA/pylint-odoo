@@ -154,7 +154,7 @@ ODOO_MSGS = {
         "no-wizard-in-models",
         CHECK_DESCRIPTION,
     ),
-    "C8114": ('Category "%s" not allowed in manifest file.', "category-allowed", CHECK_DESCRIPTION),
+    "C8114": ('Category "%s" not allowed in %smanifest file.', "category-allowed", CHECK_DESCRIPTION),
     "C8115": (
         "Missing %s %sfile",
         "missing-odoo-file",
@@ -341,6 +341,27 @@ DFTL_ATTRIBUTE_DEPRECATED = [
     "length",
 ]
 DFTL_CATEGORY_ALLOWED = []
+DFTL_CATEGORY_ALLOWED_APP = [
+    # Based on https://apps.odoo.com/apps
+    "Accounting",
+    "Discuss",
+    "Document Management",
+    "eCommerce",
+    "Extra Tools",
+    "Human Resources",
+    "Industries",
+    "Localization",
+    "Manufacturing",
+    "Marketing",
+    "Point of Sale",
+    "Productivity",
+    "Project",
+    "Purchases",
+    "Sales",
+    "Tutorial",
+    "Warehouse",
+    "Website",
+]
 DFTL_METHOD_REQUIRED_SUPER = [
     "copy",
     "create",
@@ -628,6 +649,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 "metavar": "<comma separated values>",
                 "default": DFTL_CATEGORY_ALLOWED,
                 "help": "List of categories allowed in manifest file, separated by a comma.",
+            },
+        ),
+        (
+            "category-allowed-app",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_CATEGORY_ALLOWED_APP,
+                "help": "List of categories allowed in manifest file for apps, separated by a comma.",
             },
         ),
     )
@@ -1303,9 +1333,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             category_str
             and self.linter.config.category_allowed
             and category_str not in self.linter.config.category_allowed
+            and "price" not in manifest_dict
         ):
             self.add_message(
-                "category-allowed", node=manifest_keys_nodes.get("category") or node, args=(category_str,)
+                "category-allowed", node=manifest_keys_nodes.get("category") or node, args=(category_str, "")
             )
 
         # Check version format
@@ -1441,6 +1472,21 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                             "app ",
                         ),
                     )
+
+            # Check category allowed for apps
+            if (
+                category_str
+                and self.linter.config.category_allowed_app
+                and category_str not in self.linter.config.category_allowed_app
+            ):
+                self.add_message(
+                    "category-allowed",
+                    node=manifest_keys_nodes.get("category") or node,
+                    args=(
+                        category_str,
+                        "app ",
+                    ),
+                )
 
     def _check_manifest_external_assets(self, node):
         def is_external_url(url):
