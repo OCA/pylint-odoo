@@ -1265,7 +1265,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         ):
             meth_called = self.get_func_name(node.func)
             meth_defined = frame.name
-            if meth_called != meth_defined:
+            if meth_called != meth_defined and "queue" not in meth_defined and "cache" not in meth_defined:
                 self.add_message("super-method-mismatch", node=node, args=(meth_called, meth_defined))
 
     @utils.only_required_for_messages(

@@ -35,3 +35,13 @@ class TestModel(TransactionCase):
         some_obj.test_base_method_3()
         # Override prohibited, should fail
         return super(TestModel, self).test_base_method_3()
+
+    def message_post_queued(self, *args, **kwargs):
+        # super-method-mismatch valid since that it is enqueued the method
+        # not calling the same super method
+        return super().message_post(*args, **kwargs)
+
+    def get_meth_cached(self):
+        # super-method-mismatch valid since that it is caching the method
+        # not calling the same super method
+        return super().get_meth().ids
