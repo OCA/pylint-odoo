@@ -311,6 +311,11 @@ ODOO_MSGS = {
         "no-search-all",
         CHECK_DESCRIPTION,
     ),
+    "W8164": (
+        "`super().%s` mismatch but defined method is `%s`",
+        "super-method-mismatch",
+        CHECK_DESCRIPTION,
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
@@ -919,6 +924,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "print-used",
         "renamed-field-parameter",
         "sql-injection",
+        "super-method-mismatch",
         "translation-contains-variable",
         "translation-field",
         "translation-positional-used",
@@ -1217,6 +1223,20 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 )
                 if empty_domain and not limit_or_count:
                     self.add_message("no-search-all", node=node, args=(self.get_func_name(node.func),))
+        if (
+            isinstance(node.func, nodes.Attribute)
+            and isinstance(node.func.expr, nodes.Call)
+            and (func := node.func.expr.func)
+            and self.get_func_name(func) == "super"
+            and (frame := node.frame())
+            and isinstance(frame, nodes.FunctionDef)
+            and isinstance(frame.parent.frame(), nodes.ClassDef)
+            and isinstance(func.parent, nodes.Call)
+        ):
+            meth_called = self.get_func_name(node.func)
+            meth_defined = frame.name
+            if meth_called != meth_defined:
+                self.add_message("super-method-mismatch", node=node, args=(meth_called, meth_defined))
 
     @utils.only_required_for_messages(
         "category-allowed",
