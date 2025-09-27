@@ -23,7 +23,7 @@ Short Name | Description | Code
 attribute-deprecated | attribute "%s" deprecated | W8105
 attribute-string-redundant | The attribute string is redundant. String parameter equal to name of variable | W8113
 bad-builtin-groupby | Used builtin function `itertools.groupby`. Prefer `odoo.tools.groupby` instead. More info about https://github.com/odoo/odoo/issues/105376 | W8155
-category-allowed | Category "%s" not allowed in manifest file. | C8114
+category-allowed | Category "%s" not allowed in %smanifest file. | C8114
 consider-merging-classes-inherited | Consider merging classes inherited to "%s" from %s. | R8180
 context-overridden | Context overridden using dict. Better using kwargs `with_context(**%s)` or `with_context(key=value)` | W8121
 deprecated-name-get | 'name_get' is deprecated. Use '_compute_display_name' instead. More info at https://github.com/odoo/odoo/pull/122085. | E8146
@@ -172,6 +172,10 @@ Checks valid only for odoo <= 13.0
     - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/models/broken_model.py#L205 Used builtin function `itertools.groupby`. Prefer `odoo.tools.groupby` instead. More info about https://github.com/odoo/odoo/issues/105376
     - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/models/broken_model.py#L206 Used builtin function `itertools.groupby`. Prefer `odoo.tools.groupby` instead. More info about https://github.com/odoo/odoo/issues/105376
 
+ * category-allowed
+
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/__openerp__.py#L6 Category "No valid for odoo.com/apps" not allowed in app manifest file.
+
  * consider-merging-classes-inherited
 
     - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/models/model_inhe2.py#L11 Consider merging classes inherited to "res.company" from testing/resources/test_repo/broken_module/models/model_inhe1.py:8:4, testing/resources/test_repo/broken_module/models/model_inhe2.py:7:4.
@@ -245,11 +249,11 @@ Checks valid only for odoo <= 13.0
 
  * manifest-data-duplicated
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/__openerp__.py#L18 The file "duplicated.xml" is duplicated in lines 19 from manifest key "data"
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/__openerp__.py#L19 The file "duplicated.xml" is duplicated in lines 20 from manifest key "data"
 
  * manifest-deprecated-key
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/__openerp__.py#L7 Deprecated key "description" in manifest file
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/__openerp__.py#L8 Deprecated key "description" in manifest file
 
  * manifest-external-assets
 
@@ -273,7 +277,7 @@ Checks valid only for odoo <= 13.0
 
  * manifest-version-format
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/__openerp__.py#L8 Wrong Version Format "8_0.1.0.0" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0|17\.0|18\.0|19\.0)\.\d+\.\d+\.\d+$"
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/__openerp__.py#L9 Wrong Version Format "8_0.1.0.0" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0|17\.0|18\.0|19\.0)\.\d+\.\d+\.\d+$"
     - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module2/__openerp__.py#L8 Wrong Version Format "1.0" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0|17\.0|18\.0|19\.0)\.\d+\.\d+\.\d+$"
     - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module3/__openerp__.py#L8 Wrong Version Format "8.0.1.0.0foo" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0|17\.0|18\.0|19\.0)\.\d+\.\d+\.\d+$"
 
@@ -360,9 +364,9 @@ Checks valid only for odoo <= 13.0
 
  * resource-not-exist
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/__openerp__.py#L14 File "data": "file_no_exist.xml" not found.
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/__openerp__.py#L18 File "data": "duplicated.xml" not found.
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/__openerp__.py#L23 File "demo": "file_no_exist.xml" not found.
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/__openerp__.py#L15 File "data": "file_no_exist.xml" not found.
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/__openerp__.py#L19 File "data": "duplicated.xml" not found.
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.16/testing/resources/test_repo/broken_module/__openerp__.py#L24 File "demo": "file_no_exist.xml" not found.
 
  * sql-injection
 
