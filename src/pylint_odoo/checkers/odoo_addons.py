@@ -1471,14 +1471,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 self.linter.config.manifest_required_keys
             )
             for app_required_key in app_required_keys:
-                self.add_message(
-                    "manifest-required-key",
-                    node=node,
-                    args=(
-                        "app ",
-                        app_required_key,
-                    ),
-                )
+                if app_required_key not in manifest_dict:
+                    self.add_message(
+                        "manifest-required-key",
+                        node=node,
+                        args=(
+                            "app ",
+                            app_required_key,
+                        ),
+                    )
 
             for subpath in self.linter.config.odoo_required_files:
                 required_path = os.path.join(dirname, subpath)
