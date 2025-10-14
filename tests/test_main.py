@@ -44,6 +44,7 @@ EXPECTED_ERRORS = {
     "manifest-maintainers-list": 1,
     "manifest-required-author": 1,
     "manifest-required-key": 6,
+    "manifest-superfluous-key": 6,
     "manifest-version-format": 3,
     "method-compute": 2,
     "method-inverse": 2,

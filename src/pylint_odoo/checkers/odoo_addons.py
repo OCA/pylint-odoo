@@ -160,6 +160,11 @@ ODOO_MSGS = {
         "missing-odoo-file",
         CHECK_DESCRIPTION,
     ),
+    "C8116": (
+        'Manifest superfluous key "%s". It is the same as the default value: %s. Better remove it',
+        "manifest-superfluous-key",
+        CHECK_DESCRIPTION,
+    ),
     "E8101": (
         "The author key in the manifest file must be a string (with comma separated values)",
         "manifest-author-string",
@@ -438,6 +443,8 @@ DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS = [
 ]
 DFTL_DEPRECATED_ODOO_MODEL_METHODS = {"16.0": {"fields_view_get"}}
 
+DFTL_MANIFEST_KEYS_VALUES_TRUE = ["active", "installable"]
+
 # Regex used from https://github.com/translate/translate/blob/9de0d72437/translate/filters/checks.py#L50-L62  # noqa
 PRINTF_PATTERN = re.compile(
     r"""
@@ -532,6 +539,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 "metavar": "<comma separated values>",
                 "default": DFTL_MANIFEST_DEPRECATED_KEYS,
                 "help": "List of keys deprecated in manifest file, separated by a comma.",
+            },
+        ),
+        (
+            "manifest-keys-values-true",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_MANIFEST_KEYS_VALUES_TRUE,
+                "help": "List of keys in manifest file whose the default value is `True`, separated by a comma.",
             },
         ),
         (
@@ -1281,6 +1297,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "manifest-maintainers-list",
         "manifest-required-author",
         "manifest-required-key",
+        "manifest-superfluous-key",
         "manifest-version-format",
         "missing-odoo-file",
         "missing-readme",
@@ -1508,6 +1525,16 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         "app ",
                     ),
                 )
+        if self.linter.is_message_enabled("manifest-superfluous-key"):
+            for key, value in manifest_dict.items():
+                if (not value and key not in self.linter.config.manifest_keys_values_true) or (
+                    value and key in self.linter.config.manifest_keys_values_true
+                ):
+                    self.add_message(
+                        "manifest-superfluous-key",
+                        node=manifest_keys_nodes.get(key) or node,
+                        args=(key, value),
+                    )
 
     def _check_manifest_external_assets(self, node):
         def is_external_url(url):
