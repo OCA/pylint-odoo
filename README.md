@@ -23,7 +23,8 @@ Short Name | Description | Code
 attribute-deprecated | attribute "%s" deprecated | W8105
 attribute-string-redundant | The attribute string is redundant. String parameter equal to name of variable | W8113
 bad-builtin-groupby | Used builtin function `itertools.groupby`. Prefer `odoo.tools.groupby` instead. More info about https://github.com/odoo/odoo/issues/105376 | W8155
-category-allowed | Category "%s" not allowed in %smanifest file. | C8114
+category-allowed | Category "%s" not allowed in manifest file. | C8114
+category-allowed-app | Category "%s" not allowed in manifest file for modules with price. | C8117
 consider-merging-classes-inherited | Consider merging classes inherited to "%s" from %s. | R8180
 context-overridden | Context overridden using dict. Better using kwargs `with_context(**%s)` or `with_context(key=value)` | W8121
 deprecated-name-get | 'name_get' is deprecated. Use '_compute_display_name' instead. More info at https://github.com/odoo/odoo/pull/122085. | E8146
@@ -44,13 +45,15 @@ manifest-external-assets | Asset %s should be distributed with module's source c
 manifest-maintainers-list | The maintainers key in the manifest file must be a list of strings | E8104
 manifest-required-author | One of the following authors must be present in manifest: %s | C8101
 manifest-required-key | Missing required key %s"%s" in manifest file | C8102
+manifest-required-key-app | Missing required key "%s" in manifest file for modules with price. | C8119
 manifest-superfluous-key | Manifest superfluous key "%s". It is the same as the default value: %s. Better remove it | C8116
 manifest-version-format | Wrong Version Format "%s" in manifest file. Regex to match: "%s" | C8106
 method-compute | Name of compute method should start with "_compute_" | C8108
 method-inverse | Name of inverse method should start with "_inverse_" | C8110
 method-required-super | Missing `super` call in "%s" method. | W8106
 method-search | Name of search method should start with "_search_" | C8109
-missing-odoo-file | Missing %s %sfile | C8115
+missing-odoo-file | Missing %s file | C8115
+missing-odoo-file-app | Missing %s file for modules with price | C8118
 missing-readme | Missing ./README.rst file. Template here: %s | C8112
 missing-return | Missing `return` (`super` is used) in method %s. | W8110
 no-raise-unlink | No exceptions should be raised inside unlink() functions | E8140
@@ -173,9 +176,9 @@ Checks valid only for odoo <= 13.0
     - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/broken_module/models/broken_model.py#L205 Used builtin function `itertools.groupby`. Prefer `odoo.tools.groupby` instead. More info about https://github.com/odoo/odoo/issues/105376
     - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/broken_module/models/broken_model.py#L206 Used builtin function `itertools.groupby`. Prefer `odoo.tools.groupby` instead. More info about https://github.com/odoo/odoo/issues/105376
 
- * category-allowed
+ * category-allowed-app
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/broken_module/__openerp__.py#L6 Category "No valid for odoo.com/apps" not allowed in app manifest file.
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/broken_module/__openerp__.py#L6 Category "No valid for odoo.com/apps" not allowed in manifest file for modules with price.
 
  * consider-merging-classes-inherited
 
@@ -272,9 +275,13 @@ Checks valid only for odoo <= 13.0
 
  * manifest-required-key
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/app_module/__manifest__.py#L1 Missing required key app "currency" in manifest file
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/app_module/__manifest__.py#L1 Missing required key app "images" in manifest file
     - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing required key "license" in manifest file
+
+ * manifest-required-key-app
+
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/app_module/__manifest__.py#L1 Missing required key "currency" in manifest file for modules with price.
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/app_module/__manifest__.py#L1 Missing required key "images" in manifest file for modules with price.
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing required key "currency" in manifest file for modules with price.
 
  * manifest-superfluous-key
 
@@ -309,9 +316,9 @@ Checks valid only for odoo <= 13.0
     - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/broken_module/models/broken_model.py#L263 Name of search method should start with "_search_"
     - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/broken_module/models/broken_model.py#L271 Name of search method should start with "_search_"
 
- * missing-odoo-file
+ * missing-odoo-file-app
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing broken_module/static/description/index.html app file
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.21/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing broken_module/static/description/index.html file for modules with price
 
  * missing-readme
 
