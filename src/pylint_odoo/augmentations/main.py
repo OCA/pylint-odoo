@@ -48,6 +48,18 @@ def is_migration_path(node):
     return False
 
 
+def is_executable(node):
+    """Name of executable files could be executable-file
+    instead of executable_file.py
+    So, excluding this check if it is the case
+    """
+    if isinstance(node, nodes.Module) and os.path.splitext(node.file)[1] != ".py" and os.access(node.file, os.X_OK):
+        with open(node.file, encoding="UTF-8") as file_obj:
+            shebang = file_obj.readline().startswith("#!")
+        return shebang
+    return False
+
+
 def apply_augmentations(linter):
     """Apply suppression rules."""
 
@@ -57,5 +69,6 @@ def apply_augmentations(linter):
 
     # C0103 - invalid-name and W0613 - unused-argument for migrations/
     suppress_message(linter, NameChecker.visit_module, "invalid-name", is_migration_path)
+    suppress_message(linter, NameChecker.visit_module, "invalid-name", is_executable)
     suppress_message(linter, NameChecker.visit_functiondef, "invalid-name", is_migration_path)
     suppress_message(linter, VariablesChecker.leave_functiondef, "unused-argument", is_migration_path)

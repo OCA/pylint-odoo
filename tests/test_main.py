@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import stat
 import sys
 import unittest
 from collections import Counter, defaultdict
@@ -200,7 +201,8 @@ class MainTest(unittest.TestCase):
         """Test --manifest-version-format parameter"""
         # First, run Pylint for version 8.0
         extra_params = [
-            r'--manifest-version-format="8\.0\.\d+\.\d+.\d+$"' '--valid-odoo-versions=""',
+            r'--manifest-version-format="8\.0\.\d+\.\d+.\d+$"',
+            "--valid-odoo-versions=8.0",
             "--disable=all",
             "--enable=manifest-version-format",
         ]
@@ -269,7 +271,7 @@ class MainTest(unittest.TestCase):
         self.assertDictEqual(real_errors, expected_errors)
 
         # Testing deprecated attribute
-        extra_params[0] = "--manifest-required-author=" "Odoo Community Association (OCA)"
+        extra_params[0] = "--manifest-required-author=Odoo Community Association (OCA)"
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors_deprecated = {
@@ -488,6 +490,43 @@ def fstring_no_sqli(self):
         expected_errors = {"manifest-version-format": 6}
         self.assertDictEqual(real_errors, expected_errors)
         self.assertIn("Invalid manifest versions format ['8.0saas']", str(warn.warning))
+
+    def test_invalid_name_executable(self):
+        """Test valid case for file name of executable-file instead of executable_file.py"""
+        extra_params = [
+            "--disable=all",
+            "--enable=invalid-name",
+        ]
+        with NamedTemporaryFile(mode="w", prefix="executable-", suffix=".py") as tmp_f:
+            tmp_f.write("#!/usr/bin/env python3")
+            tmp_f.flush()
+            pylint_res = self.run_pylint([tmp_f.name], extra_params)
+            real_errors = pylint_res.linter.stats.by_msg
+            self.assertDictEqual(real_errors, {"invalid-name": 1}, "The file extension is .py should raise the check")
+
+        with NamedTemporaryFile(mode="w", prefix="executable-") as tmp_f:
+            tmp_f.write("#!/usr/bin/env python3")
+            tmp_f.flush()
+            pylint_res = self.run_pylint([tmp_f.name], extra_params)
+            real_errors = pylint_res.linter.stats.by_msg
+            self.assertDictEqual(
+                real_errors,
+                {"invalid-name": 1},
+                "The file doens't have executable permissions so should raise the check",
+            )
+
+        with NamedTemporaryFile(mode="w", prefix="executable-") as tmp_f:
+            os.chmod(tmp_f.name, os.stat(tmp_f.name).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+            tmp_f.write("#!/usr/bin/env python3")
+            tmp_f.flush()
+            pylint_res = self.run_pylint([tmp_f.name], extra_params)
+            real_errors = pylint_res.linter.stats.by_msg
+            self.assertDictEqual(
+                real_errors,
+                {},
+                "The file is a valid executable with executable permissions, "
+                "name with -, without py extension and with shebang. It should not be raise the check",
+            )
 
     @staticmethod
     def re_replace(sub_start, sub_end, substitution, content):
