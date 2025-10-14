@@ -44,6 +44,7 @@ manifest-external-assets | Asset %s should be distributed with module's source c
 manifest-maintainers-list | The maintainers key in the manifest file must be a list of strings | E8104
 manifest-required-author | One of the following authors must be present in manifest: %s | C8101
 manifest-required-key | Missing required key %s"%s" in manifest file | C8102
+manifest-superfluous-key | Manifest superfluous key "%s". It is the same as the default value: %s. Better remove it | C8116
 manifest-version-format | Wrong Version Format "%s" in manifest file. Regex to match: "%s" | C8106
 method-compute | Name of compute method should start with "_compute_" | C8108
 method-inverse | Name of inverse method should start with "_inverse_" | C8110
@@ -274,6 +275,12 @@ Checks valid only for odoo <= 13.0
     - https://github.com/OCA/pylint-odoo/blob/v9.3.20/testing/resources/test_repo/app_module/__manifest__.py#L1 Missing required key app "currency" in manifest file
     - https://github.com/OCA/pylint-odoo/blob/v9.3.20/testing/resources/test_repo/app_module/__manifest__.py#L1 Missing required key app "images" in manifest file
     - https://github.com/OCA/pylint-odoo/blob/v9.3.20/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing required key "license" in manifest file
+
+ * manifest-superfluous-key
+
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.20/testing/resources/test_repo/broken_module/__openerp__.py#L26 Manifest superfluous key "installable". It is the same as the default value: True. Better remove it
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.20/testing/resources/test_repo/broken_module/__openerp__.py#L28 Manifest superfluous key "active". It is the same as the default value: True. Better remove it
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.20/testing/resources/test_repo/broken_module2/__openerp__.py#L10 Manifest superfluous key "data". It is the same as the default value: []. Better remove it
 
  * manifest-version-format
 
