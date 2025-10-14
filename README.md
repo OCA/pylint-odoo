@@ -271,9 +271,9 @@ Checks valid only for odoo <= 13.0
 
  * manifest-required-key
 
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.18/testing/resources/test_repo/app_module/__manifest__.py#L1 Missing required key app "currency" in manifest file
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.18/testing/resources/test_repo/app_module/__manifest__.py#L1 Missing required key app "images" in manifest file
     - https://github.com/OCA/pylint-odoo/blob/v9.3.18/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing required key "license" in manifest file
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.18/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing required key app "currency" in manifest file
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.18/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing required key app "images" in manifest file
 
  * manifest-version-format
 

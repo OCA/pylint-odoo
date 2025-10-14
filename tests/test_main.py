@@ -42,7 +42,7 @@ EXPECTED_ERRORS = {
     "manifest-external-assets": 3,
     "manifest-maintainers-list": 1,
     "manifest-required-author": 1,
-    "manifest-required-key": 4,
+    "manifest-required-key": 6,
     "manifest-version-format": 3,
     "method-compute": 2,
     "method-inverse": 2,
@@ -257,7 +257,7 @@ class MainTest(unittest.TestCase):
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
-            "manifest-required-author": 4,
+            "manifest-required-author": 5,
         }
         self.assertDictEqual(real_errors, expected_errors)
 
@@ -265,7 +265,7 @@ class MainTest(unittest.TestCase):
         extra_params[0] = "--manifest-required-authors=Vauxoo,Other"
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
-        expected_errors["manifest-required-author"] = 3
+        expected_errors["manifest-required-author"] -= 1
         self.assertDictEqual(real_errors, expected_errors)
 
         # Testing deprecated attribute
