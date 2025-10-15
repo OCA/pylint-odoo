@@ -126,7 +126,7 @@ ODOO_MSGS = {
         "manifest-required-author",
         CHECK_DESCRIPTION,
     ),
-    "C8102": ('Missing required key %s"%s" in manifest file', "manifest-required-key", CHECK_DESCRIPTION),
+    "C8102": ('Missing required key "%s" in manifest file', "manifest-required-key", CHECK_DESCRIPTION),
     "C8103": ('Deprecated key "%s" in manifest file', "manifest-deprecated-key", CHECK_DESCRIPTION),
     "C8105": ('License "%s" not allowed in manifest file.', "license-allowed", CHECK_DESCRIPTION),
     "C8106": (
@@ -1374,10 +1374,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 self.add_message(
                     "manifest-required-key",
                     node=node,
-                    args=(
-                        "",
-                        required_key,
-                    ),
+                    args=(required_key,),
                 )
 
         # Check keys deprecated

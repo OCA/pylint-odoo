@@ -44,7 +44,7 @@ manifest-deprecated-key | Deprecated key "%s" in manifest file | C8103
 manifest-external-assets | Asset %s should be distributed with module's source code. More info at https://httptoolkit.com/blog/public-cdn-risks/ | W8162
 manifest-maintainers-list | The maintainers key in the manifest file must be a list of strings | E8104
 manifest-required-author | One of the following authors must be present in manifest: %s | C8101
-manifest-required-key | Missing required key %s"%s" in manifest file | C8102
+manifest-required-key | Missing required key "%s" in manifest file | C8102
 manifest-required-key-app | Missing required key "%s" in manifest file for modules with price. | C8119
 manifest-superfluous-key | Manifest superfluous key "%s". It is the same as the default value: %s. Better remove it | C8116
 manifest-version-format | Wrong Version Format "%s" in manifest file. Regex to match: "%s" | C8106
