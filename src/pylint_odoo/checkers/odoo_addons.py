@@ -154,15 +154,30 @@ ODOO_MSGS = {
         "no-wizard-in-models",
         CHECK_DESCRIPTION,
     ),
-    "C8114": ('Category "%s" not allowed in %smanifest file.', "category-allowed", CHECK_DESCRIPTION),
+    "C8114": ('Category "%s" not allowed in manifest file.', "category-allowed", CHECK_DESCRIPTION),
     "C8115": (
-        "Missing %s %sfile",
+        "Missing %s file",
         "missing-odoo-file",
         CHECK_DESCRIPTION,
     ),
     "C8116": (
         'Manifest superfluous key "%s". It is the same as the default value: %s. Better remove it',
         "manifest-superfluous-key",
+        CHECK_DESCRIPTION,
+    ),
+    "C8117": (
+        'Category "%s" not allowed in manifest file for modules with price.',
+        "category-allowed-app",
+        CHECK_DESCRIPTION,
+    ),
+    "C8118": (
+        "Missing %s file for modules with price",
+        "missing-odoo-file-app",
+        CHECK_DESCRIPTION,
+    ),
+    "C8119": (
+        'Missing required key "%s" in manifest file for modules with price.',
+        "manifest-required-key-app",
         CHECK_DESCRIPTION,
     ),
     "E8101": (
@@ -325,6 +340,7 @@ ODOO_MSGS = {
 
 DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
 DFTL_MANIFEST_REQUIRED_KEYS_APP = ["currency", "images", "license", "support"]
+DFTL_ODOO_REQUIRED_FILES = []
 DFTL_ODOO_REQUIRED_FILES_APP = [os.path.join("static", "description", "index.html")]
 DFTL_MANIFEST_REQUIRED_AUTHORS = ["Odoo Community Association (OCA)"]
 DFTL_MANIFEST_DEPRECATED_KEYS = ["description"]
@@ -629,9 +645,21 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             {
                 "type": "csv",
                 "metavar": "<comma separated values>",
-                "default": DFTL_ODOO_REQUIRED_FILES_APP,
+                "default": DFTL_ODOO_REQUIRED_FILES,
                 "help": (
                     "List of mandatory relative paths (comma-separated) expected inside Odoo module. "
+                    "Example: static/description/index.html"
+                ),
+            },
+        ),
+        (
+            "odoo-required-files-app",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_ODOO_REQUIRED_FILES_APP,
+                "help": (
+                    "List of mandatory relative paths (comma-separated) expected inside Odoo module for modules with price. "
                     "Example: static/description/index.html"
                 ),
             },
@@ -1285,6 +1313,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 self.add_message("super-method-mismatch", node=node, args=(meth_called, meth_defined))
 
     @utils.only_required_for_messages(
+        "category-allowed-app",
         "category-allowed",
         "development-status-allowed",
         "invalid-email",
@@ -1296,9 +1325,11 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "manifest-external-assets",
         "manifest-maintainers-list",
         "manifest-required-author",
+        "manifest-required-key-app",
         "manifest-required-key",
         "manifest-superfluous-key",
         "manifest-version-format",
+        "missing-odoo-file-app",
         "missing-odoo-file",
         "missing-readme",
         "resource-not-exist",
@@ -1373,7 +1404,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             and "price" not in manifest_dict
         ):
             self.add_message(
-                "category-allowed", node=manifest_keys_nodes.get("category") or node, args=(category_str, "")
+                "category-allowed", node=manifest_keys_nodes.get("category") or node, args=(category_str,)
             )
 
         # Check version format
@@ -1490,12 +1521,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             for app_required_key in app_required_keys:
                 if app_required_key not in manifest_dict:
                     self.add_message(
-                        "manifest-required-key",
+                        "manifest-required-key-app",
                         node=node,
-                        args=(
-                            "app ",
-                            app_required_key,
-                        ),
+                        args=(app_required_key,),
                     )
 
             for subpath in self.linter.config.odoo_required_files:
@@ -1505,10 +1533,17 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     self.add_message(
                         "missing-odoo-file",
                         node=node,
-                        args=(
-                            required_relative_path,
-                            "app ",
-                        ),
+                        args=(required_relative_path,),
+                    )
+
+            for subpath in self.linter.config.odoo_required_files_app:
+                required_path = os.path.join(dirname, subpath)
+                if not os.path.isfile(required_path):
+                    required_relative_path = os.path.join(os.path.basename(dirname), subpath)
+                    self.add_message(
+                        "missing-odoo-file-app",
+                        node=node,
+                        args=(required_relative_path,),
                     )
 
             # Check category allowed for apps
@@ -1518,12 +1553,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 and category_str not in self.linter.config.category_allowed_app
             ):
                 self.add_message(
-                    "category-allowed",
+                    "category-allowed-app",
                     node=manifest_keys_nodes.get("category") or node,
-                    args=(
-                        category_str,
-                        "app ",
-                    ),
+                    args=(category_str,),
                 )
         if self.linter.is_message_enabled("manifest-superfluous-key"):
             for key, value in manifest_dict.items():

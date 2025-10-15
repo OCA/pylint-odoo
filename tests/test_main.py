@@ -23,7 +23,7 @@ EXPECTED_ERRORS = {
     "attribute-deprecated": 3,
     "attribute-string-redundant": 31,
     "bad-builtin-groupby": 2,
-    "category-allowed": 1,
+    "category-allowed-app": 1,
     "consider-merging-classes-inherited": 2,
     "context-overridden": 3,
     "deprecated-name-get": 1,
@@ -43,14 +43,15 @@ EXPECTED_ERRORS = {
     "manifest-external-assets": 3,
     "manifest-maintainers-list": 1,
     "manifest-required-author": 1,
-    "manifest-required-key": 6,
+    "manifest-required-key-app": 5,
+    "manifest-required-key": 1,
     "manifest-superfluous-key": 6,
     "manifest-version-format": 3,
     "method-compute": 2,
     "method-inverse": 2,
     "method-required-super": 8,
     "method-search": 2,
-    "missing-odoo-file": 1,
+    "missing-odoo-file-app": 1,
     "missing-readme": 1,
     "missing-return": 1,
     "no-raise-unlink": 2,
@@ -421,18 +422,32 @@ def fstring_no_sqli(self):
 
     # Test category-allowed with and without error
     def test_170_category_allowed(self):
-        extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed=Category 00"]
+        extra_params = ["--disable=all", "--enable=category-allowed-app", "--category-allowed-app=Category 00"]
         pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
-            "category-allowed": 2,
+            "category-allowed-app": 1,
         }
         self.assertDictEqual(real_errors, expected_errors)
 
         expected_errors = {
+            "category-allowed-app": 1,
+        }
+        extra_params = ["--disable=all", "--enable=category-allowed-app", "--category-allowed-app=Category 01"]
+        pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
+        real_errors = pylint_res.linter.stats.by_msg
+        self.assertDictEqual(real_errors, expected_errors)
+
+        extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed=Category 00"]
+        pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
+        real_errors = pylint_res.linter.stats.by_msg
+        expected_errors = {
             "category-allowed": 1,
         }
-        extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed=Category 01"]
+        self.assertDictEqual(real_errors, expected_errors)
+
+        expected_errors = {}
+        extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed-app=Category 01"]
         pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
         self.assertDictEqual(real_errors, expected_errors)
