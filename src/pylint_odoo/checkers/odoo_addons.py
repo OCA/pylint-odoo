@@ -336,6 +336,12 @@ ODOO_MSGS = {
         "super-method-mismatch",
         CHECK_DESCRIPTION,
     ),
+    "W8165": (
+        "Avoid assigning `self.env[%s]` to a variable. Use `self.env[%s]` directly instead.",
+        "env-ref-assigned-variable",
+        "Prefer using `self.env['model.name']` directly rather than assigning it to a variable. "
+        "This improves code readability and follows Odoo best practices.",
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
@@ -1676,7 +1682,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         self.check_folder_test_imported(node)
 
     @utils.only_required_for_messages(
-        "attribute-deprecated", "consider-merging-classes-inherited", "no-wizard-in-models"
+        "attribute-deprecated",
+        "consider-merging-classes-inherited",
+        "env-ref-assigned-variable",
+        "no-wizard-in-models",
     )
     def visit_assign(self, node):
         node_left = node.targets[0]
@@ -1688,6 +1697,36 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         ):
             if node_left.name in self.linter.config.attribute_deprecated:
                 self.add_message("attribute-deprecated", node=node_left, args=(node_left.name,))
+
+        # Check for self.env["model.name"] assigned to variable
+        if (
+            self.linter.is_message_enabled("env-ref-assigned-variable", node.lineno)
+            and isinstance(node_left, nodes.AssignName)
+            and isinstance(node.value, nodes.Subscript)
+        ):
+            # Check if it's self.env[...]
+            subscript_value = node.value.value
+            if (
+                isinstance(subscript_value, nodes.Attribute)
+                and subscript_value.attrname == "env"
+                and isinstance(subscript_value.expr, nodes.Name)
+                and subscript_value.expr.name == "self"
+            ):
+                # Get the model name from the subscript
+                model_ref = None
+                if isinstance(node.value.slice, nodes.Const):
+                    # Direct string: self.env["product.product"]
+                    model_ref = repr(node.value.slice.value)
+                elif isinstance(node.value.slice, nodes.Name):
+                    # Variable reference: self.env[PRODUCT]
+                    # Try to infer the value
+                    inferred = utils.safe_infer(node.value.slice)
+                    if inferred and isinstance(inferred, nodes.Const):
+                        model_ref = repr(inferred.value)
+
+                if model_ref:
+                    self.add_message("env-ref-assigned-variable", node=node, args=(model_ref, model_ref))
+
         if self.linter.is_message_enabled(
             "consider-merging-classes-inherited", node.lineno
         ) or self.linter.is_message_enabled("no-wizard-in-models"):
