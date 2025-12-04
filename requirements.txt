@@ -1,2 +1,2 @@
-pylint-plugin-utils==0.8.*
-pylint @ git+https://github.com/pylint-dev/pylint@main
+pylint-plugin-utils==0.9.*
+pylint==4.0.*
