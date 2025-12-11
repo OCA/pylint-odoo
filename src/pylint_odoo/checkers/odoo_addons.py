@@ -460,6 +460,7 @@ DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS = [
 DFTL_DEPRECATED_ODOO_MODEL_METHODS = {"16.0": {"fields_view_get"}}
 
 DFTL_MANIFEST_KEYS_VALUES_TRUE = ["active", "installable"]
+DFTL_MANIFEST_KEYS_VALUES_FALSE = ["auto_installable"]
 
 # Regex used from https://github.com/translate/translate/blob/9de0d72437/translate/filters/checks.py#L50-L62  # noqa
 PRINTF_PATTERN = re.compile(
@@ -564,6 +565,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 "metavar": "<comma separated values>",
                 "default": DFTL_MANIFEST_KEYS_VALUES_TRUE,
                 "help": "List of keys in manifest file whose the default value is `True`, separated by a comma.",
+            },
+        ),
+        (
+            "manifest-keys-values-false",
+            {
+                "type": "csv",
+                "metavar": "<comma separated values>",
+                "default": DFTL_MANIFEST_KEYS_VALUES_FALSE,
+                "help": "List of keys in manifest file whose the default value is `False`, separated by a comma.",
             },
         ),
         (
@@ -1556,8 +1566,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 )
         if self.linter.is_message_enabled("manifest-superfluous-key"):
             for key, value in manifest_dict.items():
-                if (not value and key not in self.linter.config.manifest_keys_values_true) or (
-                    value and key in self.linter.config.manifest_keys_values_true
+                if (
+                    (not value and key not in self.linter.config.manifest_keys_values_true)
+                    or (value and key in self.linter.config.manifest_keys_values_true)
+                    or (not value and key in self.linter.config.manifest_keys_values_false)
                 ):
                     self.add_message(
                         "manifest-superfluous-key",

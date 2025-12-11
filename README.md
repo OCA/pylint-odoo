@@ -287,7 +287,7 @@ Checks valid only for odoo <= 13.0
 
     - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/__openerp__.py#L26 Manifest superfluous key "installable". It is the same as the default value: True. Better remove it
     - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/__openerp__.py#L28 Manifest superfluous key "active". It is the same as the default value: True. Better remove it
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module2/__openerp__.py#L10 Manifest superfluous key "data". It is the same as the default value: []. Better remove it
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/__openerp__.py#L29 Manifest superfluous key "auto_install". It is the same as the default value: False. Better remove it
 
  * manifest-version-format
 
