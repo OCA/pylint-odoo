@@ -106,7 +106,7 @@ import warnings
 from collections import Counter, defaultdict
 from urllib.parse import urlparse
 
-from astroid import ClassDef, FunctionDef, NodeNG, nodes
+from astroid import nodes
 from pylint.checkers import BaseChecker, utils
 from pylint.lint import PyLinter
 
@@ -1579,7 +1579,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         if isinstance(entry, nodes.Const) and is_external_url(entry.value):
                             self.add_message("manifest-external-assets", node=element, args=(entry.value,))
 
-    def check_deprecated_odoo_method(self, node: NodeNG) -> bool:
+    def check_deprecated_odoo_method(self, node: nodes.NodeNG) -> bool:
         """Verify the given method is not marked as deprecated under the set Odoo versions.
         :param node: Function definition to be checked
         :return: True if the method is deprecated, false otherwise.
@@ -1732,19 +1732,19 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         return ""
 
     @staticmethod
-    def _is_unlink(node: FunctionDef) -> bool:
+    def _is_unlink(node: nodes.FunctionDef) -> bool:
         parent = getattr(node, "parent", False)
         return (
-            isinstance(parent, ClassDef)
+            isinstance(parent, nodes.ClassDef)
             and ("_name" in parent.locals or "_inherit" in parent.locals)
             and node.name == "unlink"
         )
 
     @staticmethod
-    def get_enclosing_function(node: NodeNG, depth=10):
+    def get_enclosing_function(node: nodes.NodeNG, depth=10):
         parent = getattr(node, "parent", False)
         for _i in range(depth):
-            if not parent or isinstance(parent, FunctionDef):
+            if not parent or isinstance(parent, nodes.FunctionDef):
                 break
             parent = parent.parent
 
