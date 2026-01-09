@@ -1086,9 +1086,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         method_name = (
                             argument.value.value
                             if isinstance(argument.value, nodes.Const)
-                            else argument.value.name
-                            if isinstance(argument.value, nodes.Name)
-                            else None
+                            else argument.value.name if isinstance(argument.value, nodes.Name) else None
                         )
                         if method_name and self.class_odoo_models:
                             self.odoo_computes.add(method_name)
