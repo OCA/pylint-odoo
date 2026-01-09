@@ -4,7 +4,6 @@ import os
 import re
 import stat
 import sys
-import unittest
 from collections import Counter, defaultdict
 from glob import glob
 from io import StringIO
@@ -83,8 +82,8 @@ EXPECTED_ERRORS = {
 }
 
 
-class MainTest(unittest.TestCase):
-    def setUp(self):
+class TestMain:
+    def setup_method(self, method):
         self.default_options = [
             "--load-plugins=pylint_odoo",
             "--reports=no",
@@ -112,8 +111,28 @@ class MainTest(unittest.TestCase):
         self.maxDiff = None
         self.expected_errors = EXPECTED_ERRORS.copy()
 
-    def tearDown(self):
+    def teardown_method(self, method):
         sys.path = list(self.sys_path_origin)
+
+    def assert_dict_equal(self, d1, d2, msg=None):
+        """Similar to assert_dict_equal from unittest method
+        show the correct item diff
+        Using ordered list it is showing the diff better"""
+        # real_dict2list = [(i, d1[i]) for i in sorted(d1)]
+        # expected_dict2list = [(i, d2[i]) for i in sorted(d2)]
+
+        diff = []
+        all_keys = sorted(set(d1) | set(d2))
+
+        for key in all_keys:
+            if key not in d2:
+                diff.append(f"- {key}: {d1[key]}")
+            elif key not in d1:
+                diff.append(f"+ {key}: {d2[key]}")
+            elif d1[key] != d2[key]:
+                diff.append(f"~ {key}: {d1[key]} -> {d2[key]}")
+
+        assert not diff, f"{msg or ''}  {diff}".strip()
 
     def run_pylint(self, paths, extra_params: list | None = None, verbose=False, rcfile: str = ""):
         for path in paths:
@@ -148,14 +167,14 @@ class MainTest(unittest.TestCase):
     def test_10_path_dont_exist(self):
         """test if path don't exist"""
         path_unexist = "/tmp/____unexist______"
-        with self.assertRaisesRegex(OSError, r'Path "{path}" not found.$'.format(path=path_unexist)):
+        with pytest.raises(OSError, match=rf'Path "{path_unexist}" not found\.$'):
             self.run_pylint([path_unexist])
 
     def test_20_expected_errors(self):
         """Expected vs found errors"""
         pylint_res = self.run_pylint(self.paths_modules, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
-        self.assertEqual(self.expected_errors, real_errors)
+        assert self.expected_errors == real_errors
 
     def test_25_checks_excluding_by_odoo_version(self):
         """All odoolint errors vs found but excluding based on Odoo version"""
@@ -179,7 +198,7 @@ class MainTest(unittest.TestCase):
         for excluded_msg in excluded_msgs:
             expected_errors.pop(excluded_msg)
         expected_errors.update({"manifest-version-format": 6})
-        self.assertEqual(expected_errors, real_errors)
+        assert expected_errors == real_errors
 
     def test_35_checks_emiting_by_odoo_version(self):
         """All odoolint errors vs found but see if were not excluded for valid odoo version"""
@@ -197,7 +216,7 @@ class MainTest(unittest.TestCase):
         }
         for excluded_msg in excluded_msgs:
             expected_errors.pop(excluded_msg)
-        self.assertEqual(expected_errors, real_errors)
+        assert expected_errors == real_errors
 
     def test_85_valid_odoo_version_format(self):
         """Test --manifest-version-format parameter"""
@@ -213,7 +232,7 @@ class MainTest(unittest.TestCase):
         expected_errors = {
             "manifest-version-format": 6,
         }
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
         # Now for version 11.0
         extra_params[0] = r'--manifest-version-format="11\.0\.\d+\.\d+.\d+$"'
@@ -222,7 +241,7 @@ class MainTest(unittest.TestCase):
         expected_errors = {
             "manifest-version-format": 5,
         }
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
     def test_90_valid_odoo_versions(self):
         """Test --valid-odoo-versions parameter when it's '8.0' & '11.0'"""
@@ -237,7 +256,7 @@ class MainTest(unittest.TestCase):
         expected_errors = {
             "manifest-version-format": 6,
         }
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
         # Now for version 11.0
         extra_params[0] = "--valid-odoo-versions=11.0"
@@ -246,7 +265,7 @@ class MainTest(unittest.TestCase):
         expected_errors = {
             "manifest-version-format": 5,
         }
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
     def test_110_manifest_required_authors(self):
         """Test --manifest-required-authors using a different author and
@@ -263,14 +282,14 @@ class MainTest(unittest.TestCase):
         expected_errors = {
             "manifest-required-author": 5,
         }
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
         # Then, run it using multiple authors
         extra_params[0] = "--manifest-required-authors=Vauxoo,Other"
         pylint_res = self.run_pylint(self.paths_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors["manifest-required-author"] -= 1
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
         # Testing deprecated attribute
         extra_params[0] = "--manifest-required-author=Odoo Community Association (OCA)"
@@ -279,7 +298,7 @@ class MainTest(unittest.TestCase):
         expected_errors_deprecated = {
             "manifest-required-author": (EXPECTED_ERRORS["manifest-required-author"]),
         }
-        self.assertDictEqual(real_errors, expected_errors_deprecated)
+        self.assert_dict_equal(real_errors, expected_errors_deprecated)
 
     def test_140_check_suppress_migrations(self):
         """Test migrations path supress checks"""
@@ -306,7 +325,7 @@ class MainTest(unittest.TestCase):
         expected_errors = {
             "unused-argument": 1,
         }
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
         # Messages raised without plugin
         self.default_options.remove("--load-plugins=pylint_odoo")
@@ -316,7 +335,7 @@ class MainTest(unittest.TestCase):
             "invalid-name": 1,
             "unused-argument": 2,
         }
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
     def test_140_check_migrations_is_not_odoo_module(self):
         """Checking that migrations folder is not considered a odoo module
@@ -339,7 +358,7 @@ class MainTest(unittest.TestCase):
         pylint_res = self.run_pylint(path_modules, extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {}
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
     def test_gettext_env(self):
         """prefer-env-translation is only valid for odoo v18.0+ but not for older odoo versions"""
@@ -348,16 +367,16 @@ class MainTest(unittest.TestCase):
         )
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {"prefer-env-translation": self.expected_errors.get("prefer-env-translation")}
-        self.assertEqual(expected_errors, real_errors)
+        assert expected_errors == real_errors
 
         pylint_res = self.run_pylint(
             self.paths_modules, ["--valid-odoo-versions=17.0", "--disable=all", "--enable=prefer-env-translation"]
         )
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {}
-        self.assertEqual(expected_errors, real_errors)
+        assert expected_errors == real_errors
 
-    @unittest.skipUnless(not sys.platform.startswith("win"), "TOOD: Fix with windows")  # TODO: Fix it
+    @pytest.mark.skipif(sys.platform.startswith("win"), reason="TODO: Fix with windows")  # TODO: Fix it
     def test_145_check_fstring_sqli(self):
         """Verify the linter is capable of finding SQL Injection vulnerabilities
         when using fstrings.
@@ -385,40 +404,41 @@ def fstring_no_sqli(self):
             pylint_res = self.run_pylint([tmp_f.name], extra_params)
 
         real_errors = pylint_res.linter.stats.by_msg
-        self.assertDictEqual(real_errors, {"sql-injection": 4})
+        self.assert_dict_equal(real_errors, {"sql-injection": 4})
 
-    def test_150_check_only_enabled_one_check(self):
+    @pytest.mark.parametrize("expected_error_name", EXPECTED_ERRORS)
+    def test_150_check_only_enabled_one_check(self, expected_error_name):
         """Checking -d all -e ONLY-ONE-CHECK"""
         disable = "--disable=all"
-        for expected_error_name, expected_error_value in EXPECTED_ERRORS.items():
-            enable = "--enable=%s" % expected_error_name
-            pylint_res = self.run_pylint(self.paths_modules, [disable, enable])
-            real_errors = pylint_res.linter.stats.by_msg
-            expected_errors = {expected_error_name: expected_error_value}
-            self.assertDictEqual(real_errors, expected_errors)
+        expected_error_value = EXPECTED_ERRORS[expected_error_name]
+        enable = "--enable=%s" % expected_error_name
+        pylint_res = self.run_pylint(self.paths_modules, [disable, enable])
+        real_errors = pylint_res.linter.stats.by_msg
+        expected_errors = {expected_error_name: expected_error_value}
+        self.assert_dict_equal(real_errors, expected_errors)
 
-    def test_160_check_only_disabled_one_check(self):
+    @pytest.mark.parametrize("disable_error", EXPECTED_ERRORS)
+    def test_160_check_only_disabled_one_check(self, disable_error):
         """Checking -d all -e odoolint -d ONLY-ONE-CHECK"""
-        for disable_error in EXPECTED_ERRORS:
-            expected_errors = self.expected_errors.copy()
-            enable = "--disable=%s" % disable_error
-            pylint_res = self.run_pylint(self.paths_modules, self.default_extra_params + [enable])
-            real_errors = pylint_res.linter.stats.by_msg
-            expected_errors.pop(disable_error)
-            self.assertDictEqual(real_errors, expected_errors)
+        expected_errors = self.expected_errors.copy()
+        enable = "--disable=%s" % disable_error
+        pylint_res = self.run_pylint(self.paths_modules, self.default_extra_params + [enable])
+        real_errors = pylint_res.linter.stats.by_msg
+        expected_errors.pop(disable_error)
+        self.assert_dict_equal(real_errors, expected_errors)
 
     def test_165_no_raises_unlink(self):
         extra_params = ["--disable=all", "--enable=no-raise-unlink"]
         test_repo = os.path.join(self.root_path_modules, "test_module")
 
-        self.assertDictEqual(
+        self.assert_dict_equal(
             self.run_pylint([test_repo], extra_params).linter.stats.by_msg,
             {"no-raise-unlink": 2},
         )
 
         # This check is only valid for Odoo 15.0 and upwards
         extra_params.append("--valid-odoo-versions=14.0")
-        self.assertFalse(self.run_pylint([test_repo], extra_params).linter.stats.by_msg)
+        assert not self.run_pylint([test_repo], extra_params).linter.stats.by_msg
 
     # Test category-allowed with and without error
     def test_170_category_allowed(self):
@@ -428,7 +448,7 @@ def fstring_no_sqli(self):
         expected_errors = {
             "category-allowed-app": 1,
         }
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
         expected_errors = {
             "category-allowed-app": 1,
@@ -436,7 +456,7 @@ def fstring_no_sqli(self):
         extra_params = ["--disable=all", "--enable=category-allowed-app", "--category-allowed-app=Category 01"]
         pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
         extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed=Category 00"]
         pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
@@ -444,13 +464,13 @@ def fstring_no_sqli(self):
         expected_errors = {
             "category-allowed": 1,
         }
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
         expected_errors = {}
         extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed-app=Category 01"]
         pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
     def test_option_odoo_deprecated_model_method(self):
         pylint_res = self.run_pylint(
@@ -460,10 +480,7 @@ def fstring_no_sqli(self):
             ),
         )
 
-        self.assertEqual(
-            4,
-            pylint_res.linter.stats.by_msg["deprecated-odoo-model-method"],
-        )
+        assert 4 == pylint_res.linter.stats.by_msg["deprecated-odoo-model-method"]
 
     def test_175_prohibited_method_override(self):
         """Test --prohibited_override_methods parameter"""
@@ -477,7 +494,7 @@ def fstring_no_sqli(self):
         expected_errors = {
             "prohibited-method-override": 2,
         }
-        self.assertDictEqual(real_errors, expected_errors)
+        self.assert_dict_equal(real_errors, expected_errors)
 
     def test_180_jobs(self):
         """Using jobs could raise new errors"""
@@ -486,12 +503,12 @@ def fstring_no_sqli(self):
         # pylint_res.linter.stats.by_msg has a issue generating the stats wrong with --jobs
         res = self._get_messages_from_output(pylint_res)
         real_errors = {key: len(set(lines)) for key, lines in res.items()}
-        self.assertEqual(self.expected_errors, real_errors)
+        assert self.expected_errors == real_errors
 
         for key, lines in res.items():
             lines_counter = Counter(tuple(lines))
             for line, count in lines_counter.items():
-                self.assertLessEqual(count, 2, "%s duplicated more than 2 times. Line %s" % (key, line))
+                assert count <= 2, f"{key} duplicated more than 2 times. Line {line}"
 
     def test_format_version_value_error(self):
         """Test --valid-odoo-versions to force a value error exception"""
@@ -500,14 +517,16 @@ def fstring_no_sqli(self):
             "--disable=all",
             "--enable=manifest-version-format",
         ]
-        with self.assertWarns(UserWarning) as warn:
+        with pytest.warns(UserWarning) as warn:
             pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {"manifest-version-format": 6}
-        self.assertDictEqual(real_errors, expected_errors)
-        self.assertIn("Invalid manifest versions format ['8.0saas']", str(warn.warning))
+        self.assert_dict_equal(real_errors, expected_errors)
+        assert any("Invalid manifest versions format ['8.0saas']" in str(w.message) for w in warn.list)
 
-    @unittest.skipUnless(not sys.platform.startswith("win"), "Windows works a little different with executable files")
+    @pytest.mark.skipif(
+        sys.platform.startswith("win"), reason="Windows works a little different with executable files"
+    )
     def test_invalid_name_executable(self):
         """Test valid case for file name of executable-file instead of executable_file.py"""
         extra_params = [
@@ -519,14 +538,16 @@ def fstring_no_sqli(self):
             tmp_f.flush()
             pylint_res = self.run_pylint([tmp_f.name], extra_params)
             real_errors = pylint_res.linter.stats.by_msg
-            self.assertDictEqual(real_errors, {"invalid-name": 1}, "The file extension is .py should raise the check")
+            self.assert_dict_equal(
+                real_errors, {"invalid-name": 1}, "The file extension is .py should raise the check"
+            )
 
         with NamedTemporaryFile(mode="w", prefix="executable-") as tmp_f:
             tmp_f.write("#!/usr/bin/env python3")
             tmp_f.flush()
             pylint_res = self.run_pylint([tmp_f.name], extra_params)
             real_errors = pylint_res.linter.stats.by_msg
-            self.assertDictEqual(
+            self.assert_dict_equal(
                 real_errors,
                 {"invalid-name": 1},
                 "The file doens't have executable permissions so should raise the check",
@@ -538,7 +559,7 @@ def fstring_no_sqli(self):
             tmp_f.flush()
             pylint_res = self.run_pylint([tmp_f.name], extra_params)
             real_errors = pylint_res.linter.stats.by_msg
-            self.assertDictEqual(
+            self.assert_dict_equal(
                 real_errors,
                 {},
                 "The file is a valid executable with executable permissions, "
@@ -565,7 +586,7 @@ def fstring_no_sqli(self):
             all_check_errors_merged[checks_found[0]].append(line)
         return all_check_errors_merged
 
-    @unittest.skipIf(not os.environ.get("BUILD_README"), "BUILD_README environment variable not enabled")
+    @pytest.mark.skipif(not os.environ.get("BUILD_README"), reason="BUILD_README environment variable not enabled")
     def test_build_docstring(self):
         messages_content = plugin.messages2md()
         readme_path = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "README.md")
@@ -591,12 +612,6 @@ def fstring_no_sqli(self):
 
         with open(readme_path, "w", encoding="UTF-8") as f_readme:
             f_readme.write(new_readme)
-        self.assertEqual(
-            readme_content,
-            new_readme,
-            "The README was updated! Don't panic only failing for CI purposes. Run the same test again.",
-        )
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert (
+            readme_content == new_readme
+        ), "The README was updated! Don't panic only failing for CI purposes. Run the same test again."
