@@ -167,7 +167,7 @@ class TestMain:
     def test_10_path_dont_exist(self):
         """test if path don't exist"""
         path_unexist = "/tmp/____unexist______"
-        with pytest.raises(OSError, match=rf'Path "{path_unexist}" not found\.$'):
+        with pytest.raises(OSError, match=rf'Path "{path_unexist}" not found\.$'):  # noqa: B907
             self.run_pylint([path_unexist])
 
     def test_20_expected_errors(self):

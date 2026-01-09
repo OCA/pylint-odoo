@@ -160,7 +160,7 @@ def validate_url(url):
     except UnicodeError as err:
         raise InvalidURL(f"Unable to encode/decode domain section {netloc}") from err
     if not DOMAIN_RE.match(netloc):
-        raise InvalidURL(f"Domain '{netloc}' contains invalid characters")
+        raise InvalidURL(f"Domain {netloc!r} contains invalid characters")
     return True
 
 
