@@ -981,6 +981,34 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         )
         return lib_original_func_name
 
+    def _get_field_arg_string(self, node):
+        """Extract the ``string`` label value from a field definition AST node.
+
+        This method inspects a field constructor call (e.g. ``fields.Char(...)``)
+        and attempts to retrieve the human-readable label (``string``) either from:
+
+        - A positional argument, based on the expected position defined in
+        ``FIELDS_METHOD`` for the given field type.
+        - A keyword argument explicitly named ``string``.
+
+        If the ``string`` value cannot be found, ``None`` is returned.
+
+        :param node: AST node representing a field constructor call.
+        :type node: ast.Call
+        :return: The extracted string value or ``None`` if not present.
+        :rtype: str | None
+        """
+        field_class_name = node.func.attrname
+        field_args = getattr(node, "args", None) or []
+        field_kwargs = getattr(node, "keywords", None) or []
+        pos_str = FIELDS_METHOD.get(field_class_name, 0)
+        try:
+            string_arg = field_args[pos_str]
+            return self._get_str_value(string_arg)
+        except IndexError:
+            field_kwarg = next((kw for kw in field_kwargs if kw.arg == "string"), None)
+            return self._get_str_value(field_kwarg and field_kwarg.value)
+
     @utils.only_required_for_messages(
         "attribute-string-redundant",
         "bad-builtin-groupby",
@@ -1026,17 +1054,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 and node.parent.targets
                 and isinstance(node.parent.targets[0], nodes.AssignName)
             ):
-                field_name = node.parent.targets[0].name.replace("_", " ")
-            is_related = bool([1 for kw in node.keywords or [] if kw.arg == "related"])
+                field_name = node.parent.targets[0].name.removesuffix("_ids").removesuffix("_id").replace("_", " ")
+            is_related = any(kw.arg == "related" for kw in (node.keywords or []))
+            arg_string_value = self._get_field_arg_string(node)
+            if not is_related and arg_string_value == field_name.title():
+                # Check this 'name = fields.Char("name")'
+                # Check this 'name = fields.Char(string="name")'
+                self.add_message("attribute-string-redundant", node=node)
             for argument in args:
                 argument_aux = argument
-                # Check this 'name = fields.Char("name")'
-                if (
-                    not is_related
-                    and self._get_str_value(argument) == field_name.title()
-                    and index == FIELDS_METHOD.get(argument.parent.func.attrname, 0)
-                ):
-                    self.add_message("attribute-string-redundant", node=node)
                 if isinstance(argument, nodes.Keyword):
                     argument_aux = argument.value
                     deprecated = self.deprecated_field_parameters
@@ -1047,14 +1073,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         and not value.startswith("_" + argument.arg + "_")
                     ):
                         self.add_message("method-" + argument.arg, node=argument_aux)
-                    # Check if the param string is equal to the name
-                    #   of variable
-                    elif (
-                        not is_related
-                        and argument.arg == "string"
-                        and self._get_str_value(argument_aux) == field_name.title()
-                    ):
-                        self.add_message("attribute-string-redundant", node=node)
                     elif argument.arg in deprecated:
                         self.add_message(
                             "renamed-field-parameter", node=node, args=(argument.arg, deprecated[argument.arg])
