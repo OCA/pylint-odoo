@@ -21,7 +21,7 @@ RE_CHECK_OUTPUT = re.compile(r"\- \[(?P<check>[\w|-]+)\]")
 
 EXPECTED_ERRORS = {
     "attribute-deprecated": 3,
-    "attribute-string-redundant": 31,
+    "attribute-string-redundant": 33,
     "bad-builtin-groupby": 2,
     "category-allowed-app": 1,
     "consider-merging-classes-inherited": 2,

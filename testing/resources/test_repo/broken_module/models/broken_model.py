@@ -277,6 +277,13 @@ class TestModel(models.Model):
         'Other Field2',
         copy=True,
     )
+    other_field3_id = fields.Many2one(
+        "my.model",
+        string="Other Field3",
+    )
+    selection_variable_10 = fields.Selection(
+        [('a', 'A')],
+        string='Selection Variable 10')
     field_related = fields.Char('Field Related', related='model_id.related_field')
     other_field_related = fields.Char(
         related='model_id.related_field', string='Other Field Related')

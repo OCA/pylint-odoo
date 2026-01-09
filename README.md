@@ -168,8 +168,8 @@ Checks valid only for odoo <= 13.0
  * attribute-string-redundant
 
     - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L276 The attribute string is redundant. String parameter equal to name of variable
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L328 The attribute string is redundant. String parameter equal to name of variable
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L338 The attribute string is redundant. String parameter equal to name of variable
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L280 The attribute string is redundant. String parameter equal to name of variable
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L284 The attribute string is redundant. String parameter equal to name of variable
 
  * bad-builtin-groupby
 
@@ -187,9 +187,9 @@ Checks valid only for odoo <= 13.0
 
  * context-overridden
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L307 Context overridden using dict. Better using kwargs `with_context(**{'overwrite_context': True})` or `with_context(key=value)`
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L309 Context overridden using dict. Better using kwargs `with_context(**ctx)` or `with_context(key=value)`
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L311 Context overridden using dict. Better using kwargs `with_context(**ctx2)` or `with_context(key=value)`
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L314 Context overridden using dict. Better using kwargs `with_context(**{'overwrite_context': True})` or `with_context(key=value)`
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L316 Context overridden using dict. Better using kwargs `with_context(**ctx)` or `with_context(key=value)`
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L318 Context overridden using dict. Better using kwargs `with_context(**ctx2)` or `with_context(key=value)`
 
  * deprecated-name-get
 
@@ -212,9 +212,9 @@ Checks valid only for odoo <= 13.0
 
  * external-request-timeout
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L1003 Use of external request method `requests.delete` without timeout. It could wait for a long time
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L1004 Use of external request method `requests.get` without timeout. It could wait for a long time
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L1005 Use of external request method `requests.head` without timeout. It could wait for a long time
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L1010 Use of external request method `requests.delete` without timeout. It could wait for a long time
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L1011 Use of external request method `requests.get` without timeout. It could wait for a long time
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L1012 Use of external request method `requests.head` without timeout. It could wait for a long time
 
  * inheritable-method-lambda
 
@@ -229,9 +229,9 @@ Checks valid only for odoo <= 13.0
 
  * invalid-commit
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L656 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L657 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L658 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L663 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L664 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L665 Use of cr.commit() directly - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction
 
  * invalid-email
 
@@ -341,7 +341,7 @@ Checks valid only for odoo <= 13.0
 
  * no-wizard-in-models
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L1142 No wizard class for model directory. See the complete structure https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#complete-structure
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L1149 No wizard class for model directory. See the complete structure https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#complete-structure
 
  * no-write-in-compute
 
@@ -373,8 +373,8 @@ Checks valid only for odoo <= 13.0
 
  * renamed-field-parameter
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L328 Field parameter "digits_compute" is no longer supported. Use "digits" instead.
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L328 Field parameter "select" is no longer supported. Use "index" instead.
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L335 Field parameter "digits_compute" is no longer supported. Use "digits" instead.
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L335 Field parameter "select" is no longer supported. Use "index" instead.
 
  * resource-not-exist
 
@@ -384,9 +384,9 @@ Checks valid only for odoo <= 13.0
 
  * sql-injection
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L889 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L891 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L893 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L896 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L898 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L900 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
 
  * super-method-mismatch
 
@@ -402,9 +402,9 @@ Checks valid only for odoo <= 13.0
 
  * translation-contains-variable
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L490 Translatable term in "'Variable not translatable: %s' % variable1" contains variables. Use _('Variable not translatable: %s') % variable1 instead
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L491 Translatable term in "'Variables not translatable: %s, %s' % (variable1, variable2)" contains variables. Use _('Variables not translatable: %s, %s') % (variable1, variable2) instead
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L493 Translatable term in "'Variable not translatable: %s' % variable1" contains variables. Use _('Variable not translatable: %s') % variable1 instead
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L497 Translatable term in "'Variable not translatable: %s' % variable1" contains variables. Use _('Variable not translatable: %s') % variable1 instead
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L498 Translatable term in "'Variables not translatable: %s, %s' % (variable1, variable2)" contains variables. Use _('Variables not translatable: %s, %s') % (variable1, variable2) instead
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L500 Translatable term in "'Variable not translatable: %s' % variable1" contains variables. Use _('Variable not translatable: %s') % variable1 instead
 
  * translation-field
 
@@ -414,53 +414,53 @@ Checks valid only for odoo <= 13.0
 
  * translation-format-interpolation
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L466 Use lazy % or .format() or % formatting in odoo._ functions
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L474 Use lazy % or .format() or % formatting in odoo._ functions
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L499 Use lazy % or .format() or % formatting in odoo._ functions
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L473 Use lazy % or .format() or % formatting in odoo._ functions
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L481 Use lazy % or .format() or % formatting in odoo._ functions
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L506 Use lazy % or .format() or % formatting in odoo._ functions
 
  * translation-format-truncated
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L767 Logging format string ends in middle of conversion specifier
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L782 Logging format string ends in middle of conversion specifier
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L774 Logging format string ends in middle of conversion specifier
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L789 Logging format string ends in middle of conversion specifier
 
  * translation-fstring-interpolation
 
     - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L268 Use lazy % or .format() or % formatting in odoo._ functions
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L765 Use lazy % or .format() or % formatting in odoo._ functions
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L780 Use lazy % or .format() or % formatting in odoo._ functions
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L772 Use lazy % or .format() or % formatting in odoo._ functions
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L787 Use lazy % or .format() or % formatting in odoo._ functions
 
  * translation-not-lazy
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L464 Use lazy % or .format() or % formatting in odoo._ functions
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L465 Use lazy % or .format() or % formatting in odoo._ functions
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L467 Use lazy % or .format() or % formatting in odoo._ functions
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L471 Use lazy % or .format() or % formatting in odoo._ functions
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L472 Use lazy % or .format() or % formatting in odoo._ functions
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L474 Use lazy % or .format() or % formatting in odoo._ functions
 
  * translation-positional-used
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L491 Translation method _('Variables not translatable: %s, %s' % (variable1, variable2)) is using positional string printf formatting with multiple arguments. Use named placeholder `_("%(placeholder)s")` instead.
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L494 Translation method _('Variables not translatable: %s %s' % (variable1, variable2)) is using positional string printf formatting with multiple arguments. Use named placeholder `_("%(placeholder)s")` instead.
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L497 Translation method _('Variables not translatable: %s, %s' % (variable1, variable2)) is using positional string printf formatting with multiple arguments. Use named placeholder `_("%(placeholder)s")` instead.
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L498 Translation method _('Variables not translatable: %s, %s' % (variable1, variable2)) is using positional string printf formatting with multiple arguments. Use named placeholder `_("%(placeholder)s")` instead.
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L501 Translation method _('Variables not translatable: %s %s' % (variable1, variable2)) is using positional string printf formatting with multiple arguments. Use named placeholder `_("%(placeholder)s")` instead.
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L504 Translation method _('Variables not translatable: %s, %s' % (variable1, variable2)) is using positional string printf formatting with multiple arguments. Use named placeholder `_("%(placeholder)s")` instead.
 
  * translation-required
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L441 String parameter on "message_post" requires translation. Use body=self.env._('Body not translatable %s')
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L441 String parameter on "message_post" requires translation. Use subject=self.env._('Subject not translatable')
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L443 String parameter on "message_post" requires translation. Use body=self.env._('Body not translatable {}')
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L448 String parameter on "message_post" requires translation. Use body=self.env._('Body not translatable %s')
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L448 String parameter on "message_post" requires translation. Use subject=self.env._('Subject not translatable')
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L450 String parameter on "message_post" requires translation. Use body=self.env._('Body not translatable {}')
 
  * translation-too-few-args
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L763 Not enough arguments for odoo._ format string
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L778 Not enough arguments for odoo._ format string
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L770 Not enough arguments for odoo._ format string
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L785 Not enough arguments for odoo._ format string
 
  * translation-too-many-args
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L768 Too many arguments for odoo._ format string
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L783 Too many arguments for odoo._ format string
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L775 Too many arguments for odoo._ format string
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L790 Too many arguments for odoo._ format string
 
  * translation-unsupported-format
 
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L766 Unsupported odoo._ format character 'y' (0x79) at index 30
-    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L781 Unsupported odoo._ format character 'y' (0x79) at index 30
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L773 Unsupported odoo._ format character 'y' (0x79) at index 30
+    - https://github.com/OCA/pylint-odoo/blob/v9.3.22/testing/resources/test_repo/broken_module/models/broken_model.py#L788 Unsupported odoo._ format character 'y' (0x79) at index 30
 
  * use-vim-comment
 
