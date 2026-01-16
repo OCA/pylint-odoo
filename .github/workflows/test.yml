@@ -22,7 +22,7 @@ jobs:
       matrix:
         python: ['3.10', '3.11', '3.12', '3.13', '3.14']
         os: [ubuntu-latest, windows-latest, macos-latest]
-        tox_env: [py]
+        tox_env: [py-multi]
         include:
           - python: '3.14'
             os: ubuntu-latest
