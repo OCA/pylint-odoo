@@ -1,2 +1,2 @@
-pylint-plugin-utils==0.8.*
-pylint==3.3.*
+pylint-plugin-utils==0.9.*
+pylint==4.0.*
