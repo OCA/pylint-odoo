@@ -25,6 +25,7 @@ EXPECTED_ERRORS = {
     "category-allowed-app": 1,
     "consider-merging-classes-inherited": 2,
     "context-overridden": 3,
+    "deprecated-inselect-operator": 5,
     "deprecated-name-get": 1,
     "deprecated-odoo-model-method": 2,
     "development-status-allowed": 1,
@@ -179,6 +180,7 @@ class TestMain:
     def test_25_checks_excluding_by_odoo_version(self):
         """All odoolint errors vs found but excluding based on Odoo version"""
         excluded_msgs = {
+            "deprecated-inselect-operator",
             "deprecated-odoo-model-method",
             "no-raise-unlink",
             "prefer-env-translation",
@@ -208,6 +210,7 @@ class TestMain:
         expected_errors = self.expected_errors.copy()
         expected_errors.update({"manifest-version-format": 6})
         excluded_msgs = {
+            "deprecated-inselect-operator",
             "deprecated-name-get",
             "deprecated-odoo-model-method",
             "no-raise-unlink",
@@ -360,18 +363,19 @@ class TestMain:
         expected_errors = {}
         self.assert_dict_equal(real_errors, expected_errors)
 
-    def test_gettext_env(self):
-        """prefer-env-translation is only valid for odoo v18.0+ but not for older odoo versions"""
-        pylint_res = self.run_pylint(
-            self.paths_modules, ["--valid-odoo-versions=18.0", "--disable=all", "--enable=prefer-env-translation"]
-        )
+    def test_checks_odoo180(self):
+        """prefer-env-translation and deprecated-inselect-operator are only valid
+        for odoo v18.0+ but not for older odoo versions"""
+        extra_params = ["--disable=all", "--enable=prefer-env-translation,deprecated-inselect-operator"]
+        pylint_res = self.run_pylint(self.paths_modules, ["--valid-odoo-versions=18.0"] + extra_params)
         real_errors = pylint_res.linter.stats.by_msg
-        expected_errors = {"prefer-env-translation": self.expected_errors.get("prefer-env-translation")}
+        expected_errors = {
+            "prefer-env-translation": self.expected_errors.get("prefer-env-translation"),
+            "deprecated-inselect-operator": self.expected_errors.get("deprecated-inselect-operator"),
+        }
         assert expected_errors == real_errors
 
-        pylint_res = self.run_pylint(
-            self.paths_modules, ["--valid-odoo-versions=17.0", "--disable=all", "--enable=prefer-env-translation"]
-        )
+        pylint_res = self.run_pylint(self.paths_modules, ["--valid-odoo-versions=17.0"] + extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {}
         assert expected_errors == real_errors

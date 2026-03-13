@@ -236,6 +236,12 @@ ODOO_MSGS = {
         "inheritable-method-lambda",
         CHECK_DESCRIPTION,
     ),
+    "E8149": (
+        "The domain operator %r is deprecated in Odoo 18.0+. Use 'in' SQL or 'not in' SQL instead. "
+        "More info at https://github.com/odoo/odoo/pull/171371",
+        "deprecated-inselect-operator",
+        CHECK_DESCRIPTION,
+    ),
     "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "R8101": (
         "`odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` "
@@ -713,11 +719,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     checks_maxmin_odoo_version = {
         # For v14.0 use custom_logging.py checks e.g. "translation-not-lazy"
-        "translation-contains-variable": {
-            "odoo_maxversion": "13.0",
-        },
+        "translation-contains-variable": {"odoo_maxversion": "13.0"},
         "no-raise-unlink": {"odoo_minversion": "15.0"},
         "prefer-env-translation": {"odoo_minversion": "18.0"},
+        "deprecated-inselect-operator": {"odoo_minversion": "18.0"},
         "deprecated-name-get": {"odoo_minversion": "17.0"},
     }
 
@@ -2061,3 +2066,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 self.add_message("no-wizard-in-models", node=self.class_odoo_models[1])
         self.odoo_computes = set()
         self.class_odoo_models = False
+
+    @utils.only_required_for_messages("deprecated-inselect-operator")
+    def visit_const(self, node: nodes.Const) -> None:
+        if isinstance(node.value, str) and self.linter.is_message_enabled("deprecated-inselect-operator", node.lineno):
+            val_lower = node.value.lower()
+            if val_lower in ("inselect", "not inselect"):
+                self.add_message("deprecated-inselect-operator", node=node, args=(node.value,))
