@@ -27,6 +27,7 @@ category-allowed | Category "%s" not allowed in manifest file. | C8114
 category-allowed-app | Category "%s" not allowed in manifest file for modules with price. | C8117
 consider-merging-classes-inherited | Consider merging classes inherited to "%s" from %s. | R8180
 context-overridden | Context overridden using dict. Better using kwargs `with_context(**%s)` or `with_context(key=value)` | W8121
+deprecated-inselect-operator | The domain operator %r is deprecated in Odoo 18.0+. Use 'in' SQL or 'not in' SQL instead. More info at https://github.com/odoo/odoo/pull/171371 | E8149
 deprecated-name-get | 'name_get' is deprecated. Use '_compute_display_name' instead. More info at https://github.com/odoo/odoo/pull/122085. | E8146
 deprecated-odoo-model-method | %s has been deprecated by Odoo. Please look for alternatives. | W8160
 development-status-allowed | Manifest key development_status "%s" not allowed. Use one of: %s. | C8111
@@ -191,6 +192,12 @@ Checks valid only for odoo <= 13.0
     - https://github.com/OCA/pylint-odoo/blob/v10.0.1/testing/resources/test_repo/broken_module/models/broken_model.py#L316 Context overridden using dict. Better using kwargs `with_context(**ctx)` or `with_context(key=value)`
     - https://github.com/OCA/pylint-odoo/blob/v10.0.1/testing/resources/test_repo/broken_module/models/broken_model.py#L318 Context overridden using dict. Better using kwargs `with_context(**ctx2)` or `with_context(key=value)`
 
+ * deprecated-inselect-operator
+
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.1/testing/resources/test_repo/broken_module/models/broken_model.py#L1151 The domain operator 'inselect' is deprecated in Odoo 18.0+. Use 'in' SQL or 'not in' SQL instead. More info at https://github.com/odoo/odoo/pull/171371
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.1/testing/resources/test_repo/broken_module/models/broken_model.py#L1152 The domain operator 'not inselect' is deprecated in Odoo 18.0+. Use 'in' SQL or 'not in' SQL instead. More info at https://github.com/odoo/odoo/pull/171371
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.1/testing/resources/test_repo/broken_module/models/broken_model.py#L1153 The domain operator 'INSELECT' is deprecated in Odoo 18.0+. Use 'in' SQL or 'not in' SQL instead. More info at https://github.com/odoo/odoo/pull/171371
+
  * deprecated-name-get
 
     - https://github.com/OCA/pylint-odoo/blob/v10.0.1/testing/resources/test_repo/twelve_module/models.py#L7 'name_get' is deprecated. Use '_compute_display_name' instead. More info at https://github.com/odoo/odoo/pull/122085.
@@ -341,7 +348,7 @@ Checks valid only for odoo <= 13.0
 
  * no-wizard-in-models
 
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.1/testing/resources/test_repo/broken_module/models/broken_model.py#L1149 No wizard class for model directory. See the complete structure https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#complete-structure
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.1/testing/resources/test_repo/broken_module/models/broken_model.py#L1167 No wizard class for model directory. See the complete structure https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#complete-structure
 
  * no-write-in-compute
 

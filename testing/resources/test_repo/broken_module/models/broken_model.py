@@ -1144,6 +1144,24 @@ class TestModel(models.Model):
         FTP('localhost', timeout=10)
         ftp_r('localhost', timeout=10)
 
+    def test_domain_operators(self):
+        """Test that inselect and not inselect trigger the linter error"""
+
+        # Invalid
+        bad_domain_1 = [('id', 'inselect', (1, 2))]
+        bad_domain_2 = [('id', 'not inselect', (1, 2))]
+        bad_domain_3 = [('id', 'INSELECT', (1, 2))]  # Para probar tu val_lower
+
+        operator_new = 'inselect'
+        operator_neg = 'not inselect'
+
+        # Valid
+        good_domain_1 = [('id', 'in', (1, 2))]
+        good_domain_2 = [('id', 'not in', (1, 2))]
+        random_string = 'this is fine'
+
+        return bad_domain_1, bad_domain_2, bad_domain_3, operator_new
+
 
 class TestModel3(
     odoo.models.TransientModel):
