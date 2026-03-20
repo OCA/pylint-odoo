@@ -47,6 +47,7 @@ manifest-maintainers-list | The maintainers key in the manifest file must be a l
 manifest-required-author | One of the following authors must be present in manifest: %s | C8101
 manifest-required-key | Missing required key "%s" in manifest file | C8102
 manifest-required-key-app | Missing required key "%s" in manifest file for modules with price. | C8119
+manifest-summary-multiline | Summary in manifest file should be a one-line short description, found newline character | C8120
 manifest-superfluous-key | Manifest superfluous key "%s". It is the same as the default value: %s. Better remove it | C8116
 manifest-version-format | Wrong Version Format "%s" in manifest file. Regex to match: "%s" | C8106
 method-compute | Name of compute method should start with "_compute_" | C8108
@@ -242,7 +243,7 @@ Checks valid only for odoo <= 13.0
 
  * invalid-email
 
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module2/__openerp__.py#L13 Invalid email "invalidmail.com"
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module2/__openerp__.py#L15 Invalid email "invalidmail.com"
 
  * license-allowed
 
@@ -260,11 +261,11 @@ Checks valid only for odoo <= 13.0
 
  * manifest-data-duplicated
 
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L19 The file "duplicated.xml" is duplicated in lines 20 from manifest key "data"
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L20 The file "duplicated.xml" is duplicated in lines 21 from manifest key "data"
 
  * manifest-deprecated-key
 
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L8 Deprecated key "description" in manifest file
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L9 Deprecated key "description" in manifest file
 
  * manifest-external-assets
 
@@ -290,16 +291,21 @@ Checks valid only for odoo <= 13.0
     - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/app_module/__manifest__.py#L1 Missing required key "images" in manifest file for modules with price.
     - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing required key "currency" in manifest file for modules with price.
 
+ * manifest-summary-multiline
+
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L8 Summary in manifest file should be a one-line short description, found newline character
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module2/__openerp__.py#L8 Summary in manifest file should be a one-line short description, found newline character
+
  * manifest-superfluous-key
 
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L26 Manifest superfluous key "installable". It is the same as the default value: True. Better remove it
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L28 Manifest superfluous key "active". It is the same as the default value: True. Better remove it
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L29 Manifest superfluous key "auto_install". It is the same as the default value: False. Better remove it
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L27 Manifest superfluous key "installable". It is the same as the default value: True. Better remove it
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L29 Manifest superfluous key "active". It is the same as the default value: True. Better remove it
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L30 Manifest superfluous key "auto_install". It is the same as the default value: False. Better remove it
 
  * manifest-version-format
 
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L9 Wrong Version Format "8_0.1.0.0" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0|17\.0|18\.0|19\.0)\.\d+\.\d+\.\d+$"
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module2/__openerp__.py#L8 Wrong Version Format "1.0" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0|17\.0|18\.0|19\.0)\.\d+\.\d+\.\d+$"
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L10 Wrong Version Format "8_0.1.0.0" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0|17\.0|18\.0|19\.0)\.\d+\.\d+\.\d+$"
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module2/__openerp__.py#L10 Wrong Version Format "1.0" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0|17\.0|18\.0|19\.0)\.\d+\.\d+\.\d+$"
     - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module3/__openerp__.py#L8 Wrong Version Format "8.0.1.0.0foo" in manifest file. Regex to match: "(4\.2|5\.0|6\.0|6\.1|7\.0|8\.0|9\.0|10\.0|11\.0|12\.0|13\.0|14\.0|15\.0|16\.0|17\.0|18\.0|19\.0)\.\d+\.\d+\.\d+$"
 
  * method-compute
@@ -385,9 +391,9 @@ Checks valid only for odoo <= 13.0
 
  * resource-not-exist
 
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L15 File "data": "file_no_exist.xml" not found.
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L19 File "data": "duplicated.xml" not found.
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L24 File "demo": "file_no_exist.xml" not found.
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L16 File "data": "file_no_exist.xml" not found.
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L20 File "data": "duplicated.xml" not found.
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/__openerp__.py#L25 File "demo": "file_no_exist.xml" not found.
 
  * sql-injection
 

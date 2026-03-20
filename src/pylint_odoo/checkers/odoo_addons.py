@@ -180,6 +180,11 @@ ODOO_MSGS = {
         "manifest-required-key-app",
         CHECK_DESCRIPTION,
     ),
+    "C8120": (
+        "Summary in manifest file should be a one-line short description, found newline character",
+        "manifest-summary-multiline",
+        CHECK_DESCRIPTION,
+    ),
     "E8101": (
         "The author key in the manifest file must be a string (with comma separated values)",
         "manifest-author-string",
@@ -1348,6 +1353,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "manifest-required-author",
         "manifest-required-key-app",
         "manifest-required-key",
+        "manifest-summary-multiline",
         "manifest-superfluous-key",
         "manifest-version-format",
         "missing-odoo-file-app",
@@ -1518,6 +1524,11 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             not isinstance(maintainers, list) or any(not isinstance(item, str) for item in maintainers)
         ):
             self.add_message("manifest-maintainers-list", node=manifest_keys_nodes.get("maintainers") or node)
+
+        # Check summary is a single line
+        summary = manifest_dict.get("summary")
+        if isinstance(summary, str) and "\n" in summary:
+            self.add_message("manifest-summary-multiline", node=manifest_keys_nodes.get("summary") or node)
 
         # Check there are no external assets
         if self.linter.is_message_enabled("manifest-external-assets"):

@@ -45,6 +45,7 @@ EXPECTED_ERRORS = {
     "manifest-required-author": 1,
     "manifest-required-key-app": 5,
     "manifest-required-key": 1,
+    "manifest-summary-multiline": 2,
     "manifest-superfluous-key": 7,
     "manifest-version-format": 3,
     "method-compute": 2,
