@@ -5,6 +5,7 @@
     'author': 'Vauxoo, Many People',  # Missing oca author
     'category': 'No valid for odoo.com/apps',  # raised category-allowed
     'development_status': 'Alpha',
+    'summary': 'Short description\nwith a second line',
     'description': 'Should be a README.rst file',
     'version': '8_0.1.0.0',
     'website': 'https://odoo-community.org',
