@@ -5,6 +5,8 @@
     'author': 'Other,Odoo Community Association (OCA)',  # Missing oca author
     'development_status': 'InvalidDevStatus',
     'website': 'https://odoo-community.org,https://odoo.com',
+    'summary': """
+    Instance creator for odoo modules""",
     'version': '1.0',
     'depends': ['base'],
     'data': [],
