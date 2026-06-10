@@ -72,6 +72,7 @@ EXPECTED_ERRORS = {
     "translation-format-interpolation": 22,
     "translation-format-truncated": 2,
     "translation-fstring-interpolation": 3,
+    "translation-injection": 12,
     "translation-not-lazy": 42,
     "translation-positional-used": 30,
     "translation-required": 16,

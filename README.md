@@ -76,6 +76,7 @@ translation-field | Translation method _("string") in fields is not necessary. |
 translation-format-interpolation | Use %s formatting in odoo._ functions | W8302
 translation-format-truncated | Logging format string ends in middle of conversion specifier | E8301
 translation-fstring-interpolation | Use %s formatting in odoo._ functions | W8303
+translation-injection | Do not use str.format on translation methods. Use placeholders instead. Reference: https://lucumr.pocoo.org/2016/12/29/careful-with-str-format/ | E8151
 translation-not-lazy | Use %s formatting in odoo._ functions | W8301
 translation-positional-used | Translation method _(%s) is using positional string printf formatting with multiple arguments. Use named placeholder `_("%%(placeholder)s")` instead. | W8120
 translation-required | String parameter on "%s" requires translation. Use %s%s(%s) | C8107
@@ -435,6 +436,12 @@ Checks valid only for odoo <= 13.0
     - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/models/broken_model.py#L268 Use lazy % or .format() or % formatting in odoo._ functions
     - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/models/broken_model.py#L772 Use lazy % or .format() or % formatting in odoo._ functions
     - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/models/broken_model.py#L787 Use lazy % or .format() or % formatting in odoo._ functions
+
+ * translation-injection
+
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/models/broken_model.py#L506 Do not use str.format on translation methods. Use placeholders instead. Reference: https://lucumr.pocoo.org/2016/12/29/careful-with-str-format/
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/models/broken_model.py#L507 Do not use str.format on translation methods. Use placeholders instead. Reference: https://lucumr.pocoo.org/2016/12/29/careful-with-str-format/
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.2/testing/resources/test_repo/broken_module/models/broken_model.py#L570 Do not use str.format on translation methods. Use placeholders instead. Reference: https://lucumr.pocoo.org/2016/12/29/careful-with-str-format/
 
  * translation-not-lazy
 
