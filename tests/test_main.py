@@ -45,6 +45,7 @@ EXPECTED_ERRORS = {
     "manifest-required-author": 1,
     "manifest-required-key-app": 5,
     "manifest-required-key": 1,
+    "manifest-summary-multiline": 2,
     "manifest-superfluous-key": 7,
     "manifest-version-format": 3,
     "method-compute": 2,
@@ -193,6 +194,7 @@ class TestMain:
             "translation-too-many-args",
             "translation-unsupported-format",
             "deprecated-name-get",
+            "manifest-summary-multiline",
         }
         self.default_extra_params += ["--valid-odoo-versions=13.0"]
         pylint_res = self.run_pylint(self.paths_modules)
@@ -217,6 +219,7 @@ class TestMain:
             "no-raise-unlink",
             "prefer-env-translation",
             "translation-contains-variable",
+            "manifest-summary-multiline",
         }
         for excluded_msg in excluded_msgs:
             expected_errors.pop(excluded_msg)
@@ -303,6 +306,30 @@ class TestMain:
             "manifest-required-author": (EXPECTED_ERRORS["manifest-required-author"]),
         }
         self.assert_dict_equal(real_errors, expected_errors_deprecated)
+
+    def test_manifest_summary_multiline_version_limit(self):
+        """Test manifest-summary-multiline check version limits:
+        19.0- (no errors) vs 20.0+ (errors found)
+        """
+        # Run with v19.0: should not emit manifest-summary-multiline
+        extra_params = [
+            "--valid-odoo-versions=19.0",
+            "--disable=all",
+            "--enable=manifest-summary-multiline",
+        ]
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats.by_msg
+        assert "manifest-summary-multiline" not in real_errors
+
+        # Run with v20.0: should emit manifest-summary-multiline
+        extra_params = [
+            "--valid-odoo-versions=20.0",
+            "--disable=all",
+            "--enable=manifest-summary-multiline",
+        ]
+        pylint_res = self.run_pylint(self.paths_modules, extra_params)
+        real_errors = pylint_res.linter.stats.by_msg
+        assert real_errors.get("manifest-summary-multiline") == 2
 
     def test_140_check_suppress_migrations(self):
         """Test migrations path supress checks"""
