@@ -242,6 +242,12 @@ ODOO_MSGS = {
         "deprecated-inselect-operator",
         CHECK_DESCRIPTION,
     ),
+    "E8151": (
+        "Do not use str.format on translation methods. Use placeholders instead. "
+        "Reference: https://lucumr.pocoo.org/2016/12/29/careful-with-str-format/",
+        "translation-injection",
+        CHECK_DESCRIPTION,
+    ),
     "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "R8101": (
         "`odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` "
@@ -1034,6 +1040,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "super-method-mismatch",
         "translation-contains-variable",
         "translation-field",
+        "translation-injection",
         "translation-positional-used",
         "translation-required",
     )
@@ -1214,6 +1221,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             wrong = ""
             right = ""
             arg = node.args[0]
+            arg_func_infer_qname = None
+
+            # translation methods with .format usage
+            if isinstance(arg, nodes.Call) and (func_safe_infer := utils.safe_infer(arg.func)):
+                arg_func_infer_qname = func_safe_infer.qname()
+
+            if arg_func_infer_qname == "builtins.str.format":
+                self.add_message("translation-injection", node=node)
+
             # case: _('...' % (variables))
             if isinstance(arg, nodes.BinOp) and arg.op == "%":
                 wrong = "%s %% %s" % (arg.left.as_string(), arg.right.as_string())
@@ -1223,7 +1239,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 isinstance(arg, nodes.Call)
                 and isinstance(arg.func, nodes.Attribute)
                 and isinstance(arg.func.expr, nodes.Const)
-                and arg.func.attrname == "format"
+                and arg_func_infer_qname == "builtins.str.format"
             ):
                 wrong = arg.as_string()
                 params_as_string = ", ".join([x.as_string() for x in itertools.chain(arg.args, arg.keywords or [])])
