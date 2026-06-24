@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        python: ['3.10', '3.11', '3.12', '3.13', '3.14', '3.15-dev']
         os: [ubuntu-latest, windows-latest, macos-latest]
         tox_env: [py-multi]
         include:
@@ -46,14 +46,14 @@ jobs:
         git config --global core.autocrlf false
     - name: Cache pre-commit packages
       id: cache-pre-commit
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ${{ env.PRE_COMMIT_CACHE }}
         key: ${{ runner.os }}-${{ runner.arch }}-py${{ matrix.python }}-pre-commit
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python }}
         architecture: 'x64'
@@ -74,7 +74,7 @@ jobs:
     #TODO: Add GITHUB_RUN_ID.GITHUB_RUN_ATTEMPT.GITHUB_RUN_NUMBER to bumpversion to avoid duplicating upload versions or even the git sha
     - name: codecov
       if: startsWith(matrix.tox_env, 'py')  # only coveralls in python tests
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v7
       with:
         fail_ci_if_error: true
         verbose: true

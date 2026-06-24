@@ -21,7 +21,7 @@ default_language_version:
   node: "22.9.0"
 repos:
   - repo: https://github.com/myint/autoflake
-    rev: v2.3.1
+    rev: v2.3.3
     hooks:
       - id: autoflake
         args:
@@ -32,7 +32,7 @@ repos:
           - --remove-duplicate-keys
           - --remove-unused-variables
   - repo: https://github.com/psf/black
-    rev: 25.12.0
+    rev: 26.5.1
     hooks:
       - id: black
   - repo: local
@@ -42,9 +42,9 @@ repos:
         entry: prettier
         language: node
         additional_dependencies:
-          - "prettier@3.3.3"
-          - "@prettier/plugin-xml@3.4.1"
-          - "prettier-plugin-toml@2.0.1"
+          - "prettier@3.8.4"
+          - "@prettier/plugin-xml@3.4.2"
+          - "prettier-plugin-toml@2.0.6"
         args:
           - --config=.prettierrc.cjs
           - --write
@@ -75,7 +75,7 @@ repos:
       - id: pyupgrade
         args: ["--keep-percent-format"]
   - repo: https://github.com/PyCQA/isort
-    rev: 7.0.0
+    rev: 8.0.0
     hooks:
       - id: isort
         name: isort except __init__.py
@@ -89,6 +89,6 @@ repos:
         name: flake8
         additional_dependencies: ["flake8-bugbear==25.11.29"]
   - repo: https://github.com/PyCQA/pylint
-    rev: v4.0.4
+    rev: v4.0.6
     hooks:
       - id: pylint

@@ -95,7 +95,10 @@ class TestMain:
             "--persistent=no",
         ]
         self.root_path_modules = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "testing", "resources", "test_repo"
+            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+            "testing",
+            "resources",
+            "test_repo",
         )
         # Similar to pre-commit way
         self.paths_modules = glob(os.path.join(self.root_path_modules, "**", "*.py"), recursive=True)
@@ -394,7 +397,10 @@ class TestMain:
     def test_checks_odoo180(self):
         """prefer-env-translation and deprecated-inselect-operator are only valid
         for odoo v18.0+ but not for older odoo versions"""
-        extra_params = ["--disable=all", "--enable=prefer-env-translation,deprecated-inselect-operator"]
+        extra_params = [
+            "--disable=all",
+            "--enable=prefer-env-translation,deprecated-inselect-operator",
+        ]
         pylint_res = self.run_pylint(self.paths_modules, ["--valid-odoo-versions=18.0"] + extra_params)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
@@ -474,7 +480,11 @@ def fstring_no_sqli(self):
 
     # Test category-allowed with and without error
     def test_170_category_allowed(self):
-        extra_params = ["--disable=all", "--enable=category-allowed-app", "--category-allowed-app=Category 00"]
+        extra_params = [
+            "--disable=all",
+            "--enable=category-allowed-app",
+            "--category-allowed-app=Category 00",
+        ]
         pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
@@ -485,12 +495,20 @@ def fstring_no_sqli(self):
         expected_errors = {
             "category-allowed-app": 1,
         }
-        extra_params = ["--disable=all", "--enable=category-allowed-app", "--category-allowed-app=Category 01"]
+        extra_params = [
+            "--disable=all",
+            "--enable=category-allowed-app",
+            "--category-allowed-app=Category 01",
+        ]
         pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
         self.assert_dict_equal(real_errors, expected_errors)
 
-        extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed=Category 00"]
+        extra_params = [
+            "--disable=all",
+            "--enable=category-allowed",
+            "--category-allowed=Category 00",
+        ]
         pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {
@@ -499,7 +517,11 @@ def fstring_no_sqli(self):
         self.assert_dict_equal(real_errors, expected_errors)
 
         expected_errors = {}
-        extra_params = ["--disable=all", "--enable=category-allowed", "--category-allowed-app=Category 01"]
+        extra_params = [
+            "--disable=all",
+            "--enable=category-allowed",
+            "--category-allowed-app=Category 01",
+        ]
         pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
         self.assert_dict_equal(real_errors, expected_errors)
@@ -508,7 +530,14 @@ def fstring_no_sqli(self):
         pylint_res = self.run_pylint(
             self.paths_modules,
             rcfile=os.path.abspath(
-                os.path.join(__file__, "..", "..", "testing", "resources", ".pylintrc-odoo-deprecated-model-methods")
+                os.path.join(
+                    __file__,
+                    "..",
+                    "..",
+                    "testing",
+                    "resources",
+                    ".pylintrc-odoo-deprecated-model-methods",
+                )
             ),
         )
 
@@ -528,6 +557,10 @@ def fstring_no_sqli(self):
         }
         self.assert_dict_equal(real_errors, expected_errors)
 
+    @pytest.mark.skipif(
+        sys.version_info >= (3, 15),
+        reason="pylint parallel mode currently crashes on Python 3.15+ due to upstream dill incompatibility",
+    )
     def test_180_jobs(self):
         """Using jobs could raise new errors"""
         self.default_extra_params += ["--jobs=2"]
@@ -557,7 +590,8 @@ def fstring_no_sqli(self):
         assert any("Invalid manifest versions format ['8.0saas']" in str(w.message) for w in warn.list)
 
     @pytest.mark.skipif(
-        sys.platform.startswith("win"), reason="Windows works a little different with executable files"
+        sys.platform.startswith("win"),
+        reason="Windows works a little different with executable files",
     )
     def test_invalid_name_executable(self):
         """Test valid case for file name of executable-file instead of executable_file.py"""
@@ -571,7 +605,9 @@ def fstring_no_sqli(self):
             pylint_res = self.run_pylint([tmp_f.name], extra_params)
             real_errors = pylint_res.linter.stats.by_msg
             self.assert_dict_equal(
-                real_errors, {"invalid-name": 1}, "The file extension is .py should raise the check"
+                real_errors,
+                {"invalid-name": 1},
+                "The file extension is .py should raise the check",
             )
 
         with NamedTemporaryFile(mode="w", prefix="executable-") as tmp_f:
@@ -586,7 +622,10 @@ def fstring_no_sqli(self):
             )
 
         with NamedTemporaryFile(mode="w", prefix="executable-") as tmp_f:
-            os.chmod(tmp_f.name, os.stat(tmp_f.name).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+            os.chmod(
+                tmp_f.name,
+                os.stat(tmp_f.name).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH,
+            )
             tmp_f.write("#!/usr/bin/env python3")
             tmp_f.flush()
             pylint_res = self.run_pylint([tmp_f.name], extra_params)
@@ -618,7 +657,10 @@ def fstring_no_sqli(self):
             all_check_errors_merged[checks_found[0]].append(line)
         return all_check_errors_merged
 
-    @pytest.mark.skipif(not os.environ.get("BUILD_README"), reason="BUILD_README environment variable not enabled")
+    @pytest.mark.skipif(
+        not os.environ.get("BUILD_README"),
+        reason="BUILD_README environment variable not enabled",
+    )
     def test_build_docstring(self):
         messages_content = plugin.messages2md()
         readme_path = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "README.md")
@@ -626,7 +668,10 @@ def fstring_no_sqli(self):
             readme_content = f_readme.read()
 
         new_readme = self.re_replace(
-            "[//]: # (start-checks)", "[//]: # (end-checks)", messages_content, readme_content
+            "[//]: # (start-checks)",
+            "[//]: # (end-checks)",
+            messages_content,
+            readme_content,
         )
 
         pylint_res = self.run_pylint(self.paths_modules, verbose=True)
@@ -639,7 +684,10 @@ def fstring_no_sqli(self):
                 check_example_content += f"\n    - https://github.com/OCA/pylint-odoo/blob/v{version}/{msg}"
         check_example_content = f"# Examples\n{check_example_content}"
         new_readme = self.re_replace(
-            "[//]: # (start-example)", "[//]: # (end-example)", check_example_content, new_readme
+            "[//]: # (start-example)",
+            "[//]: # (end-example)",
+            check_example_content,
+            new_readme,
         )
 
         with open(readme_path, "w", encoding="UTF-8") as f_readme:
