@@ -445,9 +445,9 @@ Checks valid only for odoo <= 13.0
 
  * translation-injection
 
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.4/testing/resources/test_repo/broken_module/models/broken_model.py#L506 Do not use str.format on translation methods. Use placeholders instead. Reference: https://lucumr.pocoo.org/2016/12/29/careful-with-str-format/
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.4/testing/resources/test_repo/broken_module/models/broken_model.py#L507 Do not use str.format on translation methods. Use placeholders instead. Reference: https://lucumr.pocoo.org/2016/12/29/careful-with-str-format/
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.4/testing/resources/test_repo/broken_module/models/broken_model.py#L570 Do not use str.format on translation methods. Use placeholders instead. Reference: https://lucumr.pocoo.org/2016/12/29/careful-with-str-format/
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.4/testing/resources/test_repo/broken_module/models/broken_model.py#L473 Do not use str.format on translation methods. Use placeholders instead. Reference: https://lucumr.pocoo.org/2016/12/29/careful-with-str-format/
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.4/testing/resources/test_repo/broken_module/models/broken_model.py#L481 Do not use str.format on translation methods. Use placeholders instead. Reference: https://lucumr.pocoo.org/2016/12/29/careful-with-str-format/
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.4/testing/resources/test_repo/broken_module/models/broken_model.py#L514 Do not use str.format on translation methods. Use placeholders instead. Reference: https://lucumr.pocoo.org/2016/12/29/careful-with-str-format/
 
  * translation-not-lazy
 
