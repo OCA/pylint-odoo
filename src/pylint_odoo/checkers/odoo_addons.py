@@ -236,6 +236,12 @@ ODOO_MSGS = {
         "inheritable-method-lambda",
         CHECK_DESCRIPTION,
     ),
+    "E8151": (
+        "Do not use str.format on translation methods. Use placeholders instead. "
+        "Reference: https://lucumr.pocoo.org/2016/12/29/careful-with-str-format/",
+        "translation-injection",
+        CHECK_DESCRIPTION,
+    ),
     "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "R8101": (
         "`odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` "
@@ -1029,6 +1035,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "super-method-mismatch",
         "translation-contains-variable",
         "translation-field",
+        "translation-injection",
         "translation-positional-used",
         "translation-required",
     )
@@ -1198,6 +1205,17 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     self.add_message(
                         "translation-required", node=node, args=("message_post", keyword, tl_method, as_string)
                     )
+
+        if (
+            isinstance(node.func, nodes.Attribute)
+            and self.get_func_name(node.func) == "format"
+            and isinstance(node.func.expr, nodes.Call)
+            and self.get_func_name(node.func.expr.func) in misc.TRANSLATION_METHODS
+        ):
+            # _(...).format(...)
+            # i.e. .format() is called on the result of the translation
+            # not to be confused with _(''.format(...)) is called before to translate
+            self.add_message("translation-injection", node=node)
 
         # Call _(...) with variables into the term to be translated
         if self.get_func_name(node.func) in misc.TRANSLATION_METHODS and node.args:

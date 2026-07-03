@@ -3,11 +3,13 @@ on:
   push:
     branches:
       - main
+      - 9.3
     tags:
       - 'v*'
   pull_request:
     branches:
       - main
+      - 9.3
 
 env:
   CACHE_VERSION: 1
