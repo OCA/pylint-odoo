@@ -1217,16 +1217,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         "translation-required", node=node, args=("message_post", keyword, tl_method, as_string)
                     )
 
-        if (
-            self.get_func_name(node.func) == "format"
-            and isinstance(node.func.expr, nodes.Call)
-            and self.get_func_name(node.func.expr.func) in misc.TRANSLATION_METHODS
-        ):
-            # _(...).format(...)
-            # i.e. .format() is called on the result of the translation
-            # not to be confused with _(''.format(...)) is called before to translate
-            self.add_message("translation-injection", node=node)
-
         # Call _(...) with variables into the term to be translated
         if self.get_func_name(node.func) in misc.TRANSLATION_METHODS and node.args:
             # "_" -> isinstance(node.func, nodes.Name)
@@ -1237,6 +1227,14 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             wrong = ""
             right = ""
             arg = node.args[0]
+            arg_func_infer_qname = None
+
+            # translation methods with .format usage
+            if isinstance(arg, nodes.Call) and (func_safe_infer := utils.safe_infer(arg.func)):
+                arg_func_infer_qname = func_safe_infer.qname()
+
+            if arg_func_infer_qname == "builtins.str.format":
+                self.add_message("translation-injection", node=node)
 
             # case: _('...' % (variables))
             if isinstance(arg, nodes.BinOp) and arg.op == "%":
@@ -1247,7 +1245,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 isinstance(arg, nodes.Call)
                 and isinstance(arg.func, nodes.Attribute)
                 and isinstance(arg.func.expr, nodes.Const)
-                and self.get_func_name(arg.func) == "format"
+                and arg_func_infer_qname == "builtins.str.format"
             ):
                 wrong = arg.as_string()
                 params_as_string = ", ".join([x.as_string() for x in itertools.chain(arg.args, arg.keywords or [])])
