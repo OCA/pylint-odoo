@@ -1218,8 +1218,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     )
 
         if (
-            isinstance(node.func, nodes.Attribute)
-            and self.get_func_name(node.func) == "format"
+            self.get_func_name(node.func) == "format"
             and isinstance(node.func.expr, nodes.Call)
             and self.get_func_name(node.func.expr.func) in misc.TRANSLATION_METHODS
         ):
