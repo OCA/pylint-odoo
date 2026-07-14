@@ -600,14 +600,16 @@ def fstring_no_sqli(self):
             "--enable=invalid-name",
         ]
         with NamedTemporaryFile(mode="w", prefix="executable-", suffix=".py") as tmp_f:
+            os.chmod(tmp_f.name, os.stat(tmp_f.name).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
             tmp_f.write("#!/usr/bin/env python3")
             tmp_f.flush()
             pylint_res = self.run_pylint([tmp_f.name], extra_params)
             real_errors = pylint_res.linter.stats.by_msg
             self.assert_dict_equal(
                 real_errors,
-                {"invalid-name": 1},
-                "The file extension is .py should raise the check",
+                {},
+                "The file is a valid executable with executable permissions, "
+                "name with -, with py extension and with shebang. It should not raise the check",
             )
 
         with NamedTemporaryFile(mode="w", prefix="executable-") as tmp_f:
@@ -634,7 +636,7 @@ def fstring_no_sqli(self):
                 real_errors,
                 {},
                 "The file is a valid executable with executable permissions, "
-                "name with -, without py extension and with shebang. It should not be raise the check",
+                "name with -, without py extension and with shebang. It should not raise the check",
             )
 
     @staticmethod

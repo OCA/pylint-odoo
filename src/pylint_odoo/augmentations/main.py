@@ -49,11 +49,11 @@ def is_migration_path(node):
 
 
 def is_executable(node):
-    """Name of executable files could be executable-file
+    """Name of executable files could be executable-file or executable-file.py
     instead of executable_file.py
     So, excluding this check if it is the case
     """
-    if isinstance(node, nodes.Module) and os.path.splitext(node.file)[1] != ".py" and os.access(node.file, os.X_OK):
+    if isinstance(node, nodes.Module) and os.access(node.file, os.X_OK):
         with open(node.file, encoding="UTF-8") as file_obj:
             shebang = file_obj.readline().startswith("#!")
         return shebang
