@@ -75,6 +75,7 @@ EXPECTED_ERRORS = {
     "translation-format-truncated": 2,
     "translation-fstring-interpolation": 3,
     "translation-injection": 21,
+    "translation-markup-unsafe-xss": 4,
     "translation-not-lazy": 42,
     "translation-positional-used": 30,
     "translation-required": 16,

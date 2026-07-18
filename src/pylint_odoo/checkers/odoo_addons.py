@@ -358,6 +358,12 @@ ODOO_MSGS = {
         "deprecated-self-cr",
         CHECK_DESCRIPTION,
     ),
+    "W8166": (
+        "Do not use unsafe XSS translated str into Markup. "
+        'Better using `Markup("%(lt_value)s") % {"lt_value": _("Translated value")}` so markupsafe can escape dynamic values.',
+        "translation-markup-unsafe-xss",
+        CHECK_DESCRIPTION,
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
@@ -1053,10 +1059,20 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "translation-contains-variable",
         "translation-field",
         "translation-injection",
+        "translation-markup-unsafe-xss",
         "translation-positional-used",
         "translation-required",
     )
     def visit_call(self, node):
+        if (
+            self.linter.is_message_enabled("translation-markup-unsafe-xss", node.lineno)
+            and self.get_func_name(node.func) == "Markup"
+            and node.args
+            and isinstance(node.args[0], nodes.Call)
+            and self.get_func_name(node.args[0].func) in misc.TRANSLATION_METHODS
+        ):
+            self.add_message("translation-markup-unsafe-xss", node=node)
+
         if (
             self.linter.is_message_enabled("print-used", node.lineno)
             and isinstance(node.func, nodes.Name)
