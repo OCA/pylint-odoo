@@ -85,6 +85,89 @@ EXPECTED_ERRORS = {
     "website-manifest-key-not-valid-uri": 2,
 }
 
+LOGGING_TRANSLATION_CHECKS = [
+    "translation-format-interpolation",
+    "translation-format-truncated",
+    "translation-fstring-interpolation",
+    "translation-not-lazy",
+    "translation-too-few-args",
+    "translation-too-many-args",
+    "translation-unsupported-format",
+]
+
+CHECKS_BY_ODOO_VERSION = [
+    # (odoo_version, checks2exclude)
+    (
+        "13.0",
+        [
+            "deprecated-inselect-operator",
+            "deprecated-name-get",
+            "deprecated-odoo-model-method",
+            "deprecated-self-cr",
+            "manifest-summary-multiline",
+            "no-raise-unlink",
+            "prefer-env-translation",
+            *LOGGING_TRANSLATION_CHECKS,
+        ],
+    ),
+    (
+        "14.0",
+        [
+            "deprecated-inselect-operator",
+            "deprecated-name-get",
+            "deprecated-odoo-model-method",
+            "deprecated-self-cr",
+            "manifest-summary-multiline",
+            "no-raise-unlink",
+            "prefer-env-translation",
+            "translation-contains-variable",
+        ],
+    ),
+    (
+        "15.0",
+        [
+            "deprecated-inselect-operator",
+            "deprecated-name-get",
+            "deprecated-odoo-model-method",
+            "deprecated-self-cr",
+            "manifest-summary-multiline",
+            "prefer-env-translation",
+            "translation-contains-variable",
+        ],
+    ),
+    (
+        "17.0",
+        [
+            "deprecated-inselect-operator",
+            "deprecated-self-cr",
+            "manifest-summary-multiline",
+            "prefer-env-translation",
+            "translation-contains-variable",
+        ],
+    ),
+    (
+        "18.0",
+        [
+            "deprecated-self-cr",
+            "manifest-summary-multiline",
+            "translation-contains-variable",
+        ],
+    ),
+    (
+        "19.0",
+        [
+            "manifest-summary-multiline",
+            "translation-contains-variable",
+        ],
+    ),
+    (
+        "20.0",
+        [
+            "translation-contains-variable",
+        ],
+    ),
+]
+
 
 class TestMain:
     def setup_method(self, method):
@@ -183,51 +266,27 @@ class TestMain:
         real_errors = pylint_res.linter.stats.by_msg
         assert self.expected_errors == real_errors
 
-    def test_25_checks_excluding_by_odoo_version(self):
+    @pytest.mark.parametrize(["odoo_version", "checks2exclude"], CHECKS_BY_ODOO_VERSION)
+    def test_25_checks_excluding_by_odoo_version(self, odoo_version, checks2exclude):
         """All odoolint errors vs found but excluding based on Odoo version"""
-        excluded_msgs = {
-            "deprecated-inselect-operator",
-            "deprecated-name-get",
-            "deprecated-odoo-model-method",
-            "deprecated-self-cr",
-            "manifest-summary-multiline",
-            "no-raise-unlink",
-            "prefer-env-translation",
-            "translation-format-interpolation",
-            "translation-format-truncated",
-            "translation-fstring-interpolation",
-            "translation-not-lazy",
-            "translation-too-few-args",
-            "translation-too-many-args",
-            "translation-unsupported-format",
-        }
-        self.default_extra_params += ["--valid-odoo-versions=13.0"]
+        self.default_extra_params += [f"--valid-odoo-versions={odoo_version}"]
         pylint_res = self.run_pylint(self.paths_modules)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = self.expected_errors.copy()
-        for excluded_msg in excluded_msgs:
+        for excluded_msg in checks2exclude:
             expected_errors.pop(excluded_msg)
         expected_errors.update({"manifest-version-format": 6})
         assert expected_errors == real_errors
 
-    def test_35_checks_emiting_by_odoo_version(self):
+    @pytest.mark.parametrize(["odoo_version", "checks2exclude"], CHECKS_BY_ODOO_VERSION)
+    def test_35_checks_emiting_by_odoo_version(self, odoo_version, checks2exclude):
         """All odoolint errors vs found but see if were not excluded for valid odoo version"""
-        self.default_extra_params += ["--valid-odoo-versions=14.0"]
+        self.default_extra_params += [f"--valid-odoo-versions={odoo_version}"]
         pylint_res = self.run_pylint(self.paths_modules)
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = self.expected_errors.copy()
         expected_errors.update({"manifest-version-format": 6})
-        excluded_msgs = {
-            "deprecated-inselect-operator",
-            "deprecated-name-get",
-            "deprecated-odoo-model-method",
-            "deprecated-self-cr",
-            "manifest-summary-multiline",
-            "no-raise-unlink",
-            "prefer-env-translation",
-            "translation-contains-variable",
-        }
-        for excluded_msg in excluded_msgs:
+        for excluded_msg in checks2exclude:
             expected_errors.pop(excluded_msg)
         assert expected_errors == real_errors
 
