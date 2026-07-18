@@ -353,6 +353,11 @@ ODOO_MSGS = {
         "super-method-mismatch",
         CHECK_DESCRIPTION,
     ),
+    "W8165": (
+        'Use "self.env.cr" instead of "self._cr" (deprecated since 19.0)',
+        "deprecated-self-cr",
+        CHECK_DESCRIPTION,
+    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
@@ -736,6 +741,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         "deprecated-inselect-operator": {"odoo_minversion": "18.0"},
         "deprecated-name-get": {"odoo_minversion": "17.0"},
         "manifest-summary-multiline": {"odoo_minversion": "20.0"},
+        "deprecated-self-cr": {"odoo_minversion": "19.0"},
     }
 
     def __init__(self, linter: PyLinter):
@@ -2075,6 +2081,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     @utils.only_required_for_messages(
         "no-wizard-in-models",
         "no-write-in-compute",
+        "deprecated-self-cr",
     )
     def visit_classdef(self, node):
         self.class_odoo_models = self.get_odoo_models_class(node)
@@ -2083,6 +2090,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     @utils.only_required_for_messages(
         "no-wizard-in-models",
         "no-write-in-compute",
+        "deprecated-self-cr",
     )
     def leave_classdef(self, node):
         if self.class_odoo_models:
@@ -2104,3 +2112,16 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             val_lower = node.value.lower()
             if val_lower in ("inselect", "not inselect"):
                 self.add_message("deprecated-inselect-operator", node=node, args=(node.value,))
+
+    @utils.only_required_for_messages(
+        "deprecated-self-cr",
+    )
+    def visit_attribute(self, node: nodes.Attribute) -> None:
+        if (
+            self.linter.is_message_enabled("deprecated-self-cr", node.lineno)
+            and node.attrname == "_cr"
+            and isinstance(node.expr, nodes.Name)
+            and node.expr.name == "self"
+            and self.class_odoo_models
+        ):
+            self.add_message("deprecated-self-cr", node=node)

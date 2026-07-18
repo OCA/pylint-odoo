@@ -28,6 +28,7 @@ EXPECTED_ERRORS = {
     "deprecated-inselect-operator": 5,
     "deprecated-name-get": 1,
     "deprecated-odoo-model-method": 2,
+    "deprecated-self-cr": 27,
     "development-status-allowed": 1,
     "except-pass": 3,
     "external-request-timeout": 51,
@@ -186,7 +187,10 @@ class TestMain:
         """All odoolint errors vs found but excluding based on Odoo version"""
         excluded_msgs = {
             "deprecated-inselect-operator",
+            "deprecated-name-get",
             "deprecated-odoo-model-method",
+            "deprecated-self-cr",
+            "manifest-summary-multiline",
             "no-raise-unlink",
             "prefer-env-translation",
             "translation-format-interpolation",
@@ -196,8 +200,6 @@ class TestMain:
             "translation-too-few-args",
             "translation-too-many-args",
             "translation-unsupported-format",
-            "deprecated-name-get",
-            "manifest-summary-multiline",
         }
         self.default_extra_params += ["--valid-odoo-versions=13.0"]
         pylint_res = self.run_pylint(self.paths_modules)
@@ -219,10 +221,11 @@ class TestMain:
             "deprecated-inselect-operator",
             "deprecated-name-get",
             "deprecated-odoo-model-method",
+            "deprecated-self-cr",
+            "manifest-summary-multiline",
             "no-raise-unlink",
             "prefer-env-translation",
             "translation-contains-variable",
-            "manifest-summary-multiline",
         }
         for excluded_msg in excluded_msgs:
             expected_errors.pop(excluded_msg)

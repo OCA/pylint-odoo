@@ -30,6 +30,7 @@ context-overridden | Context overridden using dict. Better using kwargs `with_co
 deprecated-inselect-operator | The domain operator %r is deprecated in Odoo 18.0+. Use 'in' SQL or 'not in' SQL instead. More info at https://github.com/odoo/odoo/pull/171371 | E8149
 deprecated-name-get | 'name_get' is deprecated. Use '_compute_display_name' instead. More info at https://github.com/odoo/odoo/pull/122085. | E8146
 deprecated-odoo-model-method | %s has been deprecated by Odoo. Please look for alternatives. | W8160
+deprecated-self-cr | Use "self.env.cr" instead of "self._cr" (deprecated since 19.0) | W8165
 development-status-allowed | Manifest key development_status "%s" not allowed. Use one of: %s. | C8111
 except-pass | pass into block except. If you really need to use the pass consider logging that exception | W8138
 external-request-timeout | Use of external request method `%s` without timeout. It could wait for a long time | E8106
@@ -208,6 +209,12 @@ Checks valid only for odoo <= 13.0
 
     - https://github.com/OCA/pylint-odoo/blob/v10.0.7/testing/resources/test_repo/broken_module/models/broken_model.py#L186 fields_view_get has been deprecated by Odoo. Please look for alternatives.
     - https://github.com/OCA/pylint-odoo/blob/v10.0.7/testing/resources/test_repo/eleven_module/models.py#L17 fields_view_get has been deprecated by Odoo. Please look for alternatives.
+
+ * deprecated-self-cr
+
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.7/testing/resources/test_repo/broken_module/models/broken_model.py#L665 Use "self.env.cr" instead of "self._cr" (deprecated since 19.0)
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.7/testing/resources/test_repo/broken_module/models/broken_model.py#L819 Use "self.env.cr" instead of "self._cr" (deprecated since 19.0)
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.7/testing/resources/test_repo/broken_module/models/broken_model.py#L830 Use "self.env.cr" instead of "self._cr" (deprecated since 19.0)
 
  * development-status-allowed
 
