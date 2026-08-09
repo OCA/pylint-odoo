@@ -1973,6 +1973,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         return odoo_module
 
     def check_odoo_relative_import(self, node):
+        if not self.linter.is_message_enabled("odoo-addons-relative-import", node.lineno):
+            return
         node_dirpath = os.path.dirname(node.root().file)
         if os.path.basename(os.path.dirname(node_dirpath)) == "migrations":
             return
@@ -1985,6 +1987,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             self.add_message("odoo-addons-relative-import", node=node, args=(odoo_module_name,))
 
     def check_folder_test_imported(self, node):
+        if not self.linter.is_message_enabled("test-folder-imported", node.lineno):
+            return
         if hasattr(node.parent, "file") and os.path.basename(node.parent.file) == "__init__.py":
             package_names = []
             if isinstance(node, nodes.ImportFrom):
