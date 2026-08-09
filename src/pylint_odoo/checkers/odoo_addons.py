@@ -752,6 +752,11 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     def close(self):
         """Final process get all cached values and add messages"""
+        if self.linter.config.jobs > 1 and not self.linter.config.from_stdin:
+            # In parallel mode (--jobs) close() is called once per file inside each
+            # worker so the aggregated values are incomplete here. The messages are
+            # added by reduce_map_data in the main process instead
+            return
         for (_manifest_path, odoo_class_inherit), inh_nodes in self._odoo_inherit_items.items():
             # Skip _inherit='other.model' _name='model.name' because is valid
             inh_nodes = {
@@ -770,6 +775,53 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 "consider-merging-classes-inherited", node=first_node, args=(odoo_class_inherit, ", ".join(path_nodes))
             )
         self._odoo_inherit_items = defaultdict(set)
+
+    def get_map_data(self):
+        """Serialize the inherit items collected for the current file in a worker
+        to be merged in the main process when running in parallel mode (--jobs)"""
+        data = []
+        for (manifest_path, odoo_class_inherit), inh_nodes in self._odoo_inherit_items.items():
+            for inh_node in inh_nodes:
+                # Skip _inherit='other.model' _name='model.name' because is valid
+                if getattr(inh_node.parent, "odoo_attribute_name", None):
+                    continue
+                data.append(
+                    (
+                        manifest_path,
+                        odoo_class_inherit,
+                        inh_node.root().name,
+                        inh_node.root().file,
+                        inh_node.lineno,
+                        inh_node.col_offset,
+                    )
+                )
+        self._odoo_inherit_items = defaultdict(set)
+        return data or None
+
+    def reduce_map_data(self, linter, data):
+        """Merge the inherit items of all the workers and add the messages
+        skipped by close() in parallel mode (--jobs)"""
+        inherit_items = defaultdict(set)
+        for records in data:
+            for manifest_path, odoo_class_inherit, modname, node_path, lineno, col_offset in records:
+                inherit_items[(manifest_path, odoo_class_inherit)].add((node_path, lineno, col_offset, modname))
+        for (_manifest_path, odoo_class_inherit), records in inherit_items.items():
+            if len(records) <= 1:
+                continue
+            # deterministic order of the output
+            records = sorted(records)
+            first_path, first_lineno, first_col_offset, first_modname = records.pop()
+            path_records = [
+                "%s:%d:%d" % (os.path.relpath(node_path, os.getcwd()), lineno, col_offset)
+                for node_path, lineno, col_offset, _modname in records
+            ]
+            linter.set_current_module(first_modname, first_path)
+            self.add_message(
+                "consider-merging-classes-inherited",
+                line=first_lineno,
+                col_offset=first_col_offset,
+                args=(odoo_class_inherit, ", ".join(path_records)),
+            )
 
     def visit_module(self, node):
         """Initizalize the cache to save the original library name
