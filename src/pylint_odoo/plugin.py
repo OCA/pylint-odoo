@@ -1,9 +1,10 @@
-from . import checkers
+from . import checkers, misc
 from .augmentations.main import apply_augmentations
 
 
 def register(linter):
     """Required method to auto register this checker"""
+    misc.patch_dill_missing_lnotab()
     if any(isinstance(checker, checkers.odoo_addons.OdooAddons) for checker in linter.get_checkers()):
         # The parallel mode (--jobs) restores the linter in each worker using dill,
         # keeping the checkers already registered, and then pylint re-loads the
