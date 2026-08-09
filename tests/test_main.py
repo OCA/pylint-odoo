@@ -26,7 +26,8 @@ def dill_supports_code_objects():
     """pylint parallel mode (--jobs) serializes the linter using dill, including the
     code objects of the functions that can not be pickled by reference.
     dill<=0.4.1 still uses "code.co_lnotab", removed in Python 3.15, so pylint --jobs
-    crashes there until a new dill release supports it"""
+    crashes there unless the misc.patch_dill_missing_lnotab workaround applies"""
+    misc.patch_dill_missing_lnotab()
     try:
         dill.loads(dill.dumps(compile("pass", "<test>", "exec")))
     except Exception:  # pylint: disable=broad-except

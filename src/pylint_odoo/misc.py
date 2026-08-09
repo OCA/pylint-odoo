@@ -1,7 +1,11 @@
 import os
 import re
+import warnings
 from pathlib import Path
+from types import CodeType
 from urllib.parse import urlsplit
+
+import dill
 
 MANIFEST_DATA_KEYS = ["data", "demo", "demo_xml", "init_xml", "test", "update_xml"]
 
@@ -41,6 +45,54 @@ EMAIL_RE = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 
 class StringParseError(TypeError):
     pass
+
+
+def patch_dill_missing_lnotab():
+    """Support pylint --jobs for python 3.15 removing "code.co_lnotab"
+
+    The parallel mode serializes the linter using dill, including the code
+    objects of the functions that can not be pickled by reference, but
+    dill<=0.4.1 save_code still reads "code.co_lnotab", removed in python 3.15,
+    raising AttributeError for any "pylint --jobs" run.
+
+    Feed the original save_code with an empty co_lnotab. It is safe since
+    dill._dill._create_code only uses that value to build the code objects of
+    payloads serialized by python<3.10, so the workers do not need any patch to
+    deserialize them.
+
+    TODO: Remove it when a dill release supports python 3.15
+    """
+    code_sample = patch_dill_missing_lnotab.__code__
+    with warnings.catch_warnings():
+        # Deprecated before being removed. hasattr emits DeprecationWarning
+        warnings.simplefilter("ignore", DeprecationWarning)
+        if hasattr(code_sample, "co_lnotab"):
+            return
+    original_save_code = dill.Pickler.dispatch[CodeType]
+    if getattr(original_save_code, "_pylint_odoo_patch", False):
+        return
+    try:
+        dill.dumps(code_sample)
+        return  # New dill release already supporting it
+    except AttributeError:
+        pass
+
+    class CodeWithLnotab:
+        """Expose the attributes of a code object with an empty co_lnotab"""
+
+        def __init__(self, code):
+            self._code = code
+
+        def __getattr__(self, name):
+            if name == "co_lnotab":
+                return b""
+            return getattr(self.__dict__["_code"], name)
+
+    def save_code_with_lnotab(pickler, obj):
+        original_save_code(pickler, CodeWithLnotab(obj))
+
+    save_code_with_lnotab._pylint_odoo_patch = True
+    dill.Pickler.dispatch[CodeType] = save_code_with_lnotab
 
 
 def version_parse(version_str):
