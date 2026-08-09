@@ -4,6 +4,12 @@ from .augmentations.main import apply_augmentations
 
 def register(linter):
     """Required method to auto register this checker"""
+    if any(isinstance(checker, checkers.odoo_addons.OdooAddons) for checker in linter.get_checkers()):
+        # The parallel mode (--jobs) restores the linter in each worker using dill,
+        # keeping the checkers already registered, and then pylint re-loads the
+        # plugins over it calling this method again ("load_plugin_modules" with
+        # "force=True"). Registering the checkers twice would duplicate every message
+        return
     linter.register_checker(checkers.odoo_addons.OdooAddons(linter))
     linter.register_checker(checkers.vim_comment.VimComment(linter))
     linter.register_checker(checkers.custom_logging.CustomLoggingChecker(linter))
