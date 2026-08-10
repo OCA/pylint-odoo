@@ -10,6 +10,8 @@ from io import StringIO
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 
+import astroid
+import dill
 import pytest
 from pylint.reporters.text import TextReporter
 from pylint.testutils._run import _Run as Run
@@ -19,12 +21,25 @@ from pylint_odoo import __version__ as version, misc, plugin
 
 RE_CHECK_OUTPUT = re.compile(r"\- \[(?P<check>[\w|-]+)\]")
 
+
+def dill_supports_code_objects():
+    """pylint parallel mode (--jobs) serializes the linter using dill, including the
+    code objects of the functions that can not be pickled by reference.
+    dill<=0.4.1 still uses "code.co_lnotab", removed in Python 3.15, so pylint --jobs
+    crashes there until a new dill release supports it"""
+    try:
+        dill.loads(dill.dumps(compile("pass", "<test>", "exec")))
+    except Exception:  # pylint: disable=broad-except
+        return False
+    return True
+
+
 EXPECTED_ERRORS = {
     "attribute-deprecated": 3,
     "attribute-string-redundant": 33,
     "bad-builtin-groupby": 2,
     "category-allowed-app": 1,
-    "consider-merging-classes-inherited": 2,
+    "consider-merging-classes-inherited": 3,
     "context-overridden": 3,
     "deprecated-inselect-operator": 5,
     "deprecated-name-get": 1,
@@ -518,6 +533,23 @@ def fstring_no_sqli(self):
         expected_errors = {expected_error_name: expected_error_value}
         self.assert_dict_equal(real_errors, expected_errors)
 
+    @pytest.mark.skipif(
+        not dill_supports_code_objects(),
+        reason="pylint parallel mode crashes since dill is not able to serialize code objects"
+        " for this python version (e.g. py3.15 removed code.co_lnotab)",
+    )
+    @pytest.mark.parametrize("expected_error_name", EXPECTED_ERRORS)
+    def test_155_check_only_enabled_one_check_jobs(self, expected_error_name):
+        """Checking -d all -e ONLY-ONE-CHECK --jobs=2"""
+        disable = "--disable=all"
+        expected_error_value = EXPECTED_ERRORS[expected_error_name]
+        enable = "--enable=%s" % expected_error_name
+        pylint_res = self.run_pylint(self.paths_modules, [disable, enable, "--jobs=2"])
+        res = self._get_messages_from_output(pylint_res)
+        real_errors = {check: len(lines) for check, lines in res.items()}
+        expected_errors = {expected_error_name: expected_error_value}
+        self.assert_dict_equal(real_errors, expected_errors)
+
     @pytest.mark.parametrize("disable_error", EXPECTED_ERRORS)
     def test_160_check_only_disabled_one_check(self, disable_error):
         """Checking -d all -e odoolint -d ONLY-ONE-CHECK"""
@@ -525,6 +557,22 @@ def fstring_no_sqli(self):
         enable = "--disable=%s" % disable_error
         pylint_res = self.run_pylint(self.paths_modules, self.default_extra_params + [enable])
         real_errors = pylint_res.linter.stats.by_msg
+        expected_errors.pop(disable_error)
+        self.assert_dict_equal(real_errors, expected_errors)
+
+    @pytest.mark.skipif(
+        not dill_supports_code_objects(),
+        reason="pylint parallel mode crashes since dill is not able to serialize code objects"
+        " for this python version (e.g. py3.15 removed code.co_lnotab)",
+    )
+    @pytest.mark.parametrize("disable_error", EXPECTED_ERRORS)
+    def test_162_check_only_disabled_one_check_jobs(self, disable_error):
+        """Checking -d all -e odoolint -d ONLY-ONE-CHECK --jobs=2"""
+        expected_errors = self.expected_errors.copy()
+        enable = "--disable=%s" % disable_error
+        pylint_res = self.run_pylint(self.paths_modules, self.default_extra_params + [enable, "--jobs=2"])
+        res = self._get_messages_from_output(pylint_res)
+        real_errors = {check: len(lines) for check, lines in res.items()}
         expected_errors.pop(disable_error)
         self.assert_dict_equal(real_errors, expected_errors)
 
@@ -621,22 +669,78 @@ def fstring_no_sqli(self):
         self.assert_dict_equal(real_errors, expected_errors)
 
     @pytest.mark.skipif(
-        sys.version_info >= (3, 15),
-        reason="pylint parallel mode currently crashes on Python 3.15+ due to upstream dill incompatibility",
+        not dill_supports_code_objects(),
+        reason="pylint parallel mode crashes since dill is not able to serialize code objects"
+        " for this python version (e.g. py3.15 removed code.co_lnotab)",
     )
     def test_180_jobs(self):
-        """Using jobs could raise new errors"""
-        self.default_extra_params += ["--jobs=2"]
-        pylint_res = self.run_pylint(self.paths_modules, verbose=True)
-        # pylint_res.linter.stats.by_msg has a issue generating the stats wrong with --jobs
-        res = self._get_messages_from_output(pylint_res)
-        real_errors = {key: len(set(lines)) for key, lines in res.items()}
-        assert self.expected_errors == real_errors
+        """Using jobs must generate the same messages and stats than the serial mode"""
+        serial_pylint_res = self.run_pylint(self.paths_modules, list(self.default_extra_params), verbose=True)
+        serial_messages = self._get_messages_from_output(serial_pylint_res)
 
-        for key, lines in res.items():
-            lines_counter = Counter(tuple(lines))
-            for line, count in lines_counter.items():
-                assert count <= 2, f"{key} duplicated more than 2 times. Line {line}"
+        self.default_extra_params += ["--jobs=10"]
+        pylint_res = self.run_pylint(self.paths_modules, verbose=True)
+        # pylint_res.linter.stats.by_msg can not be used with --jobs because of
+        # an upstream issue. LinterStats.reset_message_count() does not reset by_msg
+        # so each worker returns cumulative snapshots per file and merge_stats
+        # over-counts them. The messages of the output are used instead
+        jobs_messages = self._get_messages_from_output(pylint_res)
+        real_errors = {check: len(lines) for check, lines in jobs_messages.items()}
+        assert self.expected_errors == real_errors
+        for check, lines in jobs_messages.items():
+            duplicated_lines = [line for line, count in Counter(lines).items() if count > 1]
+            assert not duplicated_lines, f"{check} duplicated. Lines {duplicated_lines}"
+
+        serial_messages = {check: sorted(lines) for check, lines in serial_messages.items()}
+        jobs_messages = {check: sorted(lines) for check, lines in jobs_messages.items()}
+        assert serial_messages == jobs_messages
+
+    def test_185_jobs_worker_paths(self):
+        """Run in-process the parallel mode paths executed inside the workers
+        since they are subprocesses not measured by coverage"""
+        paths = [os.path.join(self.root_path_modules, "broken_module", "models", "model_inhe1.py")]
+        pylint_res = self.run_pylint(paths, ["--disable=all", "--enable=consider-merging-classes-inherited"])
+        linter = pylint_res.linter
+
+        # Registering the plugin again over the same linter must be skipped
+        # like in a parallel worker restoring the linter with the checkers
+        checkers_before = len(list(linter.get_checkers()))
+        plugin.register(linter)
+        assert checkers_before == len(list(linter.get_checkers()))
+
+        checker = next(
+            checker for checker in linter.get_checkers() if isinstance(checker, plugin.checkers.odoo_addons.OdooAddons)
+        )
+        module_node = astroid.parse(
+            "class ResCompany:\n    _inherit = 'res.company'\n\nclass ResCompany2:\n    _inherit = 'res.company'\n",
+            module_name="fake_module.models.res_company",
+        )
+        module_node.file = os.path.join(self.root_path_modules, "fake_module", "models", "res_company.py")
+        # _inherit='other.model' _name='model.name' nodes are skipped because is valid
+        named_module_node = astroid.parse(
+            "class ResCompanyNamed:\n    _inherit = 'res.company'\n",
+            module_name="fake_module.models.res_company_named",
+        )
+        named_module_node.file = os.path.join(self.root_path_modules, "fake_module", "models", "res_company_named.py")
+        named_module_node.odoo_attribute_name = "res.company.named"
+        checker._odoo_inherit_items = defaultdict(set)
+        checker._odoo_inherit_items[("fake_module/__manifest__.py", "res.company")].update(
+            module_node.body + named_module_node.body
+        )
+
+        # close() must not emit partial messages in parallel mode
+        linter.config.jobs = 10
+        checker.close()
+        assert checker._odoo_inherit_items
+
+        data = checker.get_map_data()
+        assert len(data) == 2
+        assert not checker._odoo_inherit_items
+
+        errors_before = linter.stats.by_msg.get("consider-merging-classes-inherited", 0)
+        checker.reduce_map_data(linter, [data])
+        errors_after = linter.stats.by_msg.get("consider-merging-classes-inherited", 0)
+        assert errors_after == errors_before + 1
 
     def test_format_version_value_error(self):
         """Test --valid-odoo-versions to force a value error exception"""
