@@ -1,8 +1,5 @@
 import os
 import re
-import subprocess
-import sys
-from contextlib import contextmanager
 from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -68,34 +65,40 @@ def get_plugin_msgs(pylint_run_res):
     return all_plugin_msgs
 
 
-@contextmanager
-def chdir(directory):
-    """Change the current directory similar to command 'cd directory'
-    but remembering the previous value to be revert at final
-    Similar to run 'original_dir=$(pwd) && cd odoo && cd ${original_dir}'
-    """
-    original_dir = os.getcwd()
-    os.chdir(directory)
-    try:
-        yield
-    finally:
-        os.chdir(original_dir)
+# Cache of the top level path resolved for each path already visited and
+# set of the top level paths already found containing a ".git" entry
+_top_path_cache = {}
+_known_top_paths = set()
 
 
-@lru_cache(maxsize=256)
 def top_path(path):
-    """Get the top level path based on git
+    """Get the top level path based on the first parent path containing a ".git"
+    entry (a directory for regular repositories or a file for submodules and worktrees)
     But if it is not a git repository so the top is the drive name
     e.g. / or C:\\
-    It is using lru_cache in order to re-use top level path values
-    if multiple files are sharing the same path
+    The values are cached and the children paths of a top level path already found
+    re-use it directly based on the path prefix so they are resolved without
+    checking ".git" for each parent path again
     """
-    try:
-        with chdir(path):
-            return subprocess.check_output(["git", "rev-parse", "--show-toplevel"]).decode(sys.stdout.encoding).strip()
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        path = Path(path)
-        return path.root or path.drive
+    top = _top_path_cache.get(path)
+    if top is not None:
+        return top
+    path_obj = Path(path)
+    for known_top_path in _known_top_paths:
+        if path_obj.is_relative_to(known_top_path):
+            _top_path_cache[path] = known_top_path
+            return known_top_path
+    if (path_obj / ".git").exists():
+        _known_top_paths.add(path)
+        _top_path_cache[path] = path
+        return path
+    parent_path = path_obj.parent
+    if parent_path == path_obj:
+        top = path_obj.root or path_obj.drive
+    else:
+        top = top_path(str(parent_path))
+    _top_path_cache[path] = top
+    return top
 
 
 def full_norm_path(path):
