@@ -3,6 +3,9 @@ import re
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from pylint.lint.expand_modules import _is_ignored_file
+from pylint.lint.pylinter import PyLinter
+
 MANIFEST_DATA_KEYS = ["data", "demo", "demo_xml", "init_xml", "test", "update_xml"]
 
 README_FILES = ["README.rst", "README.md", "README.txt"]
@@ -41,6 +44,80 @@ EMAIL_RE = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 
 class StringParseError(TypeError):
     pass
+
+
+def patch_recursive_odoo_module_files():
+    """Support "pylint --recursive=y" discovering all the files of the Odoo modules
+
+    The upstream file discovery has two gaps running it over an Odoo repository:
+     - The .py files inside the subdirectories of a module without "__init__.py"
+       are never linted, e.g. migrations/x.y.z/pre-migration.py, because the
+       module is expanded as a python package pruning the non-package subtrees
+     - A module with a name starting with the name of a previously discovered
+       sibling is skipped entirely, e.g. "broken_module2" after "broken_module"
+
+    Replace PyLinter._discover_files applying the upstream fix for the second
+    gap, https://github.com/pylint-dev/pylint/pull/10970 released for
+    pylint>4.0.7, and yielding the python files of the Odoo modules that are
+    not reachable expanding the python packages so "--recursive=y" matches the
+    file-by-file way used by pre-commit
+
+    TODO: Keep only the "_odoo_module_extra_files" part when the minimum
+    supported pylint release includes the pull request 10970
+    """
+    original_discover_files = PyLinter._discover_files
+    if getattr(original_discover_files, "_pylint_odoo_patch", False):
+        return
+
+    def _odoo_module_extra_files(linter, package_dir):
+        """Yield the python files of an Odoo module not reachable expanding the
+        python packages, e.g. migrations/x.y.z/pre-migration.py since the
+        subdirectory does not have a "__init__.py" file
+        """
+        if not any(os.path.isfile(os.path.join(package_dir, manifest)) for manifest in MANIFEST_FILES):
+            return
+        reachable = {package_dir}
+        skip_subtrees = []
+        for root, _, files in os.walk(package_dir):
+            if any(root.startswith(skipped) for skipped in skip_subtrees):
+                continue
+            if _is_ignored_file(root, linter.config.ignore, linter.config.ignore_patterns, linter.config.ignore_paths):
+                skip_subtrees.append(root + os.sep)
+                continue
+            if root == package_dir:
+                continue
+            if os.path.dirname(root) in reachable and "__init__.py" in files:
+                # Already linted expanding the packages of the module
+                reachable.add(root)
+                continue
+            yield from (os.path.join(root, file) for file in files if file.endswith((".py", ".pyi")))
+
+    def _discover_files(self, files_or_modules):
+        for something in files_or_modules:
+            if os.path.isdir(something) and not os.path.isfile(os.path.join(something, "__init__.py")):
+                skip_subtrees = []
+                for root, _, files in os.walk(something):
+                    if any(root.startswith(skipped) for skipped in skip_subtrees):
+                        # Skip subtree of already discovered package.
+                        continue
+                    if _is_ignored_file(
+                        root, self.config.ignore, self.config.ignore_patterns, self.config.ignore_paths
+                    ):
+                        skip_subtrees.append(root + os.sep)
+                        continue
+                    if "__init__.py" in files:
+                        skip_subtrees.append(root + os.sep)
+                        yield root
+                        yield from _odoo_module_extra_files(self, root)
+                    else:
+                        yield from (os.path.join(root, file) for file in files if file.endswith((".py", ".pyi")))
+            else:
+                yield something
+                if os.path.isdir(something):
+                    yield from _odoo_module_extra_files(self, something)
+
+    _discover_files._pylint_odoo_patch = True
+    PyLinter._discover_files = _discover_files
 
 
 def version_parse(version_str):

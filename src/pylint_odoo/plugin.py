@@ -1,9 +1,10 @@
-from . import checkers
+from . import checkers, misc
 from .augmentations.main import apply_augmentations
 
 
 def register(linter):
     """Required method to auto register this checker"""
+    misc.patch_recursive_odoo_module_files()
     linter.register_checker(checkers.odoo_addons.OdooAddons(linter))
     linter.register_checker(checkers.vim_comment.VimComment(linter))
     linter.register_checker(checkers.custom_logging.CustomLoggingChecker(linter))
