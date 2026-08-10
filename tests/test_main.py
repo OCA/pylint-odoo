@@ -7,14 +7,15 @@ import sys
 from collections import Counter, defaultdict
 from glob import glob
 from io import StringIO
-from tempfile import NamedTemporaryFile
+from pathlib import Path
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import pytest
 from pylint.reporters.text import TextReporter
 from pylint.testutils._run import _Run as Run
 from pylint.testutils.utils import _patch_streams
 
-from pylint_odoo import __version__ as version, plugin
+from pylint_odoo import __version__ as version, misc, plugin
 
 RE_CHECK_OUTPUT = re.compile(r"\- \[(?P<check>[\w|-]+)\]")
 
@@ -650,6 +651,25 @@ def fstring_no_sqli(self):
         expected_errors = {"manifest-version-format": 6}
         self.assert_dict_equal(real_errors, expected_errors)
         assert any("Invalid manifest versions format ['8.0saas']" in str(w.message) for w in warn.list)
+
+    def test_top_path(self):
+        """Test the top level path is inferred from the first parent path containing a ".git" entry"""
+        with TemporaryDirectory() as tmp_dir:
+            repo_path = os.path.join(tmp_dir, "repo")
+            module_path = os.path.join(repo_path, "module", "models")
+            os.makedirs(module_path)
+            os.makedirs(os.path.join(repo_path, ".git"))
+            assert misc.top_path(module_path) == repo_path
+            assert misc.top_path(repo_path) == repo_path
+            # A child of a top level path already found re-uses it directly
+            # based on the path prefix without checking ".git" again
+            nested_repo_path = os.path.join(module_path, "nested_repo")
+            os.makedirs(os.path.join(nested_repo_path, ".git"))
+            assert misc.top_path(nested_repo_path) == repo_path
+            # Without a .git parent path the top is the root/drive
+            no_repo_path = os.path.join(tmp_dir, "no_repo")
+            os.makedirs(no_repo_path)
+            assert misc.top_path(no_repo_path) == (Path(no_repo_path).root or Path(no_repo_path).drive)
 
     @pytest.mark.skipif(
         sys.platform.startswith("win"),
