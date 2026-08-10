@@ -743,6 +743,55 @@ def fstring_no_sqli(self):
         errors_after = linter.stats.by_msg.get("consider-merging-classes-inherited", 0)
         assert errors_after == errors_before + 1
 
+    def test_190_recursive(self):
+        """Running "--recursive=y" over the repository directory must generate the same
+        messages than the file-by-file way used by pre-commit, including the modules
+        skipped because of the name of a sibling module (e.g. broken_module2 after
+        broken_module) and the migrations scripts not reachable from the packages
+        (e.g. migrations/x.y.z/pre-migration.py without "__init__.py")"""
+        serial_pylint_res = self.run_pylint(self.paths_modules, list(self.default_extra_params), verbose=True)
+        serial_messages = self._get_messages_from_output(serial_pylint_res)
+
+        self.default_extra_params += ["--recursive=y"]
+        recursive_pylint_res = self.run_pylint([self.root_path_modules], verbose=True)
+        real_errors = recursive_pylint_res.linter.stats.by_msg
+        assert self.expected_errors == real_errors
+
+        recursive_messages = self._get_messages_from_output(recursive_pylint_res)
+        serial_messages = {check: sorted(lines) for check, lines in serial_messages.items()}
+        recursive_messages = {check: sorted(lines) for check, lines in recursive_messages.items()}
+        assert serial_messages == recursive_messages
+
+    def test_193_recursive_module_dir(self):
+        """The migrations scripts must be discovered even passing the path of only
+        one module with "--recursive=y" instead of the whole repository"""
+        extra_params = ["--disable=all", "--enable=unused-argument", "--recursive=y"]
+        test_module = os.path.join(self.root_path_modules, "test_module")
+        pylint_res = self.run_pylint([test_module], extra_params, verbose=True)
+        migration_scripts = [
+            os.path.join("migrations", "10.0.1.0.0", "pre-migration.py"),
+            os.path.join("migrations", "11.0.1.0.0", "pre-migration.py"),
+        ]
+        self.assert_dict_equal(pylint_res.linter.stats.by_msg, {"unused-argument": 2})
+        messages = self._get_messages_from_output(pylint_res)
+        unused_argument_paths = "".join(messages["unused-argument"])
+        for migration_script in migration_scripts:
+            assert migration_script in unused_argument_paths
+
+    @pytest.mark.skipif(
+        not dill_supports_code_objects(),
+        reason="pylint parallel mode crashes since dill is not able to serialize code objects"
+        " for this python version (e.g. py3.15 removed code.co_lnotab)",
+    )
+    def test_195_recursive_jobs(self):
+        """Combining "--recursive=y" with "--jobs" must generate the same messages
+        since the files are discovered in the main process before the workers"""
+        self.default_extra_params += ["--recursive=y", "--jobs=10"]
+        pylint_res = self.run_pylint([self.root_path_modules], verbose=True)
+        jobs_messages = self._get_messages_from_output(pylint_res)
+        real_errors = {check: len(lines) for check, lines in jobs_messages.items()}
+        assert self.expected_errors == real_errors
+
     def test_format_version_value_error(self):
         """Test --valid-odoo-versions to force a value error exception"""
         extra_params = [
