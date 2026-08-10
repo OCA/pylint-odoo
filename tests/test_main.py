@@ -671,6 +671,30 @@ def fstring_no_sqli(self):
             os.makedirs(no_repo_path)
             assert misc.top_path(no_repo_path) == (Path(no_repo_path).root or Path(no_repo_path).drive)
 
+    def test_walk_up(self):
+        """Test the manifest is found walking up limited by the top path"""
+        with TemporaryDirectory() as tmp_dir:
+            repo_path = os.path.join(tmp_dir, "repo")
+            module_path = os.path.join(repo_path, "module")
+            models_path = os.path.join(module_path, "models")
+            os.makedirs(models_path)
+            os.makedirs(os.path.join(repo_path, ".git"))
+            manifest_path = os.path.join(module_path, "__manifest__.py")
+            with open(manifest_path, "w", encoding="utf-8") as f_manifest:
+                f_manifest.write("{}")
+            top = misc.top_path(models_path)
+            assert top == repo_path
+            assert misc.walk_up(models_path, tuple(misc.MANIFEST_FILES), top) == manifest_path
+            # A child of a parent path where the manifest was already found
+            # re-uses it directly without checking the filesystem again
+            wizards_path = os.path.join(module_path, "wizards")
+            os.makedirs(wizards_path)
+            assert misc.walk_up(wizards_path, tuple(misc.MANIFEST_FILES), top) == manifest_path
+            # No manifest between the path and the top
+            no_module_path = os.path.join(repo_path, "no_module")
+            os.makedirs(no_module_path)
+            assert misc.walk_up(no_module_path, tuple(misc.MANIFEST_FILES), top) is None
+
     @pytest.mark.skipif(
         sys.platform.startswith("win"),
         reason="Windows works a little different with executable files",

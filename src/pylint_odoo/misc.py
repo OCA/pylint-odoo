@@ -1,6 +1,5 @@
 import os
 import re
-from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -103,21 +102,49 @@ def top_path(path):
 
 def full_norm_path(path):
     """Expand paths in all possible ways"""
-    return os.path.normpath(os.path.realpath(os.path.abspath(os.path.expanduser(os.path.expandvars(path.strip())))))
+    return Path(os.path.expandvars(str(path).strip())).expanduser().resolve()
 
 
-@lru_cache(maxsize=256)
+# Cache of the results already resolved by path, filenames and top and the
+# parent paths where one of the filenames was already found by filenames
+_walk_up_cache = {}
+_known_walk_up_dirs = {}
+
+
 def walk_up(path, filenames, top):
     """Look for "filenames" walking up in parent paths of "path"
     but limited only to "top" path
+    The results are cached and the children paths of a parent path where one of
+    the filenames was already found re-use it directly without checking the
+    filesystem for each parent path again
     """
-    if full_norm_path(path) == full_norm_path(top):
-        return None
-    for filename in filenames:
-        path_filename = os.path.join(path, filename)
-        if os.path.isfile(full_norm_path(path_filename)):
-            return path_filename
-    return walk_up(os.path.dirname(path), filenames, top)
+    cache_key = (path, filenames, top)
+    try:
+        return _walk_up_cache[cache_key]
+    except KeyError:
+        pass
+    known_dirs = _known_walk_up_dirs.setdefault(filenames, {})
+    path_obj = Path(path)
+    result = None
+    for parent_path in (path_obj, *path_obj.parents):
+        result = known_dirs.get((str(parent_path), top))
+        if result is not None:
+            break
+    if result is None:
+        top_norm_path = full_norm_path(top)
+        current_path = path_obj
+        while full_norm_path(current_path) != top_norm_path:
+            for filename in filenames:
+                path_filename = current_path / filename
+                if full_norm_path(path_filename).is_file():
+                    result = str(path_filename)
+                    known_dirs[(str(current_path), top)] = result
+                    break
+            if result is not None or current_path.parent == current_path:
+                break
+            current_path = current_path.parent
+    _walk_up_cache[cache_key] = result
+    return result
 
 
 class InvalidVersion(Exception):
