@@ -50,3 +50,7 @@ class TestModel8(models.Model):
     def method_2(self):
         _inherit = 'not-class-attribute'
         return _inherit
+
+
+class Orderpoint(models.Model):
+    _inherit = "stock.warehouse.orderpoint"
