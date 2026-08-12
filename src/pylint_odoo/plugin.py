@@ -12,7 +12,6 @@ def register(linter):
         # "force=True"). Registering the checkers twice would duplicate every message
         return
     linter.register_checker(checkers.odoo_addons.OdooAddons(linter))
-    linter.register_checker(checkers.vim_comment.VimComment(linter))
     linter.register_checker(checkers.custom_logging.CustomLoggingChecker(linter))
 
     # register any checking fiddlers
@@ -23,7 +22,6 @@ def get_all_messages():
     """Get all messages of this plugin"""
     all_msgs = {}
     all_msgs.update(checkers.odoo_addons.ODOO_MSGS)
-    all_msgs.update(checkers.vim_comment.ODOO_MSGS)
     all_msgs.update(checkers.custom_logging.ODOO_MSGS)
     return all_msgs
 

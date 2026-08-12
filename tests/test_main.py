@@ -36,70 +36,25 @@ def dill_supports_code_objects():
 
 
 EXPECTED_ERRORS = {
-    "attribute-deprecated": 3,
-    "attribute-string-redundant": 33,
-    "bad-builtin-groupby": 2,
     "category-allowed-app": 1,
     "consider-merging-classes-inherited": 3,
-    "context-overridden": 3,
-    "deprecated-inselect-operator": 5,
-    "deprecated-name-get": 1,
-    "deprecated-odoo-model-method": 2,
-    "deprecated-self-cr": 27,
-    "development-status-allowed": 1,
-    "except-pass": 3,
     "external-request-timeout": 51,
-    "inheritable-method-lambda": 2,
-    "inheritable-method-string": 4,
-    "invalid-commit": 4,
-    "invalid-email": 1,
-    "license-allowed": 1,
-    "manifest-author-string": 1,
     "manifest-behind-migrations": 3,
     "manifest-data-duplicated": 1,
-    "manifest-deprecated-key": 1,
-    "manifest-external-assets": 3,
-    "manifest-maintainers-list": 1,
-    "manifest-required-author": 1,
     "manifest-required-key-app": 5,
-    "manifest-required-key": 1,
-    "manifest-summary-multiline": 2,
-    "manifest-superfluous-key": 7,
     "manifest-version-format": 3,
-    "method-compute": 2,
-    "method-inverse": 2,
-    "method-required-super": 8,
-    "method-search": 2,
     "missing-odoo-file-app": 1,
-    "missing-readme": 1,
-    "missing-return": 1,
-    "no-raise-unlink": 2,
-    "no-search-all": 12,
     "no-wizard-in-models": 1,
-    "no-write-in-compute": 16,
-    "odoo-addons-relative-import": 4,
-    "odoo-exception-warning": 4,
-    "prefer-env-translation": 112,
-    "print-used": 1,
-    "renamed-field-parameter": 2,
     "resource-not-exist": 4,
     "sql-injection": 21,
-    "super-method-mismatch": 7,
-    "test-folder-imported": 3,
-    "translation-contains-variable": 33,
-    "translation-field": 3,
     "translation-format-interpolation": 22,
     "translation-format-truncated": 2,
     "translation-fstring-interpolation": 3,
-    "translation-injection": 21,
     "translation-not-lazy": 42,
-    "translation-positional-used": 30,
     "translation-required": 16,
     "translation-too-few-args": 2,
     "translation-too-many-args": 2,
     "translation-unsupported-format": 2,
-    "use-vim-comment": 1,
-    "website-manifest-key-not-valid-uri": 2,
 }
 
 LOGGING_TRANSLATION_CHECKS = [
@@ -117,72 +72,15 @@ CHECKS_BY_ODOO_VERSION = [
     (
         "13.0",
         [
-            "deprecated-inselect-operator",
-            "deprecated-name-get",
-            "deprecated-odoo-model-method",
-            "deprecated-self-cr",
-            "manifest-summary-multiline",
-            "no-raise-unlink",
-            "prefer-env-translation",
             *LOGGING_TRANSLATION_CHECKS,
         ],
     ),
-    (
-        "14.0",
-        [
-            "deprecated-inselect-operator",
-            "deprecated-name-get",
-            "deprecated-odoo-model-method",
-            "deprecated-self-cr",
-            "manifest-summary-multiline",
-            "no-raise-unlink",
-            "prefer-env-translation",
-            "translation-contains-variable",
-        ],
-    ),
-    (
-        "15.0",
-        [
-            "deprecated-inselect-operator",
-            "deprecated-name-get",
-            "deprecated-odoo-model-method",
-            "deprecated-self-cr",
-            "manifest-summary-multiline",
-            "prefer-env-translation",
-            "translation-contains-variable",
-        ],
-    ),
-    (
-        "17.0",
-        [
-            "deprecated-inselect-operator",
-            "deprecated-self-cr",
-            "manifest-summary-multiline",
-            "prefer-env-translation",
-            "translation-contains-variable",
-        ],
-    ),
-    (
-        "18.0",
-        [
-            "deprecated-self-cr",
-            "manifest-summary-multiline",
-            "translation-contains-variable",
-        ],
-    ),
-    (
-        "19.0",
-        [
-            "manifest-summary-multiline",
-            "translation-contains-variable",
-        ],
-    ),
-    (
-        "20.0",
-        [
-            "translation-contains-variable",
-        ],
-    ),
+    ("14.0", []),
+    ("15.0", []),
+    ("17.0", []),
+    ("18.0", []),
+    ("19.0", []),
+    ("20.0", []),
 ]
 
 
@@ -356,63 +254,6 @@ class TestMain:
         }
         self.assert_dict_equal(real_errors, expected_errors)
 
-    def test_110_manifest_required_authors(self):
-        """Test --manifest-required-authors using a different author and
-        multiple authors separated by commas
-        """
-        # First, run Pylint using a different author
-        extra_params = [
-            "--manifest-required-authors=Vauxoo",
-            "--disable=all",
-            "--enable=manifest-required-author",
-        ]
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
-        real_errors = pylint_res.linter.stats.by_msg
-        expected_errors = {
-            "manifest-required-author": 5,
-        }
-        self.assert_dict_equal(real_errors, expected_errors)
-
-        # Then, run it using multiple authors
-        extra_params[0] = "--manifest-required-authors=Vauxoo,Other"
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
-        real_errors = pylint_res.linter.stats.by_msg
-        expected_errors["manifest-required-author"] -= 1
-        self.assert_dict_equal(real_errors, expected_errors)
-
-        # Testing deprecated attribute
-        extra_params[0] = "--manifest-required-author=Odoo Community Association (OCA)"
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
-        real_errors = pylint_res.linter.stats.by_msg
-        expected_errors_deprecated = {
-            "manifest-required-author": (EXPECTED_ERRORS["manifest-required-author"]),
-        }
-        self.assert_dict_equal(real_errors, expected_errors_deprecated)
-
-    def test_manifest_summary_multiline_version_limit(self):
-        """Test manifest-summary-multiline check version limits:
-        19.0- (no errors) vs 20.0+ (errors found)
-        """
-        # Run with v19.0: should not emit manifest-summary-multiline
-        extra_params = [
-            "--valid-odoo-versions=19.0",
-            "--disable=all",
-            "--enable=manifest-summary-multiline",
-        ]
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
-        real_errors = pylint_res.linter.stats.by_msg
-        assert "manifest-summary-multiline" not in real_errors
-
-        # Run with v20.0: should emit manifest-summary-multiline
-        extra_params = [
-            "--valid-odoo-versions=20.0",
-            "--disable=all",
-            "--enable=manifest-summary-multiline",
-        ]
-        pylint_res = self.run_pylint(self.paths_modules, extra_params)
-        real_errors = pylint_res.linter.stats.by_msg
-        assert real_errors.get("manifest-summary-multiline") == 2
-
     def test_140_check_suppress_migrations(self):
         """Test migrations path supress checks"""
         extra_params = [
@@ -449,49 +290,6 @@ class TestMain:
             "unused-argument": 2,
         }
         self.assert_dict_equal(real_errors, expected_errors)
-
-    def test_140_check_migrations_is_not_odoo_module(self):
-        """Checking that migrations folder is not considered a odoo module
-        Related to https://github.com/OCA/pylint-odoo/issues/357"""
-        extra_params = [
-            "--disable=all",
-            "--enable=missing-readme",
-        ]
-        test_module = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-            "testing",
-            "resources",
-            "test_repo",
-            "test_module",
-        )
-        path_modules = [
-            os.path.join(test_module, "__init__.py"),
-            os.path.join(test_module, "migrations", "10.0.1.0.0", "pre-migration.py"),
-        ]
-        pylint_res = self.run_pylint(path_modules, extra_params)
-        real_errors = pylint_res.linter.stats.by_msg
-        expected_errors = {}
-        self.assert_dict_equal(real_errors, expected_errors)
-
-    def test_checks_odoo180(self):
-        """prefer-env-translation and deprecated-inselect-operator are only valid
-        for odoo v18.0+ but not for older odoo versions"""
-        extra_params = [
-            "--disable=all",
-            "--enable=prefer-env-translation,deprecated-inselect-operator",
-        ]
-        pylint_res = self.run_pylint(self.paths_modules, ["--valid-odoo-versions=18.0"] + extra_params)
-        real_errors = pylint_res.linter.stats.by_msg
-        expected_errors = {
-            "prefer-env-translation": self.expected_errors.get("prefer-env-translation"),
-            "deprecated-inselect-operator": self.expected_errors.get("deprecated-inselect-operator"),
-        }
-        assert expected_errors == real_errors
-
-        pylint_res = self.run_pylint(self.paths_modules, ["--valid-odoo-versions=17.0"] + extra_params)
-        real_errors = pylint_res.linter.stats.by_msg
-        expected_errors = {}
-        assert expected_errors == real_errors
 
     @pytest.mark.skipif(sys.platform.startswith("win"), reason="TODO: Fix with windows")  # TODO: Fix it
     def test_145_check_fstring_sqli(self):
@@ -577,19 +375,6 @@ def fstring_no_sqli(self):
         expected_errors.pop(disable_error)
         self.assert_dict_equal(real_errors, expected_errors)
 
-    def test_165_no_raises_unlink(self):
-        extra_params = ["--disable=all", "--enable=no-raise-unlink"]
-        test_repo = os.path.join(self.root_path_modules, "test_module")
-
-        self.assert_dict_equal(
-            self.run_pylint([test_repo], extra_params).linter.stats.by_msg,
-            {"no-raise-unlink": 2},
-        )
-
-        # This check is only valid for Odoo 15.0 and upwards
-        extra_params.append("--valid-odoo-versions=14.0")
-        assert not self.run_pylint([test_repo], extra_params).linter.stats.by_msg
-
     # Test category-allowed with and without error
     def test_170_category_allowed(self):
         extra_params = [
@@ -637,23 +422,6 @@ def fstring_no_sqli(self):
         pylint_res = self.run_pylint(self.paths_modules, extra_params, verbose=True)
         real_errors = pylint_res.linter.stats.by_msg
         self.assert_dict_equal(real_errors, expected_errors)
-
-    def test_option_odoo_deprecated_model_method(self):
-        pylint_res = self.run_pylint(
-            self.paths_modules,
-            rcfile=os.path.abspath(
-                os.path.join(
-                    __file__,
-                    "..",
-                    "..",
-                    "testing",
-                    "resources",
-                    ".pylintrc-odoo-deprecated-model-methods",
-                )
-            ),
-        )
-
-        assert 4 == pylint_res.linter.stats.by_msg["deprecated-odoo-model-method"]
 
     def test_175_prohibited_method_override(self):
         """Test --prohibited_override_methods parameter"""
@@ -755,7 +523,7 @@ def fstring_no_sqli(self):
         real_errors = pylint_res.linter.stats.by_msg
         expected_errors = {"manifest-version-format": 6}
         self.assert_dict_equal(real_errors, expected_errors)
-        assert any("Invalid manifest versions format ['8.0saas']" in str(w.message) for w in warn.list)
+        assert any("Invalid manifest versions format 8.0saas" in str(w.message) for w in warn.list)
 
     def test_top_path(self):
         """Test the top level path is inferred from the first parent path containing a ".git" entry"""

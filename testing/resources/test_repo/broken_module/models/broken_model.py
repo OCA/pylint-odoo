@@ -217,7 +217,7 @@ class TestModel(models.Model):
             f_obj.write("write file allowed")
         unknown_type_object = self._get_object()
         unknown_type_object.write('write not self.browse allowed')
-        self.write({"name": "hello"})  # pylint: disable=no-write-in-compute
+        self.write({"name": "hello"})
 
     def _search_name(self):
         pass
@@ -238,7 +238,7 @@ class TestModel(models.Model):
         users.write({"name": "moy8"})
         unknown_type_object = self._get_object()
         unknown_type_object.write('write not self.browse allowed')
-        self.write({"name": "hello"})  # pylint: disable=no-write-in-compute
+        self.write({"name": "hello"})
 
     name = fields.Char(
         _(u"Näme"),  # Don't need translate
@@ -302,7 +302,7 @@ class TestModel(models.Model):
             f_obj.write("write file allowed")
         unknown_type_object = self._get_object()
         unknown_type_object.write('write not self.browse allowed')
-        self.write({"name": "hello"})  # pylint: disable=no-write-in-compute
+        self.write({"name": "hello"})
 
     # This is a inherit overwrite field then don't should show errors related
     # with creation of fields.

@@ -101,10 +101,7 @@ import ast
 import itertools
 import os
 import re
-import string
-import warnings
 from collections import Counter, defaultdict
-from urllib.parse import urlparse
 
 from astroid import nodes
 from pylint.checkers import BaseChecker, utils
@@ -121,14 +118,6 @@ CHECK_DESCRIPTION = (
 
 ODOO_MSGS = {
     # C->convention R->refactor W->warning E->error F->fatal
-    "C8101": (
-        "One of the following authors must be present in manifest: %s",
-        "manifest-required-author",
-        CHECK_DESCRIPTION,
-    ),
-    "C8102": ('Missing required key "%s" in manifest file', "manifest-required-key", CHECK_DESCRIPTION),
-    "C8103": ('Deprecated key "%s" in manifest file', "manifest-deprecated-key", CHECK_DESCRIPTION),
-    "C8105": ('License "%s" not allowed in manifest file.', "license-allowed", CHECK_DESCRIPTION),
     "C8106": (
         'Wrong Version Format "%s" in manifest file. Regex to match: "%s"',
         "manifest-version-format",
@@ -139,15 +128,6 @@ ODOO_MSGS = {
         "translation-required",
         CHECK_DESCRIPTION,
     ),
-    "C8108": ('Name of compute method should start with "_compute_"', "method-compute", CHECK_DESCRIPTION),
-    "C8109": ('Name of search method should start with "_search_"', "method-search", CHECK_DESCRIPTION),
-    "C8110": ('Name of inverse method should start with "_inverse_"', "method-inverse", CHECK_DESCRIPTION),
-    "C8111": (
-        'Manifest key development_status "%s" not allowed. Use one of: %s.',
-        "development-status-allowed",
-        CHECK_DESCRIPTION,
-    ),
-    "C8112": ("Missing ./README.rst file. Template here: %s", "missing-readme", CHECK_DESCRIPTION),
     "C8113": (
         "No wizard class for model directory. See the complete structure "
         "https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#complete-structure",
@@ -158,11 +138,6 @@ ODOO_MSGS = {
     "C8115": (
         "Missing %s file",
         "missing-odoo-file",
-        CHECK_DESCRIPTION,
-    ),
-    "C8116": (
-        'Manifest superfluous key "%s". It is the same as the default value: %s. Better remove it',
-        "manifest-superfluous-key",
         CHECK_DESCRIPTION,
     ),
     "C8117": (
@@ -180,31 +155,10 @@ ODOO_MSGS = {
         "manifest-required-key-app",
         CHECK_DESCRIPTION,
     ),
-    "C8120": (
-        "Summary in manifest file should be a one-line short description, found newline character",
-        "manifest-summary-multiline",
-        CHECK_DESCRIPTION,
-    ),
-    "E8101": (
-        "The author key in the manifest file must be a string (with comma separated values)",
-        "manifest-author-string",
-        CHECK_DESCRIPTION,
-    ),
-    "E8102": (
-        "Use of cr.commit() directly - More info "
-        "https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#never-commit-the-transaction",  # noqa: B950
-        "invalid-commit",
-        CHECK_DESCRIPTION,
-    ),
     "E8103": (
         "SQL injection risk. Use parameters if you can. - More info "
         "https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection",
         "sql-injection",
-        CHECK_DESCRIPTION,
-    ),
-    "E8104": (
-        "The maintainers key in the manifest file must be a list of strings",
-        "manifest-maintainers-list",
         CHECK_DESCRIPTION,
     ),
     "E8106": (
@@ -212,150 +166,21 @@ ODOO_MSGS = {
         "external-request-timeout",
         CHECK_DESCRIPTION,
     ),
-    "E8130": ("Test folder imported in module %s", "test-folder-imported", CHECK_DESCRIPTION),
-    "E8135": ("Compute method calling `write`. Use `update` instead.", "no-write-in-compute", CHECK_DESCRIPTION),
-    "E8140": (
-        "No exceptions should be raised inside unlink() functions",
-        "no-raise-unlink",
-        "Use @api.ondelete to add any constraints instead",
-    ),
     "E8145": (
         "Manifest version (%s) is lower than migration scripts (%s)",
         "manifest-behind-migrations",
         "Update your manifest version, otherwise the migration script won't run",
     ),
-    "E8146": (
-        "'name_get' is deprecated. Use '_compute_display_name' instead. More info at https://github.com/odoo/odoo/pull/122085.",
-        "deprecated-name-get",
-        CHECK_DESCRIPTION,
-    ),
-    "E8147": (
-        'Use string method name `"%s"` to preserve inheritability. '
-        "More info at https://github.com/OCA/odoo-pre-commit-hooks/issues/126",
-        "inheritable-method-string",
-        CHECK_DESCRIPTION,
-    ),
-    "E8148": (
-        "Use `%s=lambda self: self.%s()` to preserve inheritability. "
-        "More info at https://github.com/OCA/odoo-pre-commit-hooks/issues/126",
-        "inheritable-method-lambda",
-        CHECK_DESCRIPTION,
-    ),
-    "E8149": (
-        "The domain operator %r is deprecated in Odoo 18.0+. Use 'in' SQL or 'not in' SQL instead. "
-        "More info at https://github.com/odoo/odoo/pull/171371",
-        "deprecated-inselect-operator",
-        CHECK_DESCRIPTION,
-    ),
-    "E8151": (
-        "Do not use str.format on translation methods. Use placeholders instead. "
-        "Reference: https://lucumr.pocoo.org/2016/12/29/careful-with-str-format/",
-        "translation-injection",
-        CHECK_DESCRIPTION,
-    ),
     "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
-    "R8101": (
-        "`odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` "
-        "use `from odoo.exceptions import UserError`",
-        "odoo-exception-warning",
-        CHECK_DESCRIPTION,
-    ),
     "R8180": (
         'Consider merging classes inherited to "%s" from %s.',
         "consider-merging-classes-inherited",
         CHECK_DESCRIPTION,
     ),
-    "R8181": (
-        'Invalid email "%s"',
-        "invalid-email",
-        CHECK_DESCRIPTION,
-    ),
-    "W8103": ('Translation method _("string") in fields is not necessary.', "translation-field", CHECK_DESCRIPTION),
-    "W8105": ('attribute "%s" deprecated', "attribute-deprecated", CHECK_DESCRIPTION),
-    "W8106": ('Missing `super` call in "%s" method.', "method-required-super", CHECK_DESCRIPTION),
     "W8107": ('Prohibited override of "%s" method.', "prohibited-method-override", CHECK_DESCRIPTION),
-    "W8110": ("Missing `return` (`super` is used) in method %s.", "missing-return", CHECK_DESCRIPTION),
-    "W8111": (
-        'Field parameter "%s" is no longer supported. Use "%s" instead.',
-        "renamed-field-parameter",
-        CHECK_DESCRIPTION,
-    ),
-    "W8113": (
-        "The attribute string is redundant. String parameter equal to name of variable",
-        "attribute-string-redundant",
-        CHECK_DESCRIPTION,
-    ),
-    "W8114": (
-        'Website "%s" in manifest key is not a valid URI. %s',
-        "website-manifest-key-not-valid-uri",
-        CHECK_DESCRIPTION,
-    ),
-    "W8115": (
-        'Translatable term in "%s" contains variables. Use %s instead',
-        "translation-contains-variable",
-        CHECK_DESCRIPTION,
-    ),
-    "W8116": ("Print used. Use `logger` instead.", "print-used", CHECK_DESCRIPTION),
-    "W8120": (
-        "Translation method _(%s) is using positional string printf formatting with "
-        'multiple arguments. Use named placeholder `_("%%(placeholder)s")` instead.',
-        "translation-positional-used",
-        CHECK_DESCRIPTION,
-    ),
-    "W8121": (
-        "Context overridden using dict. Better using kwargs `with_context(**%s)` or `with_context(key=value)`",
-        "context-overridden",
-        CHECK_DESCRIPTION,
-    ),
     "W8125": (
         'The file "%s" is duplicated in lines %s from manifest key "%s"',
         "manifest-data-duplicated",
-        CHECK_DESCRIPTION,
-    ),
-    "W8138": (
-        "pass into block except. If you really need to use the pass consider logging that exception",
-        "except-pass",
-        CHECK_DESCRIPTION,
-    ),
-    "W8150": (
-        'Same Odoo module absolute import. You should use relative import with "." instead of "odoo.addons.%s"',
-        "odoo-addons-relative-import",
-        CHECK_DESCRIPTION,
-    ),
-    "W8155": (
-        "Used builtin function `itertools.groupby`. Prefer `odoo.tools.groupby` instead. "
-        "More info about https://github.com/odoo/odoo/issues/105376",
-        "bad-builtin-groupby",
-        CHECK_DESCRIPTION,
-    ),
-    "W8160": (
-        "%s has been deprecated by Odoo. Please look for alternatives.",
-        "deprecated-odoo-model-method",
-        CHECK_DESCRIPTION,
-    ),
-    "W8161": (
-        "Better using self.env._ More info at https://github.com/odoo/odoo/pull/174844",
-        "prefer-env-translation",
-        CHECK_DESCRIPTION,
-    ),
-    "W8162": (
-        "Asset %s should be distributed with module's source code. More info at https://httptoolkit.com/blog/public-cdn-risks/",
-        "manifest-external-assets",
-        CHECK_DESCRIPTION,
-    ),
-    "W8163": (
-        "Using an empty domain `%s([])` without a `limit` will load all records, may impact performance.",
-        "no-search-all",
-        CHECK_DESCRIPTION,
-    ),
-    "W8164": (
-        "`super().%s` mismatch but defined method is `%s`",
-        "super-method-mismatch",
-        CHECK_DESCRIPTION,
-    ),
-    "W8165": (
-        'Use "self.env.cr" instead of "self._cr" (deprecated since 19.0)',
-        "deprecated-self-cr",
         CHECK_DESCRIPTION,
     ),
 }
@@ -364,30 +189,6 @@ DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
 DFTL_MANIFEST_REQUIRED_KEYS_APP = ["currency", "images", "license", "support"]
 DFTL_ODOO_REQUIRED_FILES = []
 DFTL_ODOO_REQUIRED_FILES_APP = [os.path.join("static", "description", "index.html")]
-DFTL_MANIFEST_REQUIRED_AUTHORS = ["Odoo Community Association (OCA)"]
-DFTL_MANIFEST_DEPRECATED_KEYS = ["description"]
-DFTL_LICENSE_ALLOWED = [
-    "AGPL-3",
-    "GPL-2 or any later version",
-    "GPL-2",
-    "GPL-3 or any later version",
-    "GPL-3",
-    "LGPL-3",
-    "OEEL-1",
-    "Other OSI approved licence",
-    "Other proprietary",
-]
-DFTL_DEVELOPMENT_STATUS_ALLOWED = [
-    "Alpha",
-    "Beta",
-    "Mature",
-    "Production/Stable",
-]
-DFTL_ATTRIBUTE_DEPRECATED = [
-    "_columns",
-    "_defaults",
-    "length",
-]
 DFTL_CATEGORY_ALLOWED = []
 DFTL_CATEGORY_ALLOWED_APP = [
     # Based on https://apps.odoo.com/apps
@@ -410,18 +211,6 @@ DFTL_CATEGORY_ALLOWED_APP = [
     "Warehouse",
     "Website",
 ]
-DFTL_METHOD_REQUIRED_SUPER = [
-    "copy",
-    "create",
-    "default_get",
-    "read",
-    "setUp",
-    "setUpClass",
-    "tearDown",
-    "tearDownClass",
-    "unlink",
-    "write",
-]
 DFTL_PROHIBITED_OVERRIDE_METHODS = []
 DFTL_CURSOR_EXPR = [
     "cr",  # old api
@@ -441,26 +230,6 @@ DFTL_ODOO_EXCEPTIONS = [
     "ValidationError",
     "Warning",
 ]
-DFTL_NO_MISSING_RETURN = [
-    "__init__",
-    "_register_hook",
-    "setUp",
-    "setUpClass",
-    "tearDown",
-    "tearDownClass",
-]
-FIELDS_METHOD = {
-    "Many2many": 4,
-    "One2many": 2,
-    "Many2one": 1,
-    "Reference": 1,
-    "Selection": 1,
-}
-DFTL_DEPRECATED_FIELD_PARAMETERS = [
-    # From odoo/odoo 10.0: odoo/odoo/fields.py:29
-    "digits_compute:digits",
-    "select:index",
-]
 DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS = [
     "ftplib.FTP",
     "http.client.HTTPConnection",
@@ -479,27 +248,6 @@ DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS = [
     "suds.client.Client",
     "urllib.request.urlopen",
 ]
-DFTL_DEPRECATED_ODOO_MODEL_METHODS = {"16.0": {"fields_view_get"}}
-
-DFTL_MANIFEST_KEYS_VALUES_TRUE = ["active", "installable"]
-
-# Regex used from https://github.com/translate/translate/blob/9de0d72437/translate/filters/checks.py#L50-L62  # noqa
-PRINTF_PATTERN = re.compile(
-    r"""
-        %(                          # initial %
-        (?P<boost_ord>\d+)%         # boost::format style variable order, like %1%
-        |
-              (?:(?P<ord>\d+)\$|    # variable order, like %1$s
-              \((?P<key>\w+)\))?    # Python style variables, like %(var)s
-        (?P<fullvar>
-            [+#-]*                  # flags
-            (?:\d+)?                # width
-            (?:\.\d+)?              # precision
-            (hh\|h\|l\|ll)?         # length formatting
-            (?P<type>[\w@]))        # type (%s, %d, etc.)
-        )""",
-    re.VERBOSE,
-)
 
 
 class OdooAddons(OdooBaseChecker, BaseChecker):
@@ -507,49 +255,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     name = "odoolint"
     msgs = ODOO_MSGS
     options = (
-        (
-            "attribute-deprecated",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_ATTRIBUTE_DEPRECATED,
-                "help": "List of attributes deprecated, separated by a comma.",
-            },
-        ),
-        (
-            "cursor-expr",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_CURSOR_EXPR,
-                "help": "List of cursor expr separated by a comma.",
-            },
-        ),
-        (
-            "deprecated-field-parameters",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_DEPRECATED_FIELD_PARAMETERS,
-                "help": "List of deprecated field parameters, separated by a "
-                "comma. If the param was renamed, separate the old and "
-                "new name with a colon. If the param was removed, keep "
-                "the right side of the colon empty. "
-                '"deprecated_param:" means that "deprecated_param" was '
-                "deprecated and it doesn't have a new alternative. "
-                '"deprecated_param:new_param" means that it was '
-                'deprecated and renamed as "new_param".',
-            },
-        ),
-        (
-            "development-status-allowed",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_DEVELOPMENT_STATUS_ALLOWED,
-                "help": "List of development status allowed in manifest file, separated by a comma.",
-            },
-        ),
         (
             "external-request-timeout-methods",
             {
@@ -559,42 +264,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 "help": "List of library.method that must have a timeout "
                 "parameter defined, separated by a comma. "
                 'e.g. "requests.get,requests.post"',
-            },
-        ),
-        (
-            "license-allowed",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_LICENSE_ALLOWED,
-                "help": "List of license allowed in manifest file, separated by a comma.",
-            },
-        ),
-        (
-            "manifest-deprecated-keys",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_MANIFEST_DEPRECATED_KEYS,
-                "help": "List of keys deprecated in manifest file, separated by a comma.",
-            },
-        ),
-        (
-            "manifest-keys-values-true",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_MANIFEST_KEYS_VALUES_TRUE,
-                "help": "List of keys in manifest file whose the default value is `True`, separated by a comma.",
-            },
-        ),
-        (
-            "manifest-required-authors",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_MANIFEST_REQUIRED_AUTHORS,
-                "help": "Author names, at least one is required in manifest file.",
             },
         ),
         (
@@ -627,30 +296,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             },
         ),
         (
-            "method-required-super",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_METHOD_REQUIRED_SUPER,
-                "help": "List of methods where call to `super` is required.separated by a comma.",
-            },
-        ),
-        (
             "prohibited-method-override",
             {
                 "type": "csv",
                 "metavar": "<comma separated values>",
                 "default": DFTL_PROHIBITED_OVERRIDE_METHODS,
                 "help": "List of methods that have been marked as prohibited to override.",
-            },
-        ),
-        (
-            "no-missing-return",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_NO_MISSING_RETURN,
-                "help": "List of valid missing return method names, " "separated by a comma.",
             },
         ),
         (
@@ -687,30 +338,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             },
         ),
         (
-            "readme-template-url",
-            {
-                "type": "string",
-                "metavar": "<string>",
-                "default": misc.DFTL_README_TMPL_URL,
-                "help": "URL of README.rst template file",
-            },
-        ),
-        (
             "valid-odoo-versions",
             {
                 "type": "csv",
                 "metavar": "<comma separated values>",
                 "default": misc.DFTL_VALID_ODOO_VERSIONS,
                 "help": "List of valid odoo versions separated by a comma.",
-            },
-        ),
-        (
-            "deprecated-odoo-model-methods",
-            {
-                "type": "string",
-                "metavar": "python_expression",
-                "default": "",
-                "help": "Dictionary consisting of versions (keys) and methods that have been marked as deprecated.",
             },
         ),
         (
@@ -733,21 +366,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         ),
     )
 
-    checks_maxmin_odoo_version = {
-        # For v14.0 use custom_logging.py checks e.g. "translation-not-lazy"
-        "translation-contains-variable": {"odoo_maxversion": "13.0"},
-        "no-raise-unlink": {"odoo_minversion": "15.0"},
-        "prefer-env-translation": {"odoo_minversion": "18.0"},
-        "deprecated-inselect-operator": {"odoo_minversion": "18.0"},
-        "deprecated-name-get": {"odoo_minversion": "17.0"},
-        "manifest-summary-multiline": {"odoo_minversion": "20.0"},
-        "deprecated-self-cr": {"odoo_minversion": "19.0"},
-    }
-
     def __init__(self, linter: PyLinter):
         super().__init__(linter)
-        self._deprecated_odoo_methods = set()
-        self.deprecated_field_parameters = {}
         self._odoo_inherit_items = defaultdict(set)
 
     def close(self):
@@ -843,45 +463,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             return
         max_valid_version = max(odoo_versions)
         return max_valid_version
-
-    def open(self):
-        super().open()
-        self.deprecated_field_parameters = self.colon_list_to_dict(self.linter.config.deprecated_field_parameters)
-
-        if self.linter.config.deprecated_odoo_model_methods:
-            deprecated_model_methods = ast.literal_eval(self.linter.config.deprecated_odoo_model_methods)
-        else:
-            deprecated_model_methods = DFTL_DEPRECATED_ODOO_MODEL_METHODS
-
-        max_valid_version = self._get_max_valid_odoo_versions()
-        if max_valid_version is None:
-            warnings.warn(
-                f"Invalid manifest versions format {self.linter.config.valid_odoo_versions}. "
-                "It was not possible to supress checks based on particular odoo version",
-                UserWarning,
-                stacklevel=2,
-            )
-            return
-        for version, checks in deprecated_model_methods.items():
-            if misc.version_parse(version) <= max_valid_version:
-                self._deprecated_odoo_methods.update(checks)
-
-    def colon_list_to_dict(self, colon_list):
-        """Converts a colon list to a dictionary.
-
-        :param colon_list: A list of strings representing keys and values,
-            separated with a colon. If a key doesn't have a value, keep the
-            right side of the colon empty.
-        :type colon_list: list
-        :returns: A dictionary with the values assigned to corresponding keys.
-        :rtype: dict
-
-        :Example:
-
-        self.colon_list_to_dict(['colon:list', 'empty_key:'])
-        {'colon': 'list', 'empty_key': ''}
-        """
-        return dict(item.split(":") for item in colon_list)
 
     def _sqli_allowable(self, node):
         # sql.SQL or sql.Identifier is OK
@@ -1056,173 +637,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         )
         return lib_original_func_name
 
-    def _get_field_arg_string(self, node):
-        """Extract the ``string`` label value from a field definition AST node.
-
-        This method inspects a field constructor call (e.g. ``fields.Char(...)``)
-        and attempts to retrieve the human-readable label (``string``) either from:
-
-        - A positional argument, based on the expected position defined in
-        ``FIELDS_METHOD`` for the given field type.
-        - A keyword argument explicitly named ``string``.
-
-        If the ``string`` value cannot be found, ``None`` is returned.
-
-        :param node: AST node representing a field constructor call.
-        :type node: ast.Call
-        :return: The extracted string value or ``None`` if not present.
-        :rtype: str | None
-        """
-        field_class_name = node.func.attrname
-        field_args = getattr(node, "args", None) or []
-        field_kwargs = getattr(node, "keywords", None) or []
-        pos_str = FIELDS_METHOD.get(field_class_name, 0)
-        try:
-            string_arg = field_args[pos_str]
-            return self._get_str_value(string_arg)
-        except IndexError:
-            field_kwarg = next((kw for kw in field_kwargs if kw.arg == "string"), None)
-            return self._get_str_value(field_kwarg and field_kwarg.value)
-
     @utils.only_required_for_messages(
-        "attribute-string-redundant",
-        "bad-builtin-groupby",
-        "context-overridden",
         "external-request-timeout",
-        "inheritable-method-lambda",
-        "inheritable-method-string",
-        "invalid-commit",
-        "method-compute",
-        "method-inverse",
-        "method-search",
-        "no-search-all",
-        "no-write-in-compute",
-        "prefer-env-translation",
-        "print-used",
-        "renamed-field-parameter",
         "sql-injection",
-        "super-method-mismatch",
-        "translation-contains-variable",
-        "translation-field",
-        "translation-injection",
-        "translation-positional-used",
         "translation-required",
     )
     def visit_call(self, node):
-        if (
-            self.linter.is_message_enabled("print-used", node.lineno)
-            and isinstance(node.func, nodes.Name)
-            and node.func.name == "print"
-        ):
-            infer_node = utils.safe_infer(node.func)
-            if utils.is_builtin_object(infer_node) and infer_node.name == "print":
-                self.add_message("print-used", node=node)
-        if (
-            "fields" == self.get_func_lib(node.func)
-            and isinstance(node.parent, nodes.Assign)
-            and isinstance(node.parent.parent, nodes.ClassDef)
-        ):
-            args = self.join_node_args_kwargs(node)
-            index = 0
-            field_name = ""
-            if (
-                isinstance(node.parent, nodes.Assign)
-                and node.parent.targets
-                and isinstance(node.parent.targets[0], nodes.AssignName)
-            ):
-                field_name = node.parent.targets[0].name.removesuffix("_ids").removesuffix("_id").replace("_", " ")
-            is_related = any(kw.arg == "related" for kw in (node.keywords or []))
-            arg_string_value = self._get_field_arg_string(node)
-            if not is_related and arg_string_value == field_name.title():
-                # Check this 'name = fields.Char("name")'
-                # Check this 'name = fields.Char(string="name")'
-                self.add_message("attribute-string-redundant", node=node)
-            for argument in args:
-                argument_aux = argument
-                if isinstance(argument, nodes.Keyword):
-                    argument_aux = argument.value
-                    deprecated = self.deprecated_field_parameters
-                    value = self._get_str_value(argument_aux)
-                    if (
-                        argument.arg in ["compute", "search", "inverse"]
-                        and value is not None
-                        and not value.startswith("_" + argument.arg + "_")
-                    ):
-                        self.add_message("method-" + argument.arg, node=argument_aux)
-                    elif argument.arg in deprecated:
-                        self.add_message(
-                            "renamed-field-parameter", node=node, args=(argument.arg, deprecated[argument.arg])
-                        )
-                    # no write in compute method
-                    if (
-                        self.linter.is_message_enabled("no-write-in-compute", argument.lineno)
-                        and argument.arg == "compute"
-                        and isinstance(argument.value, (nodes.Const, nodes.Name))
-                    ):
-                        method_name = (
-                            argument.value.value
-                            if isinstance(argument.value, nodes.Const)
-                            else argument.value.name if isinstance(argument.value, nodes.Name) else None
-                        )
-                        if method_name and self.class_odoo_models:
-                            self.odoo_computes.add(method_name)
-                    if (
-                        self.linter.is_message_enabled("inheritable-method-string", node.lineno)
-                        and argument.arg in ["compute", "search", "inverse"]
-                        and isinstance(argument.value, nodes.Name)
-                    ):
-                        # Check if the value is a method of the class
-                        infered = utils.safe_infer(argument.value)
-                        if isinstance(infered, nodes.FunctionDef) and infered.is_method():
-                            self.add_message(
-                                "inheritable-method-string", node=argument.value, args=(argument.value.name,)
-                            )
-                    if (
-                        self.linter.is_message_enabled("inheritable-method-lambda", node.lineno)
-                        and argument.arg in ["default", "domain"]
-                        and isinstance(argument.value, nodes.Name)
-                    ):
-                        # Check if the value is a method of the class
-                        infered = utils.safe_infer(argument.value)
-                        if isinstance(infered, nodes.FunctionDef) and infered.is_method():
-                            self.add_message(
-                                "inheritable-method-lambda",
-                                node=argument.value,
-                                args=(
-                                    argument.arg,
-                                    argument.value.name,
-                                ),
-                            )
-
-                if (
-                    isinstance(argument_aux, nodes.Call)
-                    and self.get_func_name(argument_aux.func) in misc.TRANSLATION_METHODS
-                ):
-                    self.add_message("translation-field", node=argument_aux)
-                index += 1
-        # Check cr.commit()
-        if (
-            isinstance(node, nodes.Call)
-            and isinstance(node.func, nodes.Attribute)
-            and node.func.attrname == "commit"
-            and self.get_cursor_name(node.func) in self.linter.config.cursor_expr
-        ):
-            self.add_message("invalid-commit", node=node)
-
-        if (
-            isinstance(node, nodes.Call)
-            and isinstance(node.func, nodes.Attribute)
-            and node.func.attrname == "with_context"
-            and not node.keywords
-            and node.args
-            # support self.with_context(clean_context(self.env.context))
-            # does not support ctx = clean_context(self.env.context);self.with_context(ctx)
-            and self._static_func_infer_name(node.args[0]) != "odoo.tools.clean_context"
-        ):
-            # with_context(**ctx) is considered a keywords
-            # So, if only one args is received it is overridden
-            self.add_message("context-overridden", node=node, args=(node.args[0].as_string(),))
-
         # Call the message_post()
         base_dirname = os.path.basename(os.path.normpath(os.path.dirname(self.linter.current_file)))
         if (
@@ -1275,55 +695,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         "translation-required", node=node, args=("message_post", keyword, tl_method, as_string)
                     )
 
-        if (
-            isinstance(node.func, nodes.Attribute)
-            and self.get_func_name(node.func) == "format"
-            and isinstance(node.func.expr, nodes.Call)
-            and self.get_func_name(node.func.expr.func) in misc.TRANSLATION_METHODS
-        ):
-            # _(...).format(...)
-            # i.e. .format() is called on the result of the translation
-            # not to be confused with _(''.format(...)) is called before to translate
-            self.add_message("translation-injection", node=node)
-
-        # Call _(...) with variables into the term to be translated
-        if self.get_func_name(node.func) in misc.TRANSLATION_METHODS and node.args:
-            # "_" -> isinstance(node.func, nodes.Name)
-            # "self.env._" -> isinstance(node.func, nodes.Attribute)
-            if isinstance(node.func, nodes.Name) and node.func.as_string() in misc.TRANSLATION_METHODS:
-                self.add_message("prefer-env-translation", node=node)
-
-            wrong = ""
-            right = ""
-            arg = node.args[0]
-
-            # case: _('...' % (variables))
-            if isinstance(arg, nodes.BinOp) and arg.op == "%":
-                wrong = "%s %% %s" % (arg.left.as_string(), arg.right.as_string())
-                right = "_(%s) %% %s" % (arg.left.as_string(), arg.right.as_string())
-            # Case: _('...'.format(variables))
-            elif (
-                isinstance(arg, nodes.Call)
-                and isinstance(arg.func, nodes.Attribute)
-                and isinstance(arg.func.expr, nodes.Const)
-                and self.get_func_name(arg.func) == "format"
-            ):
-                wrong = arg.as_string()
-                params_as_string = ", ".join([x.as_string() for x in itertools.chain(arg.args, arg.keywords or [])])
-                right = "_(%s).format(%s)" % (arg.func.expr.as_string(), params_as_string)
-            if wrong and right:
-                self.add_message("translation-contains-variable", node=node, args=(wrong, right))
-
-            # translation-positional-used: Check "string to translate"
-            # to check "%s %s..." used where the position can't be changed
-            str2translate = arg.as_string()
-            printf_args = self._get_printf_str_args_kwargs(str2translate)
-            format_args = self._get_format_str_args_kwargs(str2translate)[0]
-            if isinstance(printf_args, tuple) and len(printf_args) >= 2 or len(format_args) >= 2:
-                # Return tuple for %s and dict for %(varname)s
-                # Check just the following cases "%s %s..."
-                self.add_message("translation-positional-used", node=node, args=(str2translate,))
-
         # SQL Injection
         if self._check_sql_injection_risky(node):
             self.add_message("sql-injection", node=node)
@@ -1338,107 +709,17 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     break
             else:
                 self.add_message("external-request-timeout", node=node, args=(lib_original_func_name,))
-        if self.linter.is_message_enabled("bad-builtin-groupby", node.lineno) and node.func.as_string().endswith(
-            "groupby"
-        ):
-            if node.func.as_string() == "itertools.groupby":
-                self.add_message("bad-builtin-groupby", node=node)
-            elif not node.func.as_string().endswith("tools.groupby"):
-                # infer node is heavy so discarding cases early to improve perf
-                infer_node = utils.safe_infer(node.func)
-                if infer_node and infer_node.qname() == "itertools.groupby":
-                    self.add_message("bad-builtin-groupby", node=node)
-        if (
-            self.linter.is_message_enabled("no-search-all", node.lineno)
-            # only odoo valid structure class -> def -> search()
-            and isinstance(node.scope(), nodes.FunctionDef)
-            and isinstance(node.scope().parent, nodes.ClassDef)
-            and self.get_odoo_models_class(node.scope().parent)
-            and self.get_func_name(node.func) in ("search", "search_read")
-            and (node.args or node.keywords)
-        ):
-            if node.args:
-                domain = node.args[0]
-            else:
-                domain = next((kw.value for kw in node.keywords if kw.arg == "domain"), None)
-            if domain:
-                empty_domain = False
-                if isinstance(domain, nodes.List) and not domain.elts:
-                    # search([])
-                    # search(domain=[])
-                    empty_domain = True
-                elif isinstance(domain, nodes.Name):
-                    # domain=[]; search(domain)
-                    # domain=[]; search(domain=domain)
-
-                    domain_assignation = utils.safe_infer(domain)
-                    if (
-                        domain_assignation is not None
-                        and isinstance(domain_assignation, nodes.List)
-                        # empty list. Infer consider domain += ... with values not needed look for nodes.AugAssign
-                        and not domain_assignation.elts
-                        # assigned the domain in the same method than search call
-                        and domain_assignation.scope() == node.scope()
-                    ):
-                        empty_domain = True
-                        for subnode in node.scope().nodes_of_class(nodes.Call):
-                            if (
-                                # only get nodes between assignation domain=... to use in search(domain)
-                                # not consider DOMAIN_EMPTY global variables in order to avoid
-                                # looking for in the whole code since it could be slow and complex
-                                # to detect an "append"
-                                domain_assignation.lineno <= subnode.lineno <= node.lineno
-                                and self.get_func_lib(subnode.func) == domain.name
-                                and self.get_func_name(subnode.func) in ("append", "extend", "insert")
-                            ):
-                                # Consider domain.append(), domain.extend(), domain.insert()
-                                empty_domain = False
-                                break
-                limit_or_count = (
-                    any(kw.arg in ("limit", "count") for kw in node.keywords)
-                    or len(node.args) >= 3
-                    or (self.get_func_name(node.func) == "search" and len(node.args) >= 5)
-                )
-                if empty_domain and not limit_or_count:
-                    self.add_message("no-search-all", node=node, args=(self.get_func_name(node.func),))
-        if (
-            isinstance(node.func, nodes.Attribute)
-            and isinstance(node.func.expr, nodes.Call)
-            and (func := node.func.expr.func)
-            and self.get_func_name(func) == "super"
-            and (frame := node.frame())
-            and isinstance(frame, nodes.FunctionDef)
-            and isinstance(frame.parent.frame(), nodes.ClassDef)
-            and isinstance(func.parent, nodes.Call)
-        ):
-            meth_called = self.get_func_name(node.func)
-            meth_defined = frame.name
-            if meth_called != meth_defined and "queue" not in meth_defined and "cache" not in meth_defined:
-                self.add_message("super-method-mismatch", node=node, args=(meth_called, meth_defined))
 
     @utils.only_required_for_messages(
         "category-allowed-app",
         "category-allowed",
-        "development-status-allowed",
-        "invalid-email",
-        "license-allowed",
-        "manifest-author-string",
         "manifest-behind-migrations",
         "manifest-data-duplicated",
-        "manifest-deprecated-key",
-        "manifest-external-assets",
-        "manifest-maintainers-list",
-        "manifest-required-author",
         "manifest-required-key-app",
-        "manifest-required-key",
-        "manifest-summary-multiline",
-        "manifest-superfluous-key",
         "manifest-version-format",
         "missing-odoo-file-app",
         "missing-odoo-file",
-        "missing-readme",
         "resource-not-exist",
-        "website-manifest-key-not-valid-uri",
     )
     def visit_dict(self, node):
         if not os.path.basename(self.linter.current_file) in misc.MANIFEST_FILES or not isinstance(
@@ -1454,48 +735,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         manifest_keys_nodes = {
             key_node.value: key_node for key_node, _value in node.items if isinstance(key_node, nodes.Const)
         }
-
-        # Check author is a string
-        author = manifest_dict.get("author", "")
-        if not isinstance(author, str):
-            self.add_message("manifest-author-string", node=manifest_keys_nodes.get("author") or node)
-        else:
-            # Check author required
-            authors = {auth.strip() for auth in author.split(",")}
-
-            required_authors = set(self.linter.config.manifest_required_authors)
-            if not authors & required_authors:
-                # None of the required authors is present in the manifest
-                # Authors will be printed as 'author1', 'author2', ...
-                authors_str = ", ".join(["'%s'" % auth for auth in required_authors])
-                self.add_message(
-                    "manifest-required-author", node=manifest_keys_nodes.get("author") or node, args=(authors_str,)
-                )
-
-        # Check keys required
-        required_keys = self.linter.config.manifest_required_keys
-        for required_key in required_keys:
-            if required_key not in manifest_dict:
-                self.add_message(
-                    "manifest-required-key",
-                    node=node,
-                    args=(required_key,),
-                )
-
-        # Check keys deprecated
-        deprecated_keys = self.linter.config.manifest_deprecated_keys
-        for deprecated_key in deprecated_keys:
-            if deprecated_key in manifest_dict:
-                self.add_message(
-                    "manifest-deprecated-key",
-                    node=manifest_keys_nodes.get(deprecated_key) or node,
-                    args=(deprecated_key,),
-                )
-
-        # Check license allowed
-        license_str = manifest_dict.get("license", None)
-        if license_str and license_str not in self.linter.config.license_allowed:
-            self.add_message("license-allowed", node=manifest_keys_nodes.get("license") or node, args=(license_str,))
 
         # Check category allowed
         category_str = manifest_dict.get("category")
@@ -1562,63 +801,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 if os.path.isfile(os.path.join(dirname, resource)):
                     continue
                 self.add_message("resource-not-exist", node=fname_str_node, args=(key, resource))
-                # Check missing readme
-
-        if not any(os.path.isfile(os.path.join(dirname, readme)) for readme in misc.README_FILES):
-            self.add_message("missing-readme", args=(self.linter.config.readme_template_url,), node=node)
-
-        # Check if the website is valid URI
-        website = manifest_dict.get("website") or ""
-        msg = ""
-        url_is_valid = False
-        try:
-            url_is_valid = misc.validate_url(website)
-        except misc.InvalidURL as url_exc:
-            msg = str(url_exc)
-        if website and not url_is_valid:
-            self.add_message(
-                "website-manifest-key-not-valid-uri",
-                node=manifest_keys_nodes.get("website") or node,
-                args=(website, msg),
-            )
-
-        # Check if the email is valid
-        if (email_support := manifest_dict.get("support")) and not misc.validate_email(email_support):
-            self.add_message("invalid-email", node=manifest_keys_nodes.get("support") or node, args=(email_support,))
-
-        # Check valid development_status values
-        dev_status = manifest_dict.get("development_status")
-        if dev_status and dev_status not in self.linter.config.development_status_allowed:
-            valid_status = ", ".join(self.linter.config.development_status_allowed)
-            self.add_message(
-                "development-status-allowed",
-                node=manifest_keys_nodes.get("development_status") or node,
-                args=(dev_status, valid_status),
-            )
-
-        # Check maintainers key is a list of strings
-        maintainers = manifest_dict.get("maintainers")
-        if maintainers and (
-            not isinstance(maintainers, list) or any(not isinstance(item, str) for item in maintainers)
-        ):
-            self.add_message("manifest-maintainers-list", node=manifest_keys_nodes.get("maintainers") or node)
-
-        # Check summary is a single line
-        summary = manifest_dict.get("summary")
-        if isinstance(summary, str) and "\n" in summary:
-            self.add_message("manifest-summary-multiline", node=manifest_keys_nodes.get("summary") or node)
-
-        # Check there are no external assets
-        if self.linter.is_message_enabled("manifest-external-assets"):
-            assets_node = None
-            for item in node.items:
-                if item[0].value == "assets":
-                    assets_node = item[1]
-
-            # it is important to use the actual astroid.node instead of manifest_dict, otherwise the
-            # errors are not attributed to the proper node.
-            if assets_node:
-                self._check_manifest_external_assets(assets_node)
 
         if "price" in manifest_dict:
             # manifest has "price" so it is an App
@@ -1664,71 +846,13 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     node=manifest_keys_nodes.get("category") or node,
                     args=(category_str,),
                 )
-        if self.linter.is_message_enabled("manifest-superfluous-key"):
-            for key, value in manifest_dict.items():
-                if (not value and key not in self.linter.config.manifest_keys_values_true) or (
-                    value and key in self.linter.config.manifest_keys_values_true
-                ):
-                    self.add_message(
-                        "manifest-superfluous-key",
-                        node=manifest_keys_nodes.get(key) or node,
-                        args=(key, value),
-                    )
-
-    def _check_manifest_external_assets(self, node):
-        def is_external_url(url):
-            return urlparse(url).scheme
-
-        for _, item in node.items:
-            for element in item.elts:
-                if (value := self._get_str_value(element)) is not None:
-                    if is_external_url(value):
-                        self.add_message("manifest-external-assets", node=element, args=(value,))
-                elif isinstance(element, (nodes.Tuple, nodes.List)):
-                    for entry in element.elts:
-                        if isinstance(entry, nodes.Const) and is_external_url(entry.value):
-                            self.add_message("manifest-external-assets", node=element, args=(entry.value,))
-
-    def check_deprecated_odoo_method(self, node: nodes.NodeNG) -> bool:
-        """Verify the given method is not marked as deprecated under the set Odoo versions.
-        :param node: Function definition to be checked
-        :return: True if the method is deprecated, false otherwise.
-        """
-        try:
-            if not self.get_odoo_models_class(node.parent):
-                return False
-        except AttributeError:
-            return False
-
-        return node.name in self._deprecated_odoo_methods
 
     @utils.only_required_for_messages(
-        "deprecated-name-get",
-        "deprecated-odoo-model-method",
-        "method-required-super",
-        "missing-return",
         "prohibited-method-override",
     )
     def visit_functiondef(self, node):
-        """Check that `api.one` and `api.multi` decorators not exists together
-        Check that method `copy` exists `api.one` decorator
-        Check deprecated `api.one`.
-        """
         if not node.is_method():
             return
-
-        if self.is_odoo_message_enabled("deprecated-odoo-model-method") and self.check_deprecated_odoo_method(node):
-            self.add_message("deprecated-odoo-model-method", node=node, args=(node.name,))
-        if self.is_odoo_message_enabled("deprecated-name-get") and node.name == "name_get":
-            self.add_message("deprecated-name-get", node=node)
-        if node.name in self.linter.config.method_required_super:
-            calls = [
-                call_func.func.name
-                for call_func in node.nodes_of_class((nodes.Call,))
-                if isinstance(call_func.func, nodes.Name)
-            ]
-            if "super" not in calls:
-                self.add_message("method-required-super", node=node, args=(node.name,))
 
         there_is_super = False
         for stmt in node.nodes_of_class(nodes.Call):
@@ -1749,55 +873,20 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 ):
                     self.add_message("prohibited-method-override", node=node, args=(attr.attrname,))
 
-        there_is_return = any(node.nodes_of_class(nodes.Return, skip_klass=(nodes.FunctionDef, nodes.ClassDef)))
-        if (
-            there_is_super
-            and not there_is_return
-            and not node.is_generator()
-            and node.name not in self.linter.config.no_missing_return
-        ):
-            self.add_message("missing-return", node=node, args=(node.name,))
-
     @utils.only_required_for_messages(
-        "context-overridden",
         "external-request-timeout",
-        "odoo-addons-relative-import",
-        "test-folder-imported",
     )
     def visit_import(self, node):
         self._from_imports.update({alias or name: "%s" % name for name, alias in node.names})
-        self.check_odoo_relative_import(node)
-        self.check_folder_test_imported(node)
 
     @utils.only_required_for_messages(
-        "context-overridden",
         "external-request-timeout",
-        "odoo-addons-relative-import",
-        "odoo-exception-warning",
-        "test-folder-imported",
     )
     def visit_importfrom(self, node):
-        if node.modname == "odoo.exceptions":
-            for import_name, _import_as_name in node.names:
-                if import_name == "Warning":
-                    self.add_message("odoo-exception-warning", node=node)
         self._from_imports.update({alias or name: "%s.%s" % (node.modname, name) for name, alias in node.names})
-        self.check_odoo_relative_import(node)
-        self.check_folder_test_imported(node)
 
-    @utils.only_required_for_messages(
-        "attribute-deprecated", "consider-merging-classes-inherited", "no-wizard-in-models"
-    )
+    @utils.only_required_for_messages("consider-merging-classes-inherited", "no-wizard-in-models")
     def visit_assign(self, node):
-        node_left = node.targets[0]
-        if (
-            self.linter.is_message_enabled("attribute-deprecated", node.lineno)
-            and isinstance(node.parent, nodes.ClassDef)
-            and isinstance(node_left, nodes.AssignName)
-            and [1 for m in node.parent.basenames if "Model" in m]
-        ):
-            if node_left.name in self.linter.config.attribute_deprecated:
-                self.add_message("attribute-deprecated", node=node_left, args=(node_left.name,))
         if self.linter.is_message_enabled(
             "consider-merging-classes-inherited", node.lineno
         ) or self.linter.is_message_enabled("no-wizard-in-models"):
@@ -1841,25 +930,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             return node.expr.name
         return ""
 
-    @staticmethod
-    def _is_unlink(node: nodes.FunctionDef) -> bool:
-        parent = getattr(node, "parent", False)
-        return (
-            isinstance(parent, nodes.ClassDef)
-            and ("_name" in parent.locals or "_inherit" in parent.locals)
-            and node.name == "unlink"
-        )
-
-    @staticmethod
-    def get_enclosing_function(node: nodes.NodeNG, depth=10):
-        parent = getattr(node, "parent", False)
-        for _i in range(depth):
-            if not parent or isinstance(parent, nodes.FunctionDef):
-                break
-            parent = parent.parent
-
-        return parent
-
     def check_translation_required(self, node):
         """Search methods with an untranslated string parameter.
         Wrong:  ``raise UserError('My String')``
@@ -1891,15 +961,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 tl_method = "self.env._"
             self.add_message("translation-required", node=node, args=(func_name, "", tl_method, argument.as_string()))
 
-    @utils.only_required_for_messages("translation-required", "no-raise-unlink")
+    @utils.only_required_for_messages("translation-required")
     def visit_raise(self, node):
-        if self.linter.is_message_enabled("no-raise-unlink"):
-            function = self.get_enclosing_function(node)
-            if self._is_unlink(function):
-                self.add_message("no-raise-unlink", node=node)
-
-        if self.linter.is_message_enabled("translation-required"):
-            self.check_translation_required(node)
+        self.check_translation_required(node)
 
     def get_cursor_name(self, node):
         expr_list = []
@@ -1927,189 +991,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         args = (getattr(node, "args", None) or []) + (getattr(node, "keywords", None) or [])
         return args
 
-    @staticmethod
-    def _get_format_str_args_kwargs(format_str):
-        """Get dummy args and kwargs of a format string
-        e.g. format_str = '{} {} {variable}'
-            dummy args = (0, 0)
-            kwargs = {'variable': 0}
-        return args, kwargs
-        Motivation to use format_str.format(*args, **kwargs)
-        and validate if it was parsed correctly
-        """
-        format_str_args = []
-        format_str_kwargs = {}
-        placeholders = []
-        for line in format_str.splitlines():
-            try:
-                placeholders.extend(name for _, name, _, _ in string.Formatter().parse(line) if name is not None)
-            except ValueError:
-                continue
-            for placeholder in placeholders:
-                if not placeholder:
-                    # unnumbered "{} {}"
-                    # append 0 to use max(0, 0, ...) == 0
-                    # and identify that all args are unnumbered vs numbered
-                    format_str_args.append(0)
-                elif placeholder.isdigit():
-                    # numbered "{0} {1} {2} {0}"
-                    # append +1 to use max(1, 2) and know the quantity of args
-                    # and identify that the args are numbered
-                    format_str_args.append(int(placeholder) + 1)
-                else:
-                    # named "{var0} {var1} {var2} {var0}"
-                    format_str_kwargs[placeholder] = 0
-        if format_str_args:
-            format_str_args = range(len(format_str_args)) if not max(format_str_args) else range(max(format_str_args))
-        return format_str_args, format_str_kwargs
-
-    @staticmethod
-    def _get_printf_str_args_kwargs(printf_str):
-        """Get dummy args and kwargs of a printf string
-        e.g. printf_str = '%s %d'
-            dummy args = ('', 0)
-        e.g. printf_str = '%(var1)s %(var2)d'
-            dummy kwargs = {'var1': '', 'var2': 0}
-        return args or kwargs
-        Motivation to use printf_str % (args or kwargs)
-        and validate if it was parsed correctly
-        """
-        args = []
-        kwargs = {}
-
-        # Remove all escaped %%
-        printf_str = re.sub("%%", "", printf_str)
-        for line in printf_str.splitlines():
-            for match in PRINTF_PATTERN.finditer(line):
-                match_items = match.groupdict()
-                var = "" if match_items["type"] == "s" else 0
-                if match_items["key"] is None:
-                    args.append(var)
-                else:
-                    kwargs[match_items["key"]] = var
-        return tuple(args) or kwargs
-
-    @utils.only_required_for_messages("except-pass")
-    def visit_try(self, node):
-        """Visit block try except"""
-        for handler in node.handlers:
-            if not handler.name and len(handler.body) == 1 and isinstance(handler.body[0], nodes.node_classes.Pass):
-                self.add_message("except-pass", node=handler)
-
-    def _get_odoo_module_imported(self, node, manifest_path):
-        if hasattr(node.parent, "file"):
-            relpath = os.path.relpath(node.parent.file, os.path.dirname(manifest_path))
-            if os.path.dirname(relpath) == "tests":
-                # import errors rules don't apply to the test files
-                # since these files are loaded only when running tests
-                # and in such a case your
-                # module and their external dependencies are installed.
-                return []
-        odoo_module = []
-        if isinstance(node, nodes.ImportFrom) and "odoo.addons" in node.modname:
-            packages = node.modname.split(".")
-            if len(packages) >= 3:
-                # from odoo.addons.odoo_module import models
-                odoo_module.append(packages[2])
-            else:
-                # from odoo.addons import odoo_module
-                odoo_module.append(node.names[0][0])
-        elif isinstance(node, nodes.Import):
-            for name, _ in node.names:
-                if "odoo.addons" not in name and "odoo.addons" not in name:
-                    continue
-                packages = name.split(".")
-                if len(packages) >= 3:
-                    # import odoo.addons.odoo_module
-                    odoo_module.append(packages[2])
-        return odoo_module
-
-    def check_odoo_relative_import(self, node):
-        if not self.linter.is_message_enabled("odoo-addons-relative-import", node.lineno):
-            return
-        node_dirpath = os.path.dirname(node.root().file)
-        if os.path.basename(os.path.dirname(node_dirpath)) == "migrations":
-            return
-
-        manifest_path = misc.walk_up(node_dirpath, tuple(misc.MANIFEST_FILES), misc.top_path(node_dirpath))
-        if not manifest_path:
-            return
-        odoo_module_name = os.path.basename(os.path.dirname(manifest_path))
-        if odoo_module_name in self._get_odoo_module_imported(node, manifest_path):
-            self.add_message("odoo-addons-relative-import", node=node, args=(odoo_module_name,))
-
-    def check_folder_test_imported(self, node):
-        if not self.linter.is_message_enabled("test-folder-imported", node.lineno):
-            return
-        if hasattr(node.parent, "file") and os.path.basename(node.parent.file) == "__init__.py":
-            package_names = []
-            if isinstance(node, nodes.ImportFrom):
-                if node.modname:
-                    # from .tests import test_file
-                    package_names = node.modname.split(".")[:1]
-                else:
-                    # from . import tests
-                    package_names = [name for name, alias in node.names]
-            elif isinstance(node, nodes.Import):
-                package_names = [name[0].split(".")[0] for name in node.names]
-            if "tests" in package_names:
-                self.add_message("test-folder-imported", node=node, args=(node.parent.name,))
-
-    def check_no_write_compute(self, node, method_name):
-        for node_function_def in node.nodes_of_class(nodes.FunctionDef):
-            if node_function_def.name != method_name:
-                continue
-            for node_compute_call in node_function_def.nodes_of_class(nodes.Call):
-                if (
-                    not self.linter.is_message_enabled("no-write-in-compute", node_compute_call.lineno)
-                    or self.get_func_name(node_compute_call.func) != "write"
-                ):
-                    continue
-                if self.get_func_lib(node_compute_call.func) == "self":
-                    # self.write(...)
-                    self.add_message("no-write-in-compute", node=node_compute_call)
-                    continue
-                _root_assignation_node, root_assignation_name = self._get_root_method_assignation(node_compute_call)
-                # TODO: Support "browse(2) | browse(1)"
-                if root_assignation_name in [
-                    # All methods returning browseables
-                    "self.browse",
-                    "self.copy",
-                    "self.env",
-                    "self.filtered",
-                    "self.filtered_domain",
-                    "self.mapped",
-                    "self.search",
-                    "self.sorted",
-                    "self",
-                ] or root_assignation_name.startswith("self.with_"):
-                    self.add_message("no-write-in-compute", node=node_compute_call)
-
-    def _get_root_method_assignation(self, node, libname=None):
-        new_node = node
-        new_libname = libname
-        if isinstance(node, nodes.Call):
-            new_node = node.func
-        elif isinstance(node, nodes.Subscript):
-            new_node = node.value
-        elif isinstance(node, nodes.AssignName):
-            new_node = node.parent
-        elif isinstance(node, nodes.Assign):
-            new_node = node.value
-        elif isinstance(node, nodes.For):
-            new_node = node.iter
-            new_libname = node.iter.as_string()
-        elif isinstance(node, nodes.Attribute):
-            new_node = node.expr
-            new_libname = node.as_string()
-        elif isinstance(node, nodes.Name):
-            if node.name == "self":
-                return node, libname
-            new_node = node.lookup(node.name)[1][-1]
-        if new_node == node:
-            return new_node, new_libname
-        return self._get_root_method_assignation(new_node, new_libname)
-
     def get_odoo_models_class(self, node):
         for class_base in node.bases:
             attr = class_base
@@ -2136,22 +1017,15 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     @utils.only_required_for_messages(
         "no-wizard-in-models",
-        "no-write-in-compute",
-        "deprecated-self-cr",
     )
     def visit_classdef(self, node):
         self.class_odoo_models = self.get_odoo_models_class(node)
-        self.odoo_computes = set()
 
     @utils.only_required_for_messages(
         "no-wizard-in-models",
-        "no-write-in-compute",
-        "deprecated-self-cr",
     )
     def leave_classdef(self, node):
         if self.class_odoo_models:
-            for odoo_compute in self.odoo_computes:
-                self.check_no_write_compute(node, odoo_compute)
             if (
                 self.linter.is_message_enabled("no-wizard-in-models", self.class_odoo_models[1].lineno)
                 and self.class_odoo_models[0] == "TransientModel"
@@ -2159,25 +1033,4 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 and not getattr(node, "odoo_attribute_inherit", "").startswith("res.config")
             ):
                 self.add_message("no-wizard-in-models", node=self.class_odoo_models[1])
-        self.odoo_computes = set()
         self.class_odoo_models = False
-
-    @utils.only_required_for_messages("deprecated-inselect-operator")
-    def visit_const(self, node: nodes.Const) -> None:
-        if isinstance(node.value, str) and self.linter.is_message_enabled("deprecated-inselect-operator", node.lineno):
-            val_lower = node.value.lower()
-            if val_lower in ("inselect", "not inselect"):
-                self.add_message("deprecated-inselect-operator", node=node, args=(node.value,))
-
-    @utils.only_required_for_messages(
-        "deprecated-self-cr",
-    )
-    def visit_attribute(self, node: nodes.Attribute) -> None:
-        if (
-            self.linter.is_message_enabled("deprecated-self-cr", node.lineno)
-            and node.attrname == "_cr"
-            and isinstance(node.expr, nodes.Name)
-            and node.expr.name == "self"
-            and self.class_odoo_models
-        ):
-            self.add_message("deprecated-self-cr", node=node)
