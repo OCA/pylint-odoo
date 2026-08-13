@@ -5,8 +5,6 @@ from types import CodeType
 
 import dill
 
-MANIFEST_DATA_KEYS = ["data", "demo", "demo_xml", "init_xml", "test", "update_xml"]
-
 MANIFEST_FILES = [
     "__manifest__.py",
     "__odoo__.py",

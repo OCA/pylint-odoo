@@ -38,20 +38,14 @@ def dill_supports_code_objects():
 EXPECTED_ERRORS = {
     "category-allowed-app": 1,
     "consider-merging-classes-inherited": 3,
-    "external-request-timeout": 51,
     "manifest-behind-migrations": 3,
-    "manifest-data-duplicated": 1,
     "manifest-required-key-app": 5,
     "manifest-version-format": 3,
     "missing-odoo-file-app": 1,
-    "no-wizard-in-models": 1,
-    "resource-not-exist": 4,
-    "sql-injection": 21,
     "translation-format-interpolation": 22,
     "translation-format-truncated": 2,
     "translation-fstring-interpolation": 3,
     "translation-not-lazy": 42,
-    "translation-required": 16,
     "translation-too-few-args": 2,
     "translation-too-many-args": 2,
     "translation-unsupported-format": 2,
@@ -290,36 +284,6 @@ class TestMain:
             "unused-argument": 2,
         }
         self.assert_dict_equal(real_errors, expected_errors)
-
-    @pytest.mark.skipif(sys.platform.startswith("win"), reason="TODO: Fix with windows")  # TODO: Fix it
-    def test_145_check_fstring_sqli(self):
-        """Verify the linter is capable of finding SQL Injection vulnerabilities
-        when using fstrings.
-        Related to https://github.com/OCA/pylint-odoo/issues/363"""
-        extra_params = ["--disable=all", "--enable=sql-injection"]
-        queries = """
-def fstring_sqli(self):
-   self.env.cr.execute(f"SELECT * FROM TABLE WHERE SQLI = {self.table}")
-   self.env.cr.execute(
-       f"SELECT * FROM TABLE WHERE SQLI = {'hello' + self.name}"
-   )
-   self.env.cr.execute(f"SELECT * FROM {self.name} WHERE SQLI = {'hello'}")
-   death_wish = f"SELECT * FROM TABLE WHERE SQLI = {self.name}"
-   self.env.cr.execute(death_wish)
-def fstring_no_sqli(self):
-   self.env.cr.execute(f"SELECT * FROM TABLE WHERE SQLI = {'hello'}")
-   self.env.cr.execute(
-       f"CREATE VIEW {self._table} AS (SELECT * FROM res_partner)"
-   )
-   self.env.cr.execute(f"SELECT NAME FROM res_partner LIMIT 10")
-           """
-        with NamedTemporaryFile(mode="w") as tmp_f:
-            tmp_f.write(queries)
-            tmp_f.flush()
-            pylint_res = self.run_pylint([tmp_f.name], extra_params)
-
-        real_errors = pylint_res.linter.stats.by_msg
-        self.assert_dict_equal(real_errors, {"sql-injection": 4})
 
     @pytest.mark.parametrize("expected_error_name", EXPECTED_ERRORS)
     def test_150_check_only_enabled_one_check(self, expected_error_name):

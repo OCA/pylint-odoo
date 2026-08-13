@@ -1176,7 +1176,7 @@ class TestModel4(
 
 
 class TestModel5(
-    odoo.models.TransientModel):  # pylint: disable=no-wizard-in-models
+    odoo.models.TransientModel):
     # Valid no-wizard-in-model
     _inherit = "my.transient.model"
 

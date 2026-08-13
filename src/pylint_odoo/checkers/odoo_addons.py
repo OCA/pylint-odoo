@@ -98,10 +98,9 @@ for more info visit pylint doc
 """
 
 import ast
-import itertools
 import os
 import re
-from collections import Counter, defaultdict
+from collections import defaultdict
 
 from astroid import nodes
 from pylint.checkers import BaseChecker, utils
@@ -121,17 +120,6 @@ ODOO_MSGS = {
     "C8106": (
         'Wrong Version Format "%s" in manifest file. Regex to match: "%s"',
         "manifest-version-format",
-        CHECK_DESCRIPTION,
-    ),
-    "C8107": (
-        'String parameter on "%s" requires translation. Use %s%s(%s)',
-        "translation-required",
-        CHECK_DESCRIPTION,
-    ),
-    "C8113": (
-        "No wizard class for model directory. See the complete structure "
-        "https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#complete-structure",
-        "no-wizard-in-models",
         CHECK_DESCRIPTION,
     ),
     "C8114": ('Category "%s" not allowed in manifest file.', "category-allowed", CHECK_DESCRIPTION),
@@ -155,34 +143,17 @@ ODOO_MSGS = {
         "manifest-required-key-app",
         CHECK_DESCRIPTION,
     ),
-    "E8103": (
-        "SQL injection risk. Use parameters if you can. - More info "
-        "https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection",
-        "sql-injection",
-        CHECK_DESCRIPTION,
-    ),
-    "E8106": (
-        "Use of external request method `%s` without timeout. It could wait for a long time",
-        "external-request-timeout",
-        CHECK_DESCRIPTION,
-    ),
     "E8145": (
         "Manifest version (%s) is lower than migration scripts (%s)",
         "manifest-behind-migrations",
         "Update your manifest version, otherwise the migration script won't run",
     ),
-    "F8101": ('File "%s": "%s" not found.', "resource-not-exist", CHECK_DESCRIPTION),
     "R8180": (
         'Consider merging classes inherited to "%s" from %s.',
         "consider-merging-classes-inherited",
         CHECK_DESCRIPTION,
     ),
     "W8107": ('Prohibited override of "%s" method.', "prohibited-method-override", CHECK_DESCRIPTION),
-    "W8125": (
-        'The file "%s" is duplicated in lines %s from manifest key "%s"',
-        "manifest-data-duplicated",
-        CHECK_DESCRIPTION,
-    ),
 }
 
 DFTL_MANIFEST_REQUIRED_KEYS = ["license"]
@@ -212,60 +183,12 @@ DFTL_CATEGORY_ALLOWED_APP = [
     "Website",
 ]
 DFTL_PROHIBITED_OVERRIDE_METHODS = []
-DFTL_CURSOR_EXPR = [
-    "cr",  # old api
-    "self._cr",  # new api
-    "self.cr",  # controllers and test
-    "self.env.cr",
-]
-DFTL_ODOO_EXCEPTIONS = [
-    # Extracted from odoo/exceptions.py of 16.0 and master
-    "AccessDenied",
-    "AccessError",
-    "CacheMiss",
-    "except_orm",
-    "MissingError",
-    "RedirectWarning",
-    "UserError",
-    "ValidationError",
-    "Warning",
-]
-DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS = [
-    "ftplib.FTP",
-    "http.client.HTTPConnection",
-    "http.client.HTTPSConnection",
-    "odoo.addons.iap.models.iap.jsonrpc",
-    "requests.delete",
-    "requests.get",
-    "requests.head",
-    "requests.options",
-    "requests.patch",
-    "requests.post",
-    "requests.put",
-    "requests.request",
-    "serial.Serial",
-    "smtplib.SMTP",
-    "suds.client.Client",
-    "urllib.request.urlopen",
-]
 
 
 class OdooAddons(OdooBaseChecker, BaseChecker):
-    _from_imports = None
     name = "odoolint"
     msgs = ODOO_MSGS
     options = (
-        (
-            "external-request-timeout-methods",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_EXTERNAL_REQUEST_TIMEOUT_METHODS,
-                "help": "List of library.method that must have a timeout "
-                "parameter defined, separated by a comma. "
-                'e.g. "requests.get,requests.post"',
-            },
-        ),
         (
             "manifest-required-keys",
             {
@@ -302,15 +225,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 "metavar": "<comma separated values>",
                 "default": DFTL_PROHIBITED_OVERRIDE_METHODS,
                 "help": "List of methods that have been marked as prohibited to override.",
-            },
-        ),
-        (
-            "odoo-exceptions",
-            {
-                "type": "csv",
-                "metavar": "<comma separated values>",
-                "default": DFTL_ODOO_EXCEPTIONS,
-                "help": "List of odoo exceptions separated by a comma.",
             },
         ),
         (
@@ -443,283 +357,14 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 args=(odoo_class_inherit, ", ".join(path_records)),
             )
 
-    def visit_module(self, node):
-        """Initizalize the cache to save the original library name
-        of all imported node
-        It is filled from "visit_importfrom" and "visit_import"
-        and it is used in "visit_call"
-        All these methods are these "visit_*" methods are called from pylint API
-        """
-        self._from_imports = {}
-
-    def leave_module(self, node):
-        """Clear variables"""
-        self._from_imports = {}
-
-    def _get_max_valid_odoo_versions(self):
-        odoo_versions = [misc.version_parse(odoo_version) for odoo_version in self.linter.config.valid_odoo_versions]
-        if () in odoo_versions:
-            # Empty value means odoo_version value could not be adapted
-            return
-        max_valid_version = max(odoo_versions)
-        return max_valid_version
-
-    def _sqli_allowable(self, node):
-        # sql.SQL or sql.Identifier is OK
-        if self._is_psycopg2_sql(node):
-            return True
-        if isinstance(node, nodes.FormattedValue):
-            if hasattr(node, "value"):
-                return self._sqli_allowable(node.value)
-            if hasattr(node, "values"):
-                return all(self._sqli_allowable(v) for v in node.values)
-        if isinstance(node, nodes.Call):
-            node = node.func
-        # self._thing is OK (mostly self._table), self._thing() also because
-        # it's a common pattern of reports (self._select, self._group_by, ...)
-        return (
-            isinstance(node, nodes.Attribute)
-            and isinstance(node.expr, nodes.Name)
-            and node.attrname.startswith("_")
-            # cr.execute('SELECT * FROM %s' % 'table') is OK
-            # since that is a constant and constant can not be injected
-            or isinstance(node, nodes.Const)
-        )
-
-    def _is_psycopg2_sql(self, node):
-        if isinstance(node, nodes.Name):
-            for assignation_node in self._get_assignation_nodes(node):
-                if self._is_psycopg2_sql(assignation_node):
-                    return True
-        if not isinstance(node, nodes.Call) or not isinstance(node.func, (nodes.Attribute, nodes.Name)):
-            return False
-        imported_name = node.func.as_string().split(".")[0]
-        imported_node = node.root().locals.get(imported_name)
-        # "from psycopg2 import *" not considered since that it is hard
-        # and there is another check detecting these kind of imports
-        if not imported_node:
-            return None
-        imported_node = imported_node[0]
-        if isinstance(imported_node, nodes.ImportFrom):
-            package_names = imported_node.modname.split(".")[:1]
-        elif isinstance(imported_node, nodes.Import):
-            package_names = [name[0].split(".")[0] for name in imported_node.names]
-        else:
-            return False
-        if "psycopg2" in package_names:
-            return True
-
-    def _check_node_for_sqli_risk(self, node):
-        if isinstance(node, nodes.BinOp) and node.op in ("%", "+"):
-            if isinstance(node.right, nodes.Tuple):
-                # execute("..." % (self._table, thing))
-                if not all(map(self._sqli_allowable, node.right.elts)):
-                    return True
-            elif isinstance(node.right, nodes.Dict):
-                # execute("..." % {'table': self._table}
-                if not all(self._sqli_allowable(v) for _, v in node.right.items):
-                    return True
-            elif not self._sqli_allowable(node.right):
-                # execute("..." % self._table)
-                return True
-
-            # Consider cr.execute('SELECT ' + operator + ' FROM table' + 'WHERE')"
-            # node.repr_tree()
-            # BinOp(
-            #    op='+',
-            #    left=BinOp(
-            #       op='+',
-            #       left=BinOp(
-            #          op='+',
-            #          left=Const(value='SELECT '),
-            #          right=Name(name='operator')),
-            #       right=Const(value=' FROM table')),
-            #    right=Const(value='WHERE'))
-            if not self._sqli_allowable(node.left) and self._check_node_for_sqli_risk(node.left):
-                return True
-
-        # check execute("...".format(self._table, table=self._table))
-        # ignore sql.SQL().format
-        if isinstance(node, nodes.Call) and isinstance(node.func, nodes.Attribute) and node.func.attrname == "format":
-            if not all(map(self._sqli_allowable, node.args or [])):
-                return True
-
-            if not all(self._sqli_allowable(keyword.value) for keyword in (node.keywords or [])):
-                return True
-
-        # Check fstrings (PEP 498). Only Python >= 3.6
-        if isinstance(node, nodes.JoinedStr):
-            if hasattr(node, "value"):
-                return self._sqli_allowable(node.value)
-            if hasattr(node, "values"):
-                return not all(self._sqli_allowable(v) for v in node.values)
-
-        return False
-
-    def _check_sql_injection_risky(self, node):
-        # Inspired from OCA/pylint-odoo project
-        # Thanks @moylop260 (Moises Lopez) & @nilshamerlinck (Nils Hamerlinck)
-        current_file_bname = os.path.basename(self.linter.current_file)
-        if not (
-            # .execute() or .executemany()
-            isinstance(node, nodes.Call)
-            and node.args
-            and isinstance(node.func, nodes.Attribute)
-            and node.func.attrname in ("execute", "executemany")
-            and
-            # cursor expr (see above)
-            self.get_cursor_name(node.func) in DFTL_CURSOR_EXPR
-            and
-            # cr.execute("select * from %s" % foo, [bar]) -> probably a good reason
-            # for string formatting
-            len(node.args) <= 1
-            and
-            # ignore in test files, probably not accessible
-            not current_file_bname.startswith("test_")
-        ):
-            return False
-        first_arg = node.args[0]
-        is_concatenation = self._check_node_for_sqli_risk(first_arg)
-        # if first parameter is a variable, check how it was built instead
-        if not is_concatenation:
-            for node_assignation in self._get_assignation_nodes(first_arg):
-                is_concatenation = self._check_node_for_sqli_risk(node_assignation)
-                if is_concatenation:
-                    break
-        return is_concatenation
-
-    def _get_assignation_nodes(self, node):
-        if isinstance(node, (nodes.Name, nodes.Subscript)):
-            # 1) look for parent method / controller
-            current = node
-            while current and not isinstance(current.parent, nodes.FunctionDef):
-                current = current.parent
-            if current:
-                parent = current.parent
-                # 2) check how was the variable built
-                for assign_node in parent.nodes_of_class(nodes.Assign):
-                    if assign_node.targets[0].as_string() == node.as_string():
-                        yield assign_node.value
-
-    def _get_str_value(self, node):
-        """Check if the node is str (constant) and get value or f-string get values"""
-        if isinstance(node, nodes.Const) and node.name == "str":
-            return node.value
-        if isinstance(node, nodes.JoinedStr):
-            value = ""
-            for val in node.values:
-                if isinstance(val, nodes.Const):
-                    value += val.value
-                else:
-                    value += "{}"
-            return value
-
-    def _static_func_infer_name(self, node):
-        """Get library.method_name
-        > from requests import request
-        > request.get()
-
-        It will return requests.request.get for the call node get()
-        """
-        if not isinstance(node, nodes.Call):
-            return
-        func = node.func
-        lib_alias = self.get_func_lib(func)
-        # Use dict "self._from_imports" to know the source library of the method
-        lib_original = self._from_imports.get(lib_alias) or lib_alias
-        func_name = self.get_func_name(func)
-        lib_original_func_name = (
-            # If it using "requests.request()"
-            f"{lib_original}.{func_name}"
-            if lib_original
-            # If it using "from requests import request;request()"
-            else self._from_imports.get(func_name)
-        )
-        return lib_original_func_name
-
-    @utils.only_required_for_messages(
-        "external-request-timeout",
-        "sql-injection",
-        "translation-required",
-    )
-    def visit_call(self, node):
-        # Call the message_post()
-        base_dirname = os.path.basename(os.path.normpath(os.path.dirname(self.linter.current_file)))
-        if (
-            base_dirname != "tests"
-            and isinstance(node, nodes.Call)
-            and isinstance(node.func, nodes.Attribute)
-            and node.func.attrname == "message_post"
-        ):
-            for arg in itertools.chain(node.args, node.keywords or []):
-                if isinstance(arg, nodes.Keyword):
-                    keyword = arg.arg
-                    value = arg.value
-                else:
-                    keyword = ""
-                    value = arg
-                if keyword and keyword not in ("subject", "body"):
-                    continue
-                as_string = ""
-                # case: message_post(body='String')
-                if isinstance(value, (nodes.Const, nodes.JoinedStr)):
-                    as_string = value.as_string()
-                # case: message_post(body='String %s' % (...))
-                elif (
-                    isinstance(value, nodes.BinOp)
-                    and value.op == "%"
-                    and isinstance(value.left, (nodes.Const, nodes.JoinedStr))
-                    # The right part is translatable only if it's a
-                    # function or a list of functions
-                    and not (
-                        isinstance(value.right, (nodes.Call, nodes.Tuple, nodes.List))
-                        and all(isinstance(child, nodes.Call) for child in getattr(value.right, "elts", []))
-                    )
-                ):
-                    as_string = value.left.as_string()
-                # case: message_post(body='String {...}'.format(...))
-                elif (
-                    isinstance(value, nodes.Call)
-                    and isinstance(value.func, nodes.Attribute)
-                    and isinstance(value.func.expr, (nodes.Const, nodes.JoinedStr))
-                    and value.func.attrname == "format"
-                ):
-                    as_string = value.func.expr.as_string()
-                if as_string:
-                    keyword = keyword and "%s=" % keyword
-                    tl_method = "_"
-                    max_valid_odoo_version = self._get_max_valid_odoo_versions()
-                    if max_valid_odoo_version is None or max_valid_odoo_version >= (18, 0):
-                        tl_method = "self.env._"
-                    self.add_message(
-                        "translation-required", node=node, args=("message_post", keyword, tl_method, as_string)
-                    )
-
-        # SQL Injection
-        if self._check_sql_injection_risky(node):
-            self.add_message("sql-injection", node=node)
-
-        # external-request-timeout
-        lib_original_func_name = self._static_func_infer_name(node)
-        if lib_original_func_name in self.linter.config.external_request_timeout_methods:
-            for argument in self.join_node_args_kwargs(node):
-                if not isinstance(argument, nodes.Keyword):
-                    continue
-                if argument.arg == "timeout":
-                    break
-            else:
-                self.add_message("external-request-timeout", node=node, args=(lib_original_func_name,))
-
     @utils.only_required_for_messages(
         "category-allowed-app",
         "category-allowed",
         "manifest-behind-migrations",
-        "manifest-data-duplicated",
         "manifest-required-key-app",
         "manifest-version-format",
         "missing-odoo-file-app",
         "missing-odoo-file",
-        "resource-not-exist",
     )
     def visit_dict(self, node):
         if not os.path.basename(self.linter.current_file) in misc.MANIFEST_FILES or not isinstance(
@@ -777,31 +422,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 except misc.InvalidVersion:
                     continue
 
-        # Check if resource exist
-        # Check manifest-data-duplicated
         dirname = os.path.dirname(self.linter.current_file)
-        for key in set(misc.MANIFEST_DATA_KEYS) & set(manifest_dict.keys()):
-            list_node = node.getitem(manifest_keys_nodes.get(key))
-            fname_str_nodes = defaultdict(list)
-            for str_node in getattr(list_node, "elts", []):
-                fname_str_nodes[str_node.value].append(str_node)
-            for resource, coincidences in Counter(manifest_dict.get(key) or []).items():
-                fname_str_node = (
-                    fname_str_nodes.get(resource)[0] if len(fname_str_nodes.get(resource) or []) >= 1 else node
-                )
-                if coincidences >= 2:
-                    lines_str = ", ".join(
-                        f"{fname_str_node.lineno}" for fname_str_node in (fname_str_nodes.get(resource) or [])[1:]
-                    )
-                    self.add_message(
-                        "manifest-data-duplicated",
-                        node=fname_str_node,
-                        args=(resource, lines_str, key),
-                    )
-                if os.path.isfile(os.path.join(dirname, resource)):
-                    continue
-                self.add_message("resource-not-exist", node=fname_str_node, args=(key, resource))
-
         if "price" in manifest_dict:
             # manifest has "price" so it is an App
             app_required_keys = set(self.linter.config.manifest_required_keys_app) - set(
@@ -873,50 +494,33 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 ):
                     self.add_message("prohibited-method-override", node=node, args=(attr.attrname,))
 
-    @utils.only_required_for_messages(
-        "external-request-timeout",
-    )
-    def visit_import(self, node):
-        self._from_imports.update({alias or name: "%s" % name for name, alias in node.names})
-
-    @utils.only_required_for_messages(
-        "external-request-timeout",
-    )
-    def visit_importfrom(self, node):
-        self._from_imports.update({alias or name: "%s.%s" % (node.modname, name) for name, alias in node.names})
-
-    @utils.only_required_for_messages("consider-merging-classes-inherited", "no-wizard-in-models")
+    @utils.only_required_for_messages("consider-merging-classes-inherited")
     def visit_assign(self, node):
-        if self.linter.is_message_enabled(
-            "consider-merging-classes-inherited", node.lineno
-        ) or self.linter.is_message_enabled("no-wizard-in-models"):
-            node_left = node.targets[0]
-            if (
-                not isinstance(node_left, nodes.node_classes.AssignName)
-                or node_left.name not in ("_inherit", "_name")
-                or not isinstance(node.value, nodes.node_classes.Const)
-                or not isinstance(node.parent, nodes.ClassDef)
-            ):
-                return
-            if node_left.name == "_name":
-                node.parent.odoo_attribute_name = node.value.value
-                return
-            odoo_class_name = getattr(node.parent, "odoo_attribute_name", None)
-            odoo_class_inherit = node.value.value
-            # Used in no-wizard-in-models check
-            node.parent.odoo_attribute_inherit = odoo_class_inherit
-            if (
-                not self.linter.is_message_enabled("consider-merging-classes-inherited", node.lineno)
-                or odoo_class_name
-                and odoo_class_name != odoo_class_inherit
-            ):
-                # Skip _name='model.name' _inherit='other.model' because is valid
-                # Skip pylint magic disable comment for consider-merging-classes-inherited
-                return
-            node_dirpath = os.path.dirname(node.root().file)
-            manifest_path = misc.walk_up(node_dirpath, tuple(misc.MANIFEST_FILES), misc.top_path(node_dirpath))
-            if manifest_path:
-                self._odoo_inherit_items[(manifest_path, odoo_class_inherit)].add(node)
+        node_left = node.targets[0]
+        if (
+            not isinstance(node_left, nodes.node_classes.AssignName)
+            or node_left.name not in ("_inherit", "_name")
+            or not isinstance(node.value, nodes.node_classes.Const)
+            or not isinstance(node.parent, nodes.ClassDef)
+        ):
+            return
+        if node_left.name == "_name":
+            node.parent.odoo_attribute_name = node.value.value
+            return
+        odoo_class_name = getattr(node.parent, "odoo_attribute_name", None)
+        odoo_class_inherit = node.value.value
+        if (
+            not self.linter.is_message_enabled("consider-merging-classes-inherited", node.lineno)
+            or odoo_class_name
+            and odoo_class_name != odoo_class_inherit
+        ):
+            # Skip _name='model.name' _inherit='other.model' because is valid
+            # Skip pylint magic disable comment for consider-merging-classes-inherited
+            return
+        node_dirpath = os.path.dirname(node.root().file)
+        manifest_path = misc.walk_up(node_dirpath, tuple(misc.MANIFEST_FILES), misc.top_path(node_dirpath))
+        if manifest_path:
+            self._odoo_inherit_items[(manifest_path, odoo_class_inherit)].add(node)
 
     @staticmethod
     def get_func_name(node):
@@ -925,112 +529,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         )
         return func_name
 
-    def get_func_lib(self, node):
-        if isinstance(node, nodes.Attribute) and isinstance(node.expr, nodes.Name):
-            return node.expr.name
-        return ""
-
-    def check_translation_required(self, node):
-        """Search methods with an untranslated string parameter.
-        Wrong:  ``raise UserError('My String')``
-        Correct: ``raise UserError(_('My String'))``
-        """
-        # TODO: Consider the case where a string variable is used
-        # my_string = 'My String'  # wrong
-        # raise UserError(my_string)  # Detect variable string here
-        if node.exc is None:
-            # ignore empty raise
-            return
-        expr = node.exc
-        if not isinstance(expr, nodes.Call):
-            # ignore raise without a call
-            return
-        if not expr.args:
-            return
-        func_name = self.get_func_name(expr.func)
-
-        argument = expr.args[0]
-        if isinstance(argument, nodes.Call) and "format" == self.get_func_name(argument.func):
-            argument = argument.func.expr
-        elif isinstance(argument, nodes.BinOp):
-            argument = argument.left
-        if self._get_str_value(argument) is not None and func_name in self.linter.config.odoo_exceptions:
-            tl_method = "_"
-            max_valid_odoo_version = self._get_max_valid_odoo_versions()
-            if max_valid_odoo_version is None or max_valid_odoo_version >= (18, 0):
-                tl_method = "self.env._"
-            self.add_message("translation-required", node=node, args=(func_name, "", tl_method, argument.as_string()))
-
-    @utils.only_required_for_messages("translation-required")
-    def visit_raise(self, node):
-        self.check_translation_required(node)
-
-    def get_cursor_name(self, node):
-        expr_list = []
-        node_expr = node.expr
-        while isinstance(node_expr, nodes.Attribute):
-            expr_list.insert(0, node_expr.attrname)
-            node_expr = node_expr.expr
-        if isinstance(node_expr, nodes.Name):
-            expr_list.insert(0, node_expr.name)
-        cursor_name = ".".join(expr_list)
-        return cursor_name
-
     def formatversion(self, version_string):
         valid_odoo_versions = self.linter.config.valid_odoo_versions
         valid_odoo_versions = "|".join(map(re.escape, valid_odoo_versions))
         manifest_version_format = self.linter.config.manifest_version_format
         manifest_version_format_parsed = manifest_version_format.format(valid_odoo_versions=valid_odoo_versions)
         return re.match(manifest_version_format_parsed, version_string), manifest_version_format_parsed
-
-    def join_node_args_kwargs(self, node):
-        """Method to join args and keywords
-        :param node: node to get args and keywords
-        :return: List of args
-        """
-        args = (getattr(node, "args", None) or []) + (getattr(node, "keywords", None) or [])
-        return args
-
-    def get_odoo_models_class(self, node):
-        for class_base in node.bases:
-            attr = class_base
-            while True:
-                if isinstance(attr, nodes.Attribute):
-                    attr = attr.expr
-                    continue
-                break
-            if not isinstance(attr, nodes.Name):
-                continue
-            imported_class = node.lookup(attr.name)[1]
-            if not imported_class:
-                continue
-            imported_class = imported_class[-1]
-            package_names = []
-            if isinstance(imported_class, nodes.ImportFrom):
-                package_names = imported_class.modname.split(".")[:1]
-            elif isinstance(imported_class, nodes.Import):
-                package_names = [name[0].split(".")[0] for name in imported_class.names]
-            if "odoo" in package_names:
-                class_base_name = class_base.as_string().split(".")[-1]
-                if class_base_name in ["Model", "AbstractModel", "TransientModel"]:
-                    return (class_base_name, class_base)
-
-    @utils.only_required_for_messages(
-        "no-wizard-in-models",
-    )
-    def visit_classdef(self, node):
-        self.class_odoo_models = self.get_odoo_models_class(node)
-
-    @utils.only_required_for_messages(
-        "no-wizard-in-models",
-    )
-    def leave_classdef(self, node):
-        if self.class_odoo_models:
-            if (
-                self.linter.is_message_enabled("no-wizard-in-models", self.class_odoo_models[1].lineno)
-                and self.class_odoo_models[0] == "TransientModel"
-                and os.path.basename(os.path.dirname(node.root().file)).startswith("model")
-                and not getattr(node, "odoo_attribute_inherit", "").startswith("res.config")
-            ):
-                self.add_message("no-wizard-in-models", node=self.class_odoo_models[1])
-        self.class_odoo_models = False

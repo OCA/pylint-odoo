@@ -23,22 +23,16 @@ Short Name | Description | Code
 category-allowed | Category "%s" not allowed in manifest file. | C8114
 category-allowed-app | Category "%s" not allowed in manifest file for modules with price. | C8117
 consider-merging-classes-inherited | Consider merging classes inherited to "%s" from %s. | R8180
-external-request-timeout | Use of external request method `%s` without timeout. It could wait for a long time | E8106
 manifest-behind-migrations | Manifest version (%s) is lower than migration scripts (%s) | E8145
-manifest-data-duplicated | The file "%s" is duplicated in lines %s from manifest key "%s" | W8125
 manifest-required-key-app | Missing required key "%s" in manifest file for modules with price. | C8119
 manifest-version-format | Wrong Version Format "%s" in manifest file. Regex to match: "%s" | C8106
 missing-odoo-file | Missing %s file | C8115
 missing-odoo-file-app | Missing %s file for modules with price | C8118
-no-wizard-in-models | No wizard class for model directory. See the complete structure https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#complete-structure | C8113
 prohibited-method-override | Prohibited override of "%s" method. | W8107
-resource-not-exist | File "%s": "%s" not found. | F8101
-sql-injection | SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection | E8103
 translation-format-interpolation | Use %s formatting in odoo._ functions | W8302
 translation-format-truncated | Logging format string ends in middle of conversion specifier | E8301
 translation-fstring-interpolation | Use %s formatting in odoo._ functions | W8303
 translation-not-lazy | Use %s formatting in odoo._ functions | W8301
-translation-required | String parameter on "%s" requires translation. Use %s%s(%s) | C8107
 translation-too-few-args | Not enough arguments for odoo._ format string | E8306
 translation-too-many-args | Too many arguments for odoo._ format string | E8305
 translation-unsupported-format | Unsupported odoo._ format character %r (%#02x) at index %d | E8300
@@ -120,21 +114,11 @@ Checks valid only for odoo >= 14.0
     - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/model_inhe2.py#L19 Consider merging classes inherited to "res.partner" from testing/resources/test_repo/broken_module/models/model_inhe2.py:15:4.
     - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/model_inhe2.py#L56 Consider merging classes inherited to "stock.warehouse.orderpoint" from testing/resources/test_repo/broken_module/models/model_inhe1.py:19:4.
 
- * external-request-timeout
-
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/broken_model.py#L1010 Use of external request method `requests.delete` without timeout. It could wait for a long time
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/broken_model.py#L1011 Use of external request method `requests.get` without timeout. It could wait for a long time
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/broken_model.py#L1012 Use of external request method `requests.head` without timeout. It could wait for a long time
-
  * manifest-behind-migrations
 
     - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module2/__openerp__.py#L2 Manifest version (1.0) is lower than migration scripts (2.0)
     - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/eleven_module/__manifest__.py#L1 Manifest version (11.0.1.0.0) is lower than migration scripts (11.0.1.0.1)
     - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/test_module/__openerp__.py#L2 Manifest version (10.0.1.0.0) is lower than migration scripts (11.0.1.0.0)
-
- * manifest-data-duplicated
-
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/__openerp__.py#L20 The file "duplicated.xml" is duplicated in lines 21 from manifest key "data"
 
  * manifest-required-key-app
 
@@ -151,22 +135,6 @@ Checks valid only for odoo >= 14.0
  * missing-odoo-file-app
 
     - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/__openerp__.py#L2 Missing broken_module/static/description/index.html file for modules with price
-
- * no-wizard-in-models
-
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/broken_model.py#L1167 No wizard class for model directory. See the complete structure https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#complete-structure
-
- * resource-not-exist
-
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/__openerp__.py#L16 File "data": "file_no_exist.xml" not found.
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/__openerp__.py#L20 File "data": "duplicated.xml" not found.
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/__openerp__.py#L25 File "demo": "file_no_exist.xml" not found.
-
- * sql-injection
-
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/broken_model.py#L896 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/broken_model.py#L898 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/broken_model.py#L900 SQL injection risk. Use parameters if you can. - More info https://github.com/OCA/odoo-community.org/blob/master/website/Contribution/CONTRIBUTING.rst#no-sql-injection
 
  * translation-format-interpolation
 
@@ -190,12 +158,6 @@ Checks valid only for odoo >= 14.0
     - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/broken_model.py#L471 Use lazy % or .format() or % formatting in odoo._ functions
     - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/broken_model.py#L472 Use lazy % or .format() or % formatting in odoo._ functions
     - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/broken_model.py#L474 Use lazy % or .format() or % formatting in odoo._ functions
-
- * translation-required
-
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/broken_model.py#L448 String parameter on "message_post" requires translation. Use body=self.env._('Body not translatable %s')
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/broken_model.py#L448 String parameter on "message_post" requires translation. Use subject=self.env._('Subject not translatable')
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.9/testing/resources/test_repo/broken_module/models/broken_model.py#L450 String parameter on "message_post" requires translation. Use body=self.env._('Body not translatable {}')
 
  * translation-too-few-args
 
