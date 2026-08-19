@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import ast as ast_mod
+import inspect
 import os
 import re
 import stat
 import sys
+import textwrap
 from collections import Counter, defaultdict
 from glob import glob
 from io import StringIO
@@ -18,6 +21,7 @@ from pylint.testutils._run import _Run as Run
 from pylint.testutils.utils import _patch_streams
 
 from pylint_odoo import __version__ as version, misc, plugin
+from pylint_odoo.checkers import custom_logging, odoo_addons, vim_comment
 
 RE_CHECK_OUTPUT = re.compile(r"\- \[(?P<check>[\w|-]+)\]")
 
@@ -756,6 +760,57 @@ def fstring_no_sqli(self):
         expected_errors = {"manifest-version-format": 6}
         self.assert_dict_equal(real_errors, expected_errors)
         assert any("Invalid manifest versions format ['8.0saas']" in str(w.message) for w in warn.list)
+
+    def test_message_symbols_in_sync(self):
+        """The message symbols are stringly-typed in three places kept in sync by hand:
+        the "only_required_for_messages" decorator of the visitors, the
+        "is_message_enabled" gates and the "add_message" calls.
+
+        pylint fails open on unknown symbols, "is_message_enabled" returns True
+        swallowing UnknownMessageError, so a typo in a gate is silent dead code.
+        And a symbol missing from the decorator of the visitor emitting it makes
+        the check silently skipped for "--disable=all --enable=that-check" runs
+        since the AST walker does not call the visitor at all.
+
+        Only the string literals directly in each visitor are checked, the
+        symbols used from the helper methods are covered by the module wide scan.
+        """
+        modules = (custom_logging, odoo_addons, vim_comment)
+        known_msgs = set()
+        for module in modules:
+            for msgid, msg_attrs in module.ODOO_MSGS.items():
+                known_msgs.update((msgid, msg_attrs[1]))
+
+        def iter_symbol_literals(tree):
+            for call in ast_mod.walk(tree):
+                if (
+                    not isinstance(call, ast_mod.Call)
+                    or not isinstance(call.func, ast_mod.Attribute)
+                    or call.func.attr not in ("add_message", "is_message_enabled", "is_odoo_message_enabled")
+                    or not call.args
+                    or not isinstance(call.args[0], ast_mod.Constant)
+                    or not isinstance(call.args[0].value, str)
+                ):
+                    continue
+                yield call.args[0].value
+
+        for module in modules:
+            # All the symbols used in the module are registered ones
+            for symbol in iter_symbol_literals(ast_mod.parse(inspect.getsource(module))):
+                assert symbol in known_msgs, f"Unknown message {symbol!r} used in {module.__name__}"
+            for _cls_name, cls in inspect.getmembers(module, inspect.isclass):
+                for method_name, method in inspect.getmembers(cls, inspect.isfunction):
+                    checks_msgs = getattr(method, "checks_msgs", None)
+                    if checks_msgs is None or not method_name.startswith(("visit_", "leave_")):
+                        continue
+                    # Each visitor only uses symbols declared in its decorator
+                    method_tree = ast_mod.parse(textwrap.dedent(inspect.getsource(method)))
+                    for symbol in iter_symbol_literals(method_tree):
+                        assert symbol in checks_msgs, (
+                            f"Message {symbol!r} used in {cls.__name__}.{method_name} but missing in its "
+                            '"only_required_for_messages" decorator so the check is silently skipped '
+                            "when only that message is enabled"
+                        )
 
     def test_top_path(self):
         """Test the top level path is inferred from the first parent path containing a ".git" entry"""
