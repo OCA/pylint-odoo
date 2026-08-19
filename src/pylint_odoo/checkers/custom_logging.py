@@ -4,7 +4,7 @@ from typing import Literal
 from unittest.mock import patch
 
 from astroid import builder, exceptions as astroid_exceptions, nodes
-from pylint.checkers import logging
+from pylint.checkers import logging, utils
 
 from .. import misc
 from .odoo_addons import OdooAddons
@@ -44,6 +44,10 @@ BASE_CHECKS_ID = "83"
 
 ODOO_MSGS = transform_msgs(logging.MSGS)
 
+# Symbols of all the messages emitted by this checker used to skip the visitors
+# from the pylint AST walker when all of them are disabled, e.g. "translation-not-lazy"
+TRANSLATION_MSGS = tuple(msg_attrs[1] for msg_attrs in ODOO_MSGS.values())
+
 
 class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
     name = "odoolint"
@@ -68,6 +72,7 @@ class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
         msgid = msgid.replace("logging", "translation")
         return super().add_message(msgid, *args, **kwargs)
 
+    @utils.only_required_for_messages(*TRANSLATION_MSGS)
     def visit_call(self, node):
         name = OdooAddons.get_func_name(node.func)
         if name == "format" and (new_node := self.transform_formatcall2tlcall(node)):
@@ -87,6 +92,13 @@ class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
         if not (
             isinstance(node, nodes.Call) and isinstance(node.func, nodes.Attribute) and node.func.attrname == "format"
         ):
+            return
+        if not (
+            isinstance(node.func.expr, nodes.Call)
+            and OdooAddons.get_func_name(node.func.expr.func) in misc.TRANSLATION_METHODS
+        ):
+            # A plain '...'.format() can never be a translation call so the
+            # expensive re-parse of the source code below is skipped
             return
 
         format_expr = node.func.expr.as_string()
@@ -127,6 +139,7 @@ class CustomLoggingChecker(OdooBaseChecker, logging.LoggingChecker):
             setattr(new_node, node_attr, getattr(node, node_attr, None))
         return new_node
 
+    @utils.only_required_for_messages(*TRANSLATION_MSGS)
     def visit_binop(self, node):
         if not isinstance(node.left, nodes.Call) or node.op != "%" or OdooAddons.get_func_name(node.left.func) != "_":
             return
