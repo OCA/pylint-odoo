@@ -423,6 +423,10 @@ DFTL_METHOD_REQUIRED_SUPER = [
     "write",
 ]
 DFTL_PROHIBITED_OVERRIDE_METHODS = []
+DEPRECATED_SQL_OPERATORS = ("inselect", "not inselect")
+# Cheap pre-filter of "visit_const" computed once, it is visited for all the
+# constants of the module, including the long docstrings
+DEPRECATED_SQL_OPERATOR_LENGTHS = tuple({len(operator) for operator in DEPRECATED_SQL_OPERATORS})
 DFTL_CURSOR_EXPR = [
     "cr",  # old api
     "self._cr",  # new api
@@ -2180,10 +2184,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     def visit_const(self, node: nodes.Const) -> None:
         if (
             isinstance(node.value, str)
-            # Filter by length before lowering the string since it is visited for
-            # all the constants of the module, including the long docstrings
-            and len(node.value) in (len("inselect"), len("not inselect"))
-            and node.value.lower() in ("inselect", "not inselect")
+            # Filter by length before lowering the string
+            and len(node.value) in DEPRECATED_SQL_OPERATOR_LENGTHS
+            and node.value.lower() in DEPRECATED_SQL_OPERATORS
         ):
             self.add_message("deprecated-inselect-operator", node=node, args=(node.value,))
 
