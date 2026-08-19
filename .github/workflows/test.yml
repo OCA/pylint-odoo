@@ -8,6 +8,10 @@ on:
   pull_request:
     branches:
       - main
+  # Used by the "release" workflow to publish the tag it just pushed. A tag pushed
+  # with the GITHUB_TOKEN does not emit the push event that would start this
+  # workflow, but "workflow_dispatch" is the documented exception to that rule
+  workflow_dispatch:
 
 env:
   CACHE_VERSION: 1
@@ -66,10 +70,11 @@ jobs:
     - name: Test
       run: tox -e ${{ matrix.tox_env }} -v
     # Publishes both the tags pushed from a checkout, e.g. "bump2version" run in a
-    # laptop, and the ones pushed by the "release" workflow. The latter are not GPG
-    # signed since no key is available in the runner
+    # laptop, and the ones dispatched by the "release" workflow. The latter are not
+    # GPG signed since no key is available in the runner.
+    # Only the ref is checked, not the event, so the dispatched runs publish too
     - name: Publish package
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && contains(matrix.tox_env, 'build')
+      if: startsWith(github.ref, 'refs/tags') && contains(matrix.tox_env, 'build')
       run: |
         ls -lah dist/*
         python -m twine upload --verbose -u __token__ -p ${{ secrets.PYPI_API_TOKEN }} --repository-url https://upload.pypi.org/legacy/ dist/*
