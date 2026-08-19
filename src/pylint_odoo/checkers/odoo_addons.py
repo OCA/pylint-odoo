@@ -1110,34 +1110,28 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     )
     def visit_call(self, node):
         if (
-            self.linter.is_message_enabled("print-used", node.lineno)
-            and isinstance(node.func, nodes.Name)
+            isinstance(node.func, nodes.Name)
             and node.func.name == "print"
+            and self.linter.is_message_enabled("print-used", node.lineno)
         ):
             infer_node = utils.safe_infer(node.func)
             if utils.is_builtin_object(infer_node) and infer_node.name == "print":
                 self.add_message("print-used", node=node)
         if (
-            "fields" == self.get_func_lib(node.func)
-            and isinstance(node.parent, nodes.Assign)
+            isinstance(node.parent, nodes.Assign)
             and isinstance(node.parent.parent, nodes.ClassDef)
+            and "fields" == self.get_func_lib(node.func)
         ):
-            args = self.join_node_args_kwargs(node)
-            index = 0
-            field_name = ""
-            if (
-                isinstance(node.parent, nodes.Assign)
-                and node.parent.targets
-                and isinstance(node.parent.targets[0], nodes.AssignName)
-            ):
-                field_name = node.parent.targets[0].name.removesuffix("_ids").removesuffix("_id").replace("_", " ")
-            is_related = any(kw.arg == "related" for kw in (node.keywords or []))
-            arg_string_value = self._get_field_arg_string(node)
-            if not is_related and arg_string_value == field_name.title():
-                # Check this 'name = fields.Char("name")'
-                # Check this 'name = fields.Char(string="name")'
-                self.add_message("attribute-string-redundant", node=node)
-            for argument in args:
+            if self.linter.is_message_enabled("attribute-string-redundant", node.lineno):
+                field_name = ""
+                if node.parent.targets and isinstance(node.parent.targets[0], nodes.AssignName):
+                    field_name = node.parent.targets[0].name.removesuffix("_ids").removesuffix("_id").replace("_", " ")
+                is_related = any(kw.arg == "related" for kw in (node.keywords or []))
+                if not is_related and self._get_field_arg_string(node) == field_name.title():
+                    # Check this 'name = fields.Char("name")'
+                    # Check this 'name = fields.Char(string="name")'
+                    self.add_message("attribute-string-redundant", node=node)
+            for argument in self.join_node_args_kwargs(node):
                 argument_aux = argument
                 if isinstance(argument, nodes.Keyword):
                     argument_aux = argument.value
@@ -1155,9 +1149,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         )
                     # no write in compute method
                     if (
-                        self.linter.is_message_enabled("no-write-in-compute", argument.lineno)
-                        and argument.arg == "compute"
+                        argument.arg == "compute"
                         and isinstance(argument.value, (nodes.Const, nodes.Name))
+                        and self.linter.is_message_enabled("no-write-in-compute", argument.lineno)
                     ):
                         method_name = (
                             argument.value.value
@@ -1167,9 +1161,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                         if method_name and self.class_odoo_models:
                             self.odoo_computes.add(method_name)
                     if (
-                        self.linter.is_message_enabled("inheritable-method-string", node.lineno)
-                        and argument.arg in ["compute", "search", "inverse"]
+                        argument.arg in ["compute", "search", "inverse"]
                         and isinstance(argument.value, nodes.Name)
+                        and self.linter.is_message_enabled("inheritable-method-string", node.lineno)
                     ):
                         # Check if the value is a method of the class
                         infered = utils.safe_infer(argument.value)
@@ -1178,9 +1172,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                                 "inheritable-method-string", node=argument.value, args=(argument.value.name,)
                             )
                     if (
-                        self.linter.is_message_enabled("inheritable-method-lambda", node.lineno)
-                        and argument.arg in ["default", "domain"]
+                        argument.arg in ["default", "domain"]
                         and isinstance(argument.value, nodes.Name)
+                        and self.linter.is_message_enabled("inheritable-method-lambda", node.lineno)
                     ):
                         # Check if the value is a method of the class
                         infered = utils.safe_infer(argument.value)
@@ -1199,22 +1193,21 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                     and self.get_func_name(argument_aux.func) in misc.TRANSLATION_METHODS
                 ):
                     self.add_message("translation-field", node=argument_aux)
-                index += 1
         # Check cr.commit()
         if (
-            isinstance(node, nodes.Call)
-            and isinstance(node.func, nodes.Attribute)
+            isinstance(node.func, nodes.Attribute)
             and node.func.attrname == "commit"
+            and self.linter.is_message_enabled("invalid-commit", node.lineno)
             and self.get_cursor_name(node.func) in self.linter.config.cursor_expr
         ):
             self.add_message("invalid-commit", node=node)
 
         if (
-            isinstance(node, nodes.Call)
-            and isinstance(node.func, nodes.Attribute)
+            isinstance(node.func, nodes.Attribute)
             and node.func.attrname == "with_context"
             and not node.keywords
             and node.args
+            and self.linter.is_message_enabled("context-overridden", node.lineno)
             # support self.with_context(clean_context(self.env.context))
             # does not support ctx = clean_context(self.env.context);self.with_context(ctx)
             and self._static_func_infer_name(node.args[0]) != "odoo.tools.clean_context"
@@ -1224,12 +1217,11 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             self.add_message("context-overridden", node=node, args=(node.args[0].as_string(),))
 
         # Call the message_post()
-        base_dirname = os.path.basename(os.path.normpath(os.path.dirname(self.linter.current_file)))
         if (
-            base_dirname != "tests"
-            and isinstance(node, nodes.Call)
-            and isinstance(node.func, nodes.Attribute)
+            isinstance(node.func, nodes.Attribute)
             and node.func.attrname == "message_post"
+            and self.linter.is_message_enabled("translation-required", node.lineno)
+            and os.path.basename(os.path.normpath(os.path.dirname(self.linter.current_file))) != "tests"
         ):
             for arg in itertools.chain(node.args, node.keywords or []):
                 if isinstance(arg, nodes.Keyword):
@@ -1277,8 +1269,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
         if (
             isinstance(node.func, nodes.Attribute)
-            and self.get_func_name(node.func) == "format"
+            and node.func.attrname == "format"
             and isinstance(node.func.expr, nodes.Call)
+            and self.linter.is_message_enabled("translation-injection", node.lineno)
             and self.get_func_name(node.func.expr.func) in misc.TRANSLATION_METHODS
         ):
             # _(...).format(...)
@@ -1287,75 +1280,81 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             self.add_message("translation-injection", node=node)
 
         # Call _(...) with variables into the term to be translated
-        if self.get_func_name(node.func) in misc.TRANSLATION_METHODS and node.args:
+        if node.args and self.get_func_name(node.func) in misc.TRANSLATION_METHODS:
             # "_" -> isinstance(node.func, nodes.Name)
             # "self.env._" -> isinstance(node.func, nodes.Attribute)
-            if isinstance(node.func, nodes.Name) and node.func.as_string() in misc.TRANSLATION_METHODS:
+            if isinstance(node.func, nodes.Name) and node.func.name in misc.TRANSLATION_METHODS:
                 self.add_message("prefer-env-translation", node=node)
 
-            wrong = ""
-            right = ""
             arg = node.args[0]
-
-            # case: _('...' % (variables))
-            if isinstance(arg, nodes.BinOp) and arg.op == "%":
-                wrong = "%s %% %s" % (arg.left.as_string(), arg.right.as_string())
-                right = "_(%s) %% %s" % (arg.left.as_string(), arg.right.as_string())
-            # Case: _('...'.format(variables))
-            elif (
-                isinstance(arg, nodes.Call)
-                and isinstance(arg.func, nodes.Attribute)
-                and isinstance(arg.func.expr, nodes.Const)
-                and self.get_func_name(arg.func) == "format"
-            ):
-                wrong = arg.as_string()
-                params_as_string = ", ".join([x.as_string() for x in itertools.chain(arg.args, arg.keywords or [])])
-                right = "_(%s).format(%s)" % (arg.func.expr.as_string(), params_as_string)
-            if wrong and right:
-                self.add_message("translation-contains-variable", node=node, args=(wrong, right))
+            if self.linter.is_message_enabled(
+                "translation-contains-variable", node.lineno
+            ) and self.is_odoo_message_enabled("translation-contains-variable"):
+                wrong = ""
+                right = ""
+                # case: _('...' % (variables))
+                if isinstance(arg, nodes.BinOp) and arg.op == "%":
+                    wrong = "%s %% %s" % (arg.left.as_string(), arg.right.as_string())
+                    right = "_(%s) %% %s" % (arg.left.as_string(), arg.right.as_string())
+                # Case: _('...'.format(variables))
+                elif (
+                    isinstance(arg, nodes.Call)
+                    and isinstance(arg.func, nodes.Attribute)
+                    and isinstance(arg.func.expr, nodes.Const)
+                    and arg.func.attrname == "format"
+                ):
+                    wrong = arg.as_string()
+                    params_as_string = ", ".join(
+                        [x.as_string() for x in itertools.chain(arg.args, arg.keywords or [])]
+                    )
+                    right = "_(%s).format(%s)" % (arg.func.expr.as_string(), params_as_string)
+                if wrong and right:
+                    self.add_message("translation-contains-variable", node=node, args=(wrong, right))
 
             # translation-positional-used: Check "string to translate"
             # to check "%s %s..." used where the position can't be changed
-            str2translate = arg.as_string()
-            printf_args = self._get_printf_str_args_kwargs(str2translate)
-            format_args = self._get_format_str_args_kwargs(str2translate)[0]
-            if isinstance(printf_args, tuple) and len(printf_args) >= 2 or len(format_args) >= 2:
-                # Return tuple for %s and dict for %(varname)s
-                # Check just the following cases "%s %s..."
-                self.add_message("translation-positional-used", node=node, args=(str2translate,))
+            if self.linter.is_message_enabled("translation-positional-used", node.lineno):
+                str2translate = arg.as_string()
+                printf_args = self._get_printf_str_args_kwargs(str2translate)
+                format_args = self._get_format_str_args_kwargs(str2translate)[0]
+                if isinstance(printf_args, tuple) and len(printf_args) >= 2 or len(format_args) >= 2:
+                    # Return tuple for %s and dict for %(varname)s
+                    # Check just the following cases "%s %s..."
+                    self.add_message("translation-positional-used", node=node, args=(str2translate,))
 
         # SQL Injection
-        if self._check_sql_injection_risky(node):
+        if self.linter.is_message_enabled("sql-injection", node.lineno) and self._check_sql_injection_risky(node):
             self.add_message("sql-injection", node=node)
 
         # external-request-timeout
-        lib_original_func_name = self._static_func_infer_name(node)
-        if lib_original_func_name in self.linter.config.external_request_timeout_methods:
-            for argument in self.join_node_args_kwargs(node):
-                if not isinstance(argument, nodes.Keyword):
-                    continue
-                if argument.arg == "timeout":
-                    break
-            else:
-                self.add_message("external-request-timeout", node=node, args=(lib_original_func_name,))
-        if self.linter.is_message_enabled("bad-builtin-groupby", node.lineno) and node.func.as_string().endswith(
-            "groupby"
-        ):
-            if node.func.as_string() == "itertools.groupby":
+        if self.linter.is_message_enabled("external-request-timeout", node.lineno):
+            lib_original_func_name = self._static_func_infer_name(node)
+            if lib_original_func_name in self.linter.config.external_request_timeout_methods:
+                for argument in self.join_node_args_kwargs(node):
+                    if not isinstance(argument, nodes.Keyword):
+                        continue
+                    if argument.arg == "timeout":
+                        break
+                else:
+                    self.add_message("external-request-timeout", node=node, args=(lib_original_func_name,))
+        if self.linter.is_message_enabled("bad-builtin-groupby", node.lineno) and (
+            func_as_string := node.func.as_string()
+        ).endswith("groupby"):
+            if func_as_string == "itertools.groupby":
                 self.add_message("bad-builtin-groupby", node=node)
-            elif not node.func.as_string().endswith("tools.groupby"):
+            elif not func_as_string.endswith("tools.groupby"):
                 # infer node is heavy so discarding cases early to improve perf
                 infer_node = utils.safe_infer(node.func)
                 if infer_node and infer_node.qname() == "itertools.groupby":
                     self.add_message("bad-builtin-groupby", node=node)
         if (
-            self.linter.is_message_enabled("no-search-all", node.lineno)
-            # only odoo valid structure class -> def -> search()
-            and isinstance(node.scope(), nodes.FunctionDef)
-            and isinstance(node.scope().parent, nodes.ClassDef)
-            and self.get_odoo_models_class(node.scope().parent)
+            (node.args or node.keywords)
             and self.get_func_name(node.func) in ("search", "search_read")
-            and (node.args or node.keywords)
+            and self.linter.is_message_enabled("no-search-all", node.lineno)
+            # only odoo valid structure class -> def -> search()
+            and isinstance((scope := node.scope()), nodes.FunctionDef)
+            and isinstance(scope.parent, nodes.ClassDef)
+            and self.get_odoo_models_class(scope.parent)
         ):
             if node.args:
                 domain = node.args[0]
@@ -1404,6 +1403,7 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         if (
             isinstance(node.func, nodes.Attribute)
             and isinstance(node.func.expr, nodes.Call)
+            and self.linter.is_message_enabled("super-method-mismatch", node.lineno)
             and (func := node.func.expr.func)
             and self.get_func_name(func) == "super"
             and (frame := node.frame())
@@ -1721,7 +1721,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             self.add_message("deprecated-odoo-model-method", node=node, args=(node.name,))
         if self.is_odoo_message_enabled("deprecated-name-get") and node.name == "name_get":
             self.add_message("deprecated-name-get", node=node)
-        if node.name in self.linter.config.method_required_super:
+        if node.name in self.linter.config.method_required_super and self.linter.is_message_enabled(
+            "method-required-super", node.lineno
+        ):
             calls = [
                 call_func.func.name
                 for call_func in node.nodes_of_class((nodes.Call,))
@@ -1729,6 +1731,14 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             ]
             if "super" not in calls:
                 self.add_message("method-required-super", node=node, args=(node.name,))
+
+        check_override = bool(
+            self.linter.config.prohibited_method_override or DFTL_PROHIBITED_OVERRIDE_METHODS
+        ) and self.linter.is_message_enabled("prohibited-method-override", node.lineno)
+        check_missing_return = self.linter.is_message_enabled("missing-return", node.lineno)
+        if not check_override and not check_missing_return:
+            # Both of them need to traverse the whole method looking for "super()"
+            return
 
         there_is_super = False
         for stmt in node.nodes_of_class(nodes.Call):
@@ -1738,7 +1748,8 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 break
 
         # Verify if super attributes are prohibited methods to override
-        if there_is_super and self.linter.config.prohibited_method_override or DFTL_PROHIBITED_OVERRIDE_METHODS:
+        # check_override already discards the case where both lists are empty
+        if check_override and (there_is_super or DFTL_PROHIBITED_OVERRIDE_METHODS):
             for attr in node.nodes_of_class(nodes.Attribute):
                 if attr.attrname != node.name or not hasattr(attr.expr, "func"):
                     continue
@@ -1749,10 +1760,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
                 ):
                     self.add_message("prohibited-method-override", node=node, args=(attr.attrname,))
 
-        there_is_return = any(node.nodes_of_class(nodes.Return, skip_klass=(nodes.FunctionDef, nodes.ClassDef)))
         if (
-            there_is_super
-            and not there_is_return
+            check_missing_return
+            and there_is_super
+            and not any(node.nodes_of_class(nodes.Return, skip_klass=(nodes.FunctionDef, nodes.ClassDef)))
             and not node.is_generator()
             and node.name not in self.linter.config.no_missing_return
         ):
@@ -1791,13 +1802,12 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     def visit_assign(self, node):
         node_left = node.targets[0]
         if (
-            self.linter.is_message_enabled("attribute-deprecated", node.lineno)
-            and isinstance(node.parent, nodes.ClassDef)
+            isinstance(node.parent, nodes.ClassDef)
             and isinstance(node_left, nodes.AssignName)
+            and node_left.name in self.linter.config.attribute_deprecated
             and [1 for m in node.parent.basenames if "Model" in m]
         ):
-            if node_left.name in self.linter.config.attribute_deprecated:
-                self.add_message("attribute-deprecated", node=node_left, args=(node_left.name,))
+            self.add_message("attribute-deprecated", node=node_left, args=(node_left.name,))
         if self.linter.is_message_enabled(
             "consider-merging-classes-inherited", node.lineno
         ) or self.linter.is_message_enabled("no-wizard-in-models"):
@@ -2055,15 +2065,19 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             if "tests" in package_names:
                 self.add_message("test-folder-imported", node=node, args=(node.parent.name,))
 
-    def check_no_write_compute(self, node, method_name):
+    def check_no_write_compute(self, node):
+        """Look for "write" calls inside the compute methods collected for the class
+
+        The whole class is traversed only once for all the compute methods instead
+        of traversing it again for each one of them
+        """
         for node_function_def in node.nodes_of_class(nodes.FunctionDef):
-            if node_function_def.name != method_name:
+            if node_function_def.name not in self.odoo_computes:
                 continue
             for node_compute_call in node_function_def.nodes_of_class(nodes.Call):
-                if (
-                    not self.linter.is_message_enabled("no-write-in-compute", node_compute_call.lineno)
-                    or self.get_func_name(node_compute_call.func) != "write"
-                ):
+                if self.get_func_name(node_compute_call.func) != "write":
+                    continue
+                if not self.linter.is_message_enabled("no-write-in-compute", node_compute_call.lineno):
                     continue
                 if self.get_func_lib(node_compute_call.func) == "self":
                     # self.write(...)
@@ -2150,11 +2164,11 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
     )
     def leave_classdef(self, node):
         if self.class_odoo_models:
-            for odoo_compute in self.odoo_computes:
-                self.check_no_write_compute(node, odoo_compute)
+            if self.odoo_computes:
+                self.check_no_write_compute(node)
             if (
-                self.linter.is_message_enabled("no-wizard-in-models", self.class_odoo_models[1].lineno)
-                and self.class_odoo_models[0] == "TransientModel"
+                self.class_odoo_models[0] == "TransientModel"
+                and self.linter.is_message_enabled("no-wizard-in-models", self.class_odoo_models[1].lineno)
                 and os.path.basename(os.path.dirname(node.root().file)).startswith("model")
                 and not getattr(node, "odoo_attribute_inherit", "").startswith("res.config")
             ):
@@ -2164,18 +2178,21 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
     @utils.only_required_for_messages("deprecated-inselect-operator")
     def visit_const(self, node: nodes.Const) -> None:
-        if isinstance(node.value, str) and self.linter.is_message_enabled("deprecated-inselect-operator", node.lineno):
-            val_lower = node.value.lower()
-            if val_lower in ("inselect", "not inselect"):
-                self.add_message("deprecated-inselect-operator", node=node, args=(node.value,))
+        if (
+            isinstance(node.value, str)
+            # Filter by length before lowering the string since it is visited for
+            # all the constants of the module, including the long docstrings
+            and len(node.value) in (len("inselect"), len("not inselect"))
+            and node.value.lower() in ("inselect", "not inselect")
+        ):
+            self.add_message("deprecated-inselect-operator", node=node, args=(node.value,))
 
     @utils.only_required_for_messages(
         "deprecated-self-cr",
     )
     def visit_attribute(self, node: nodes.Attribute) -> None:
         if (
-            self.linter.is_message_enabled("deprecated-self-cr", node.lineno)
-            and node.attrname == "_cr"
+            node.attrname == "_cr"
             and isinstance(node.expr, nodes.Name)
             and node.expr.name == "self"
             and self.class_odoo_models
