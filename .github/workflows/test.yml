@@ -65,7 +65,9 @@ jobs:
         pip list --format=freeze
     - name: Test
       run: tox -e ${{ matrix.tox_env }} -v
-    # TODO: Publish package only for signed tags
+    # Publishes both the tags pushed from a checkout, e.g. "bump2version" run in a
+    # laptop, and the ones pushed by the "release" workflow. The latter are not GPG
+    # signed since no key is available in the runner
     - name: Publish package
       if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && contains(matrix.tox_env, 'build')
       run: |

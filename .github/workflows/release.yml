@@ -1,0 +1,76 @@
+name: release
+run-name: "release ${{ inputs.part }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      part:
+        description: 'Part of the version to bump'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+
+# Only one release at a time. Without "cancel-in-progress" on purpose: aborting a
+# release half way could leave the bump commit pushed without its tag
+concurrency: release
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    # Releases are cut only from the canonical repository and only from "main"
+    if: github.repository == 'OCA/pylint-odoo' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        # "pbr" generates the ChangeLog from the full history
+        fetch-depth: 0
+        # A tag pushed with the GITHUB_TOKEN does not trigger the "build" workflow,
+        # so it would never be published. RELEASE_TOKEN is a fine grained personal
+        # access token with "Contents: Read and write" on this repository
+        token: ${{ secrets.RELEASE_TOKEN }}
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.14'
+        cache: 'pip'
+
+    - name: install dependencies
+      run: |
+        python -mpip install --progress-bar=off -r test-requirements.txt
+        pip list --format=freeze
+
+    - name: Check there is something to release
+      run: |
+        set -euo pipefail
+        head_subject=$(git log -1 --format=%s)
+        # Do not bump twice in a row. The previous bump could come from another run
+        # of this workflow or from a "bump2version" run in a laptop, both of them
+        # leave the release commit as the last commit of "main"
+        if [ "${head_subject#Bump version:}" != "$head_subject" ]; then
+          echo "::error::Nothing to release, the last commit of main is already a release: ${head_subject}"
+          exit 1
+        fi
+
+    # Same checks the tag will run, but before creating the release, so a broken
+    # build never becomes a published version. It also dry-runs bump2version to
+    # confirm the search patterns still match the files to patch
+    - name: Validate the release
+      run: tox -e build -v
+
+    # Same commands used to release from a checkout. The tag is not signed since
+    # no GPG key is available here, "sign_tags = True" only applies to the local
+    # releases. Pushing it triggers the "build" workflow, which uploads to pypi
+    - name: Release
+      run: |
+        set -euo pipefail
+        git config user.name "${{ github.actor }}"
+        git config user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+        bump2version "${{ inputs.part }}" --no-sign-tags --verbose
+        git push origin main --tags
