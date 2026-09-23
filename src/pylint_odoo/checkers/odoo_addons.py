@@ -422,6 +422,18 @@ DFTL_METHOD_REQUIRED_SUPER = [
     "unlink",
     "write",
 ]
+# The subset only ever overridden on a model. The rest belong to test cases,
+# whose bases cannot be recognised without importing Odoo, so they are exempt.
+MODEL_METHODS_REQUIRED_SUPER = frozenset(
+    {
+        "copy",
+        "create",
+        "default_get",
+        "read",
+        "unlink",
+        "write",
+    }
+)
 DFTL_PROHIBITED_OVERRIDE_METHODS = []
 DEPRECATED_SQL_OPERATORS = ("inselect", "not inselect")
 # Cheap pre-filter of "visit_const" computed once, it is visited for all the
@@ -1706,6 +1718,24 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
 
         return node.name in self._deprecated_odoo_methods
 
+    def check_method_required_super(self, node: nodes.NodeNG) -> bool:
+        """Verify the given method calls `super` where it is required to.
+        :param node: Function definition to be checked
+        :return: True if the call is required and missing, false otherwise.
+        """
+        if node.name not in self.linter.config.method_required_super:
+            return False
+        if node.name in MODEL_METHODS_REQUIRED_SUPER:
+            try:
+                if not self.get_odoo_models_class(node.parent):
+                    return False
+            except AttributeError:
+                return False
+        return not any(
+            isinstance(call.func, nodes.Name) and call.func.name == "super"
+            for call in node.nodes_of_class((nodes.Call,))
+        )
+
     @utils.only_required_for_messages(
         "deprecated-name-get",
         "deprecated-odoo-model-method",
@@ -1725,16 +1755,10 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             self.add_message("deprecated-odoo-model-method", node=node, args=(node.name,))
         if self.is_odoo_message_enabled("deprecated-name-get") and node.name == "name_get":
             self.add_message("deprecated-name-get", node=node)
-        if node.name in self.linter.config.method_required_super and self.linter.is_message_enabled(
-            "method-required-super", node.lineno
+        if self.linter.is_message_enabled("method-required-super", node.lineno) and self.check_method_required_super(
+            node
         ):
-            calls = [
-                call_func.func.name
-                for call_func in node.nodes_of_class((nodes.Call,))
-                if isinstance(call_func.func, nodes.Name)
-            ]
-            if "super" not in calls:
-                self.add_message("method-required-super", node=node, args=(node.name,))
+            self.add_message("method-required-super", node=node, args=(node.name,))
 
         check_override = bool(
             self.linter.config.prohibited_method_override or DFTL_PROHIBITED_OVERRIDE_METHODS
