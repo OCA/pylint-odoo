@@ -83,7 +83,7 @@ EXPECTED_ERRORS = {
     "no-write-in-compute": 16,
     "odoo-addons-relative-import": 4,
     "odoo-exception-warning": 4,
-    "prefer-env-translation": 112,
+    "prefer-env-translation": 58,
     "print-used": 1,
     "renamed-field-parameter": 2,
     "resource-not-exist": 4,
@@ -526,6 +526,39 @@ def fstring_no_sqli(self):
 
         real_errors = pylint_res.linter.stats.by_msg
         self.assert_dict_equal(real_errors, {"sql-injection": 4})
+
+    def test_prefer_env_translation_lazy_translate(self):
+        """Verify LazyTranslate is not reported: it defers the lookup and is
+        the way to translate where there is no env to reach."""
+        extra_params = ["--disable=all", "--enable=prefer-env-translation"]
+        code = """
+from odoo import models
+from odoo.tools import LazyTranslate
+
+_lt = LazyTranslate(__name__)
+
+LABELS = {"greeting": _lt("Hello")}
+
+
+class Model(models.Model):
+    def method(self):
+        lazy = _lt("Deferred")
+        good = self.env._("Reported by nothing")
+        bad = _("Reported")
+        return lazy, good, bad
+"""
+        with TemporaryDirectory() as tmp_dir:
+            tmp_path = os.path.join(tmp_dir, "lazy_translate.py")
+            with open(tmp_path, "w", encoding="utf-8") as tmp_f:
+                tmp_f.write(code)
+            pylint_res = self.run_pylint([tmp_path], extra_params)
+
+        real_errors = pylint_res.linter.stats.by_msg
+        self.assert_dict_equal(
+            real_errors,
+            {"prefer-env-translation": 1},
+            "Only the bare `_` call is reported, neither of the two `_lt` ones nor `self.env._`",
+        )
 
     @pytest.mark.parametrize("expected_error_name", EXPECTED_ERRORS)
     def test_150_check_only_enabled_one_check(self, expected_error_name):
