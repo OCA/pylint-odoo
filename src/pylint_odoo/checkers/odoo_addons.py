@@ -1287,7 +1287,9 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
         if node.args and self.get_func_name(node.func) in misc.TRANSLATION_METHODS:
             # "_" -> isinstance(node.func, nodes.Name)
             # "self.env._" -> isinstance(node.func, nodes.Attribute)
-            if isinstance(node.func, nodes.Name) and node.func.name in misc.TRANSLATION_METHODS:
+            # "_lt" is LazyTranslate, which defers the lookup to __str__
+            # rather than returning a string, so self.env._ does not replace it.
+            if isinstance(node.func, nodes.Name) and node.func.name == "_":
                 self.add_message("prefer-env-translation", node=node)
 
             arg = node.args[0]
