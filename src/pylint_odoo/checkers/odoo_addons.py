@@ -2200,6 +2200,6 @@ class OdooAddons(OdooBaseChecker, BaseChecker):
             node.attrname == "_cr"
             and isinstance(node.expr, nodes.Name)
             and node.expr.name == "self"
-            and self.class_odoo_models
+            and getattr(self, "class_odoo_models", False)
         ):
             self.add_message("deprecated-self-cr", node=node)
