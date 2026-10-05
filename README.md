@@ -329,9 +329,9 @@ Checks valid only for odoo <= 13.0
 
  * method-required-super
 
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L40 Missing `super` call in "copy" method.
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L44 Missing `super` call in "create" method.
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L48 Missing `super` call in "write" method.
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L61 Missing `super` call in "setUp" method.
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L65 Missing `super` call in "tearDown" method.
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L76 Missing `super` call in "copy" method.
 
  * method-search
 
@@ -348,7 +348,7 @@ Checks valid only for odoo <= 13.0
 
  * missing-return
 
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L24 Missing `return` (`super` is used) in method inherited_method.
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L25 Missing `return` (`super` is used) in method inherited_method.
 
  * no-raise-unlink
 
@@ -381,7 +381,7 @@ Checks valid only for odoo <= 13.0
 
     - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L10 `odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` use `from odoo.exceptions import UserError`
     - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L11 `odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` use `from odoo.exceptions import UserError`
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L8 `odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` use `from odoo.exceptions import UserError`
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L12 `odoo.exceptions.Warning` is a deprecated alias to `odoo.exceptions.UserError` use `from odoo.exceptions import UserError`
 
  * prefer-env-translation
 
@@ -492,7 +492,7 @@ Checks valid only for odoo <= 13.0
 
  * use-vim-comment
 
-    - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L108 Use of vim comment
+    - https://github.com/OCA/pylint-odoo/blob/v10.0.11/testing/resources/test_repo/broken_module/pylint_oca_broken.py#L136 Use of vim comment
 
  * website-manifest-key-not-valid-uri
 

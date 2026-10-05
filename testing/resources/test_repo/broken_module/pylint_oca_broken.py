@@ -5,6 +5,7 @@ import openerp
 from openerp import api
 from openerp.api import one, multi
 
+from odoo import models
 from odoo.exceptions import Warning as UserError  # pylint: disable=W0622
 from odoo.exceptions import Warning as OtherName  # pylint: disable=W0404
 from odoo.exceptions import Warning  # pylint: disable=W0404,W0622
@@ -62,6 +63,33 @@ class ApiOne(object):
         pass
 
     def tearDown(self):
+        # Missing super()
+        pass
+
+    def default_get(self):
+        # Missing super()
+        pass
+
+
+class ModelMissingSuper(models.Model):
+    # Reported here, on a model, not on a class sharing the names.
+    def copy(self):
+        # Missing super()
+        pass
+
+    def create(self):
+        # Missing super()
+        pass
+
+    def write(self):
+        # Missing super()
+        pass
+
+    def unlink(self):
+        # Missing super()
+        pass
+
+    def read(self):
         # Missing super()
         pass
 
